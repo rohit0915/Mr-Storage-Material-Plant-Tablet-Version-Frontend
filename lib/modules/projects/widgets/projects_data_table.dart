@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import '../../../app/routes/app_routes.dart';
 import '../../../app/utils/app_colors.dart';
 import '../model/projects_model.dart';
 
@@ -184,26 +186,30 @@ class ProjectsDataTable extends StatelessWidget {
                         // Customer with Avatar
                         Expanded(
                           flex: 3,
-                          child: Row(
-                            children: [
-                              CircleAvatar(
-                                radius: 12,
-                                backgroundColor: AppColors.primary,
-                                child: Icon(Icons.person, color: Colors.white, size: 14),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  row.customerName,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.textPrimary,
+                          child: GestureDetector(
+                            onTap: () => Get.toNamed(AppRoutes.customerInfo),
+                            child: Row(
+                              children: [
+                                CircleAvatar(
+                                  radius: 12,
+                                  backgroundColor: AppColors.primary,
+                                  child: const Icon(Icons.person, color: Colors.white, size: 14),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    row.customerName,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.primary,
+                                      decoration: TextDecoration.underline,
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                         // Buildings

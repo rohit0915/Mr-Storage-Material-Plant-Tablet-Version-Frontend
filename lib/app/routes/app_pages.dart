@@ -1,4 +1,6 @@
 import 'package:get/get.dart';
+import '../../modules/customer_info/binding/customer_info_binding.dart';
+import '../../modules/customer_info/view/customer_info_view.dart';
 import '../../modules/home/binding/home_binding.dart';
 import '../../modules/home/view/home_view.dart';
 import '../../modules/onboarding/binding/onboarding_binding.dart';
@@ -22,6 +24,11 @@ class AppPages {
       name: AppRoutes.projects,
       page: () => const ProjectsView(),
       binding: ProjectsBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.customerInfo,
+      page: () => const CustomerInfoView(),
+      binding: CustomerInfoBinding(),
     ),
     GetPage(
       name: AppRoutes.onboarding,

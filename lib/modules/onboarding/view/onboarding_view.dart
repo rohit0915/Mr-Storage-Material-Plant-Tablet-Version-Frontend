@@ -3,7 +3,6 @@ import 'package:get/get.dart';
 import 'package:steel_building_plant_panel/app/utils/app_images.dart';
 import '../../../app/utils/app_colors.dart';
 import '../../../app/utils/app_text_styles.dart';
-import '../../../app/widgets/common_button.dart';
 import '../controller/onboarding_controller.dart';
 
 class OnboardingView extends GetView<OnboardingController> {

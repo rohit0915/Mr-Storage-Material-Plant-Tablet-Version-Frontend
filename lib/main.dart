@@ -29,8 +29,6 @@ class MyApp extends StatelessWidget {
       initialBinding: InitialBinding(),
       initialRoute: AppPages.initial,
       getPages: AppPages.routes,
-      // If we don't have the initial route yet, we can fallback to a dummy widget
-      home: const Scaffold(body: Center(child: Text('App Initialized Successfully'))),
     );
   }
 }

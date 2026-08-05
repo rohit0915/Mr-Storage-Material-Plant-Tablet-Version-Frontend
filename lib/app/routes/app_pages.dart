@@ -5,16 +5,23 @@ import '../../modules/onboarding/binding/onboarding_binding.dart';
 import '../../modules/onboarding/view/onboarding_view.dart';
 import '../../modules/login/binding/login_binding.dart';
 import '../../modules/login/view/login_view.dart';
+import '../../modules/projects/binding/projects_binding.dart';
+import '../../modules/projects/view/projects_view.dart';
 import 'app_routes.dart';
 
 class AppPages {
-  static const initial = AppRoutes.onboarding;
+  static const initial = AppRoutes.home;
 
   static final routes = [
     GetPage(
       name: AppRoutes.home,
       page: () => const HomeView(),
       binding: HomeBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.projects,
+      page: () => const ProjectsView(),
+      binding: ProjectsBinding(),
     ),
     GetPage(
       name: AppRoutes.onboarding,

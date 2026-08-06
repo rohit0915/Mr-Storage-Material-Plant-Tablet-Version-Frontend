@@ -303,7 +303,7 @@ class ProjectsDataTable extends StatelessWidget {
                           child: Row(
                             children: [
                               GestureDetector(
-                                onTap: () {},
+                                onTap: () => Get.toNamed(AppRoutes.projectDetails),
                                 child: Container(
                                   width: 28,
                                   height: 28,

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import '../../../app/routes/app_routes.dart';
 import '../../../app/utils/app_colors.dart';
 import '../model/customer_info_model.dart';
 
@@ -120,75 +122,79 @@ class CustomerProjectsTable extends StatelessWidget {
               final row = projects[index];
               return Column(
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          flex: 2,
-                          child: Text(
-                            row.projectCode,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.textPrimary,
+                  GestureDetector(
+                    onTap: () => Get.toNamed(AppRoutes.projectDetails),
+                    behavior: HitTestBehavior.opaque,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            flex: 2,
+                            child: Text(
+                              row.projectCode,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.primary,
+                              ),
                             ),
                           ),
-                        ),
-                        Expanded(
-                          flex: 3,
-                          child: Text(
-                            row.projectName,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.textPrimary,
+                          Expanded(
+                            flex: 3,
+                            child: Text(
+                              row.projectName,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.textPrimary,
+                              ),
                             ),
                           ),
-                        ),
-                        Expanded(
-                          flex: 2,
-                          child: Text(
-                            row.amount,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.textPrimary,
+                          Expanded(
+                            flex: 2,
+                            child: Text(
+                              row.amount,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.textPrimary,
+                              ),
                             ),
                           ),
-                        ),
-                        Expanded(
-                          flex: 2,
-                          child: Text(
-                            row.status,
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: row.isCompleted ? AppColors.badgeGreenText : AppColors.badgeYellowText,
+                          Expanded(
+                            flex: 2,
+                            child: Text(
+                              row.status,
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: row.isCompleted ? AppColors.badgeGreenText : AppColors.badgeYellowText,
+                              ),
                             ),
                           ),
-                        ),
-                        Expanded(
-                          flex: 2,
-                          child: Text(
-                            row.startDate,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: AppColors.textSecondary,
+                          Expanded(
+                            flex: 2,
+                            child: Text(
+                              row.startDate,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: AppColors.textSecondary,
+                              ),
                             ),
                           ),
-                        ),
-                        Expanded(
-                          flex: 2,
-                          child: Text(
-                            row.endDate,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: AppColors.textSecondary,
+                          Expanded(
+                            flex: 2,
+                            child: Text(
+                              row.endDate,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: AppColors.textSecondary,
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                   if (index < projects.length - 1)
@@ -202,7 +208,7 @@ class CustomerProjectsTable extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: 12.0),
               child: Center(
                 child: GestureDetector(
-                  onTap: () {},
+                  onTap: () => Get.toNamed(AppRoutes.allProjects),
                   child: const Text(
                     'View All',
                     style: TextStyle(

@@ -10,6 +10,7 @@ class AppIcons {
   static const String notification = '$basePath/ic_notification.png';
   static const String eye = '$basePath/ic_eye.png';
   static const String icMenu = '$basePath/ic_menu.png';
+  static const String successfully = '$basePath/ic_successfully.png';
 
   // Top Metrics
   static const String totalProject = '$basePath/ic_total_project.png';

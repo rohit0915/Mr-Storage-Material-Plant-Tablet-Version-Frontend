@@ -19,41 +19,46 @@ class ProjectsView extends GetView<ProjectsController> {
       backgroundColor: AppColors.background,
       drawer: const AppDrawer(),
       body: SafeArea(
-        child: Obx(() {
-          if (controller.isLoading.value) {
-            return const CommonLoader();
-          }
+        child: Column(
+          children: [
+            // Top Navigation Bar (Fixed at top)
+            const DashboardAppBar(),
+            Expanded(
+              child: Obx(() {
+                if (controller.isLoading.value) {
+                  return const CommonLoader();
+                }
 
-          return SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Top Navigation Bar
-                const DashboardAppBar(),
+                return SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Projects Header
+                      const ProjectsHeader(),
 
-                // Projects Header
-                const ProjectsHeader(),
+                      // Stat Cards (Total Projects, Active Projects, Pending, Canceled)
+                      ProjectsStatCards(stats: controller.projectStats),
 
-                // Stat Cards (Total Projects, Active Projects, Pending, Canceled)
-                ProjectsStatCards(stats: controller.projectStats),
+                      // Toolbar (Import CSV, Export Data, Filter dropdowns)
+                      const ProjectsToolbar(),
 
-                // Toolbar (Import CSV, Export Data, Filter dropdowns)
-                const ProjectsToolbar(),
+                      // Projects Data Table
+                      ProjectsDataTable(
+                        items: controller.projectItems,
+                        selectAll: controller.selectAllRows.value,
+                        onSelectAll: controller.toggleSelectAll,
+                        onSelectRow: controller.toggleRowSelect,
+                      ),
 
-                // Projects Data Table
-                ProjectsDataTable(
-                  items: controller.projectItems,
-                  selectAll: controller.selectAllRows.value,
-                  onSelectAll: controller.toggleSelectAll,
-                  onSelectRow: controller.toggleRowSelect,
-                ),
-
-                const SizedBox(height: 32),
-              ],
+                      const SizedBox(height: 32),
+                    ],
+                  ),
+                );
+              }),
             ),
-          );
-        }),
+          ],
+        ),
       ),
     );
   }

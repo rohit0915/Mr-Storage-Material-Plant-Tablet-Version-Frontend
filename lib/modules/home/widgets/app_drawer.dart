@@ -1,11 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../app/network/api_client.dart';
 import '../../../app/routes/app_routes.dart';
 import '../../../app/utils/app_icons.dart';
 import '../controller/home_controller.dart';
+import '../repository/home_repository.dart';
 
-class AppDrawer extends GetView<HomeController> {
+class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
+
+  HomeController get _controller {
+    if (Get.isRegistered<HomeController>()) {
+      return Get.find<HomeController>();
+    }
+    final repo = Get.isRegistered<HomeRepository>()
+        ? Get.find<HomeRepository>()
+        : HomeRepository(apiClient: Get.find<ApiClient>());
+    return Get.put(HomeController(repository: repo));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -82,7 +94,7 @@ class AppDrawer extends GetView<HomeController> {
                   padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 12.0),
                   physics: const BouncingScrollPhysics(),
                   child: Obx(() {
-                    final activeItem = controller.selectedDrawerItem.value;
+                    final activeItem = _controller.selectedDrawerItem.value;
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -166,12 +178,16 @@ class AppDrawer extends GetView<HomeController> {
       color: Colors.transparent,
       child: InkWell(
         onTap: () {
-          controller.selectedDrawerItem.value = title;
+          _controller.selectedDrawerItem.value = title;
           Get.back();
           if (title == 'Dashboard' && Get.currentRoute != AppRoutes.home) {
             Get.offAllNamed(AppRoutes.home);
           } else if (title == 'Projects' && Get.currentRoute != AppRoutes.projects) {
             Get.offAllNamed(AppRoutes.projects);
+          } else if ((title == 'All Deliveries' || title == 'Deliveries Calendar') && Get.currentRoute != AppRoutes.deliveryDetails) {
+            Get.toNamed(AppRoutes.deliveryDetails);
+          } else if ((title == 'Shipper Quotations' || title == 'Shippers') && Get.currentRoute != AppRoutes.shipperFiles) {
+            Get.toNamed(AppRoutes.shipperFiles);
           }
         },
         borderRadius: BorderRadius.circular(10),

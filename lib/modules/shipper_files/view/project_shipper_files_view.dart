@@ -7,8 +7,8 @@ import '../../home/widgets/app_drawer.dart';
 import '../../home/widgets/dashboard_app_bar.dart';
 import '../controller/shipper_files_controller.dart';
 
-class ShipperFilesView extends GetView<ShipperFilesController> {
-  const ShipperFilesView({super.key});
+class ProjectShipperFilesView extends GetView<ShipperFilesController> {
+  const ProjectShipperFilesView({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -31,16 +31,16 @@ class ShipperFilesView extends GetView<ShipperFilesController> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Header Title & Subtitle Toolbar
+                      // Header Toolbar with Back Button & Title
                       _buildHeaderToolbar(),
                       const SizedBox(height: 16),
 
-                      // Search & Filter Bar
-                      _buildSearchAndFilterBar(),
+                      // Search, Filter & Select Status Bar
+                      _buildFilterBar(),
                       const SizedBox(height: 16),
 
-                      // Main Projects Data Table Card
-                      _buildProjectsTableCard(),
+                      // Main Table Card
+                      _buildFilesTableCard(),
                       const SizedBox(height: 16),
 
                       // Pagination Footer
@@ -58,33 +58,42 @@ class ShipperFilesView extends GetView<ShipperFilesController> {
   }
 
   Widget _buildHeaderToolbar() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: const [
-        Text(
-          'Shipper Files',
-          style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
+    return Row(
+      children: [
+        ElevatedButton.icon(
+          onPressed: () => Get.back(),
+          icon: const Icon(Icons.arrow_back, size: 16, color: Colors.white),
+          label: const Text('Back', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white)),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF2563EB),
+            elevation: 0,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           ),
         ),
-        SizedBox(height: 4),
-        Text(
-          'Manage vendor shipment files and prepare for validation',
-          style: TextStyle(
-            fontSize: 12,
-            color: AppColors.textSecondary,
-          ),
+        const SizedBox(width: 16),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Obx(() => Text(
+                  'Shipper Files - ${controller.selectedProjectName.value}',
+                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                )),
+            const SizedBox(height: 2),
+            const Text(
+              'Manage vendor shipment files and prepare for validation',
+              style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+            ),
+          ],
         ),
       ],
     );
   }
 
-  Widget _buildSearchAndFilterBar() {
+  Widget _buildFilterBar() {
     return Row(
       children: [
-        // Search Input Box
+        // Search Box
         Container(
           width: 220,
           padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -125,11 +134,35 @@ class ShipperFilesView extends GetView<ShipperFilesController> {
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           ),
         ),
+        const Spacer(),
+
+        // Select Status Dropdown
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: AppColors.inputBorder),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: const [
+              Icon(Icons.tune_outlined, size: 14, color: AppColors.textSecondary),
+              SizedBox(width: 6),
+              Text(
+                'Select Status',
+                style: TextStyle(fontSize: 12, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
+              ),
+              SizedBox(width: 4),
+              Icon(Icons.keyboard_arrow_down, size: 16, color: AppColors.textSecondary),
+            ],
+          ),
+        ),
       ],
     );
   }
 
-  Widget _buildProjectsTableCard() {
+  Widget _buildFilesTableCard() {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -147,12 +180,12 @@ class ShipperFilesView extends GetView<ShipperFilesController> {
                 SizedBox(
                   width: 32,
                   child: Checkbox(
-                    value: controller.projectsList.every((item) => item.isSelected),
+                    value: controller.shipperFiles.every((item) => item.isSelected),
                     onChanged: (val) {
-                      for (var item in controller.projectsList) {
+                      for (var item in controller.shipperFiles) {
                         item.isSelected = val ?? false;
                       }
-                      controller.projectsList.refresh();
+                      controller.shipperFiles.refresh();
                     },
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
                   ),
@@ -160,17 +193,9 @@ class ShipperFilesView extends GetView<ShipperFilesController> {
                 const SizedBox(width: 12),
                 const Expanded(
                   flex: 3,
-                  child: Text('Project ID', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-                ),
-                const Expanded(
-                  flex: 4,
-                  child: Text('Project Name', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-                ),
-                const Expanded(
-                  flex: 3,
                   child: Row(
                     children: [
-                      Text('File Received', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                      Text('Shipper', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
                       SizedBox(width: 4),
                       Icon(Icons.swap_vert, size: 14, color: AppColors.textSecondary),
                     ],
@@ -178,13 +203,31 @@ class ShipperFilesView extends GetView<ShipperFilesController> {
                 ),
                 const Expanded(
                   flex: 3,
+                  child: Text('File Name', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                ),
+                const Expanded(
+                  flex: 3,
                   child: Row(
                     children: [
-                      Text('Total Shippers Files', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                      Text('Upload Date', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
                       SizedBox(width: 4),
                       Icon(Icons.swap_vert, size: 14, color: AppColors.textSecondary),
                     ],
                   ),
+                ),
+                const Expanded(
+                  flex: 2,
+                  child: Row(
+                    children: [
+                      Text('Rates', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                      SizedBox(width: 4),
+                      Icon(Icons.swap_vert, size: 14, color: AppColors.textSecondary),
+                    ],
+                  ),
+                ),
+                const Expanded(
+                  flex: 3,
+                  child: Text('File Status', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
                 ),
                 const SizedBox(width: 44),
               ],
@@ -192,61 +235,86 @@ class ShipperFilesView extends GetView<ShipperFilesController> {
           ),
           const Divider(height: 1, color: AppColors.divider),
 
-          // Table Rows
+          // Table Data Rows
           Obx(() {
             return ListView.separated(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              itemCount: controller.projectsList.length,
+              itemCount: controller.shipperFiles.length,
               separatorBuilder: (context, index) => const Divider(height: 1, color: AppColors.divider),
               itemBuilder: (context, index) {
-                final item = controller.projectsList[index];
+                final item = controller.shipperFiles[index];
                 return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   child: Row(
                     children: [
                       SizedBox(
                         width: 32,
                         child: Checkbox(
                           value: item.isSelected,
-                          onChanged: (val) => controller.toggleSelectProject(index, val),
+                          onChanged: (val) => controller.toggleSelectFile(index, val),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
                         ),
                       ),
                       const SizedBox(width: 12),
+                      // Shipper Name + Avatar Column
+                      Expanded(
+                        flex: 3,
+                        child: Row(
+                          children: [
+                            CircleAvatar(
+                              radius: 12,
+                              backgroundColor: const Color(0xFFDBEAFE),
+                              child: Text(
+                                item.shipperName[0],
+                                style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF2563EB)),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                item.shipperName,
+                                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      // File Name Column
                       Expanded(
                         flex: 3,
                         child: Text(
-                          item.projectId,
+                          item.fileName,
                           style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
                         ),
                       ),
-                      Expanded(
-                        flex: 4,
-                        child: Text(
-                          item.projectName,
-                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
-                        ),
-                      ),
+                      // Upload Date Column
                       Expanded(
                         flex: 3,
                         child: Text(
-                          item.fileReceived,
+                          item.uploadDate,
                           style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
                         ),
                       ),
+                      // Rates Column
                       Expanded(
-                        flex: 3,
+                        flex: 2,
                         child: Text(
-                          '${item.totalShipperFiles}',
+                          item.rate,
                           style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                         ),
                       ),
+                      // File Status Column (Interactive Status Dropdown)
+                      Expanded(
+                        flex: 3,
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: _buildStatusDropdown(index, item.status),
+                        ),
+                      ),
+                      // Action Column
                       IconButton(
-                        onPressed: () {
-                          controller.selectedProjectName.value = item.projectName;
-                          Get.toNamed(AppRoutes.projectShipperFiles);
-                        },
+                        onPressed: () => Get.toNamed(AppRoutes.shipperFileDetails),
                         icon: const Icon(Icons.visibility_outlined, size: 18, color: AppColors.textPrimary),
                       ),
                     ],
@@ -256,6 +324,54 @@ class ShipperFilesView extends GetView<ShipperFilesController> {
             );
           }),
         ],
+      ),
+    );
+  }
+
+  Widget _buildStatusDropdown(int index, String status) {
+    Color bg;
+    Color textColor;
+
+    if (status == 'File Received') {
+      bg = const Color(0xFFFEF9C3);
+      textColor = const Color(0xFFD97706);
+    } else if (status == 'Compared') {
+      bg = const Color(0xFFDCFCE7);
+      textColor = const Color(0xFF16A34A);
+    } else if (status == 'Revision Sent') {
+      bg = const Color(0xFFDBEAFE);
+      textColor = const Color(0xFF2563EB);
+    } else {
+      bg = const Color(0xFFDCFCE7);
+      textColor = const Color(0xFF16A34A);
+    }
+
+    return PopupMenuButton<String>(
+      onSelected: (newStatus) => controller.updateFileStatus(index, newStatus),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      itemBuilder: (context) => const [
+        PopupMenuItem(value: 'File Received', child: Text('File Received', style: TextStyle(fontSize: 12))),
+        PopupMenuItem(value: 'Compared', child: Text('Compared', style: TextStyle(fontSize: 12))),
+        PopupMenuItem(value: 'Revision Sent', child: Text('Revision Sent', style: TextStyle(fontSize: 12))),
+        PopupMenuItem(value: 'Order Sent', child: Text('Order Sent', style: TextStyle(fontSize: 12))),
+      ],
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              status,
+              style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: textColor),
+            ),
+            const SizedBox(width: 4),
+            Icon(Icons.keyboard_arrow_down, size: 14, color: textColor),
+          ],
+        ),
       ),
     );
   }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:steel_building_plant_panel/app/utils/app_icons.dart';
+import '../../../app/routes/app_routes.dart';
 import '../../../app/utils/app_colors.dart';
 
 class OrderSentSuccessDialog extends StatelessWidget {
@@ -58,7 +59,10 @@ class OrderSentSuccessDialog extends StatelessWidget {
               width: 200,
               height: 42,
               child: ElevatedButton(
-                onPressed: () => Get.back(),
+                onPressed: () {
+                  Get.back();
+                  Get.offAllNamed(AppRoutes.uploadedBomFiles);
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF3B82F6),
                   elevation: 0,

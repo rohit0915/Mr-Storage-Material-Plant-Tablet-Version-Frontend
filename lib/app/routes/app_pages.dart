@@ -27,6 +27,22 @@ import '../../modules/shipper_file_details/binding/shipper_file_details_binding.
 import '../../modules/shipper_file_details/view/shipper_file_details_view.dart';
 import '../../modules/shipper_files/binding/shipper_files_binding.dart';
 import '../../modules/shipper_files/view/shipper_files_view.dart';
+import '../../modules/shipper_files/view/project_shipper_files_view.dart';
+import '../../modules/additional_material_request/binding/additional_material_request_binding.dart';
+import '../../modules/additional_material_request/view/additional_material_request_view.dart';
+import '../../modules/uploaded_bom_files/binding/uploaded_bom_files_binding.dart';
+import '../../modules/uploaded_bom_files/view/uploaded_bom_files_view.dart';
+import '../../modules/order_verification/binding/order_verification_binding.dart';
+import '../../modules/order_verification/view/order_verification_view.dart';
+import '../../modules/comparison_result/binding/comparison_result_binding.dart';
+import '../../modules/comparison_result/view/comparison_result_view.dart';
+import '../../modules/load_planning/binding/load_planning_binding.dart';
+import '../../modules/load_planning/view/load_planning_view.dart';
+import '../../modules/load_planning/view/project_load_planning_view.dart';
+import '../../modules/packing_list/binding/packing_list_binding.dart';
+import '../../modules/packing_list/view/packing_list_view.dart';
+import '../../modules/packing_list/view/project_packing_list_view.dart';
+import '../../modules/packing_list/view/packing_list_details_view.dart';
 import 'app_routes.dart';
 
 class AppPages {
@@ -69,6 +85,11 @@ class AppPages {
       binding: ShipperFilesBinding(),
     ),
     GetPage(
+      name: AppRoutes.projectShipperFiles,
+      page: () => const ProjectShipperFilesView(),
+      binding: ShipperFilesBinding(),
+    ),
+    GetPage(
       name: AppRoutes.shipperFileDetails,
       page: () => const ShipperFileDetailsView(),
       binding: ShipperFileDetailsBinding(),
@@ -102,6 +123,51 @@ class AppPages {
       name: AppRoutes.login,
       page: () => const LoginView(),
       binding: LoginBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.additionalMaterialRequest,
+      page: () => const AdditionalMaterialRequestView(),
+      binding: AdditionalMaterialRequestBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.uploadedBomFiles,
+      page: () => const UploadedBomFilesView(),
+      binding: UploadedBomFilesBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.orderVerification,
+      page: () => const OrderVerificationView(),
+      binding: OrderVerificationBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.comparisonResult,
+      page: () => const ComparisonResultView(),
+      binding: ComparisonResultBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.loadPlanning,
+      page: () => const LoadPlanningView(),
+      binding: LoadPlanningBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.projectLoadPlanning,
+      page: () => const ProjectLoadPlanningView(),
+      binding: LoadPlanningBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.packingList,
+      page: () => const PackingListView(),
+      binding: PackingListBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.projectPackingList,
+      page: () => const ProjectPackingListView(),
+      binding: PackingListBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.packingListDetails,
+      page: () => const PackingListDetailsView(),
+      binding: PackingListBinding(),
     ),
   ];
 }

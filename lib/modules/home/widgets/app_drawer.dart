@@ -188,6 +188,12 @@ class AppDrawer extends StatelessWidget {
             Get.toNamed(AppRoutes.deliveryDetails);
           } else if ((title == 'Shipper Quotations' || title == 'Shippers') && Get.currentRoute != AppRoutes.shipperFiles) {
             Get.toNamed(AppRoutes.shipperFiles);
+          } else if (title == 'Uploaded BOM Files' && Get.currentRoute != AppRoutes.uploadedBomFiles) {
+            Get.toNamed(AppRoutes.uploadedBomFiles);
+          } else if (title == 'Load Planning' && Get.currentRoute != AppRoutes.loadPlanning) {
+            Get.toNamed(AppRoutes.loadPlanning);
+          } else if (title == 'Packing List' && Get.currentRoute != AppRoutes.packingList) {
+            Get.toNamed(AppRoutes.packingList);
           }
         },
         borderRadius: BorderRadius.circular(10),

@@ -11,4 +11,5 @@ class AppImages {
   static const String loginBackground = '$basePath/login_background.png'; // Background pattern
   static const String blueprint = '$basePath/img_blueprint.png';
   static const String quickenSteelLogo = '$basePath/img_quicken_steel_logo.png';
+  static const String qrCode = '$basePath/img_qr_code.png';
 }

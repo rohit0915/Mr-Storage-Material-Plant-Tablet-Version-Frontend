@@ -154,6 +154,12 @@ class ProjectDetailsView extends GetView<ProjectDetailsController> {
                     Get.dialog(const UploadBomDialog());
                   } else if (title == 'View Drawings & Photos') {
                     Get.toNamed(AppRoutes.projectDrawings);
+                  } else if (title == 'Material Delivery') {
+                    Get.toNamed(AppRoutes.deliveryDetails);
+                  } else if (title == 'View Shipper Files') {
+                    Get.toNamed(AppRoutes.shipperFiles);
+                  } else if (title == 'Additional Material Request') {
+                    Get.toNamed(AppRoutes.additionalMaterialRequest);
                   }
                 },
                 style: ElevatedButton.styleFrom(

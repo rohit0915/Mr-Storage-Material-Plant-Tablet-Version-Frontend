@@ -5,6 +5,8 @@ import '../../../app/widgets/common_loader.dart';
 import '../../home/widgets/app_drawer.dart';
 import '../../home/widgets/dashboard_app_bar.dart';
 import '../controller/delivery_details_controller.dart';
+import '../widgets/edit_delivery_dialog.dart';
+import '../widgets/reschedule_delivery_dialog.dart';
 
 class DeliveryDetailsView extends GetView<DeliveryDetailsController> {
   const DeliveryDetailsView({super.key});
@@ -116,7 +118,7 @@ class DeliveryDetailsView extends GetView<DeliveryDetailsController> {
         ),
         const Spacer(),
         OutlinedButton.icon(
-          onPressed: () {},
+          onPressed: () => Get.dialog(const RescheduleDeliveryDialog()),
           icon: const Icon(Icons.refresh, size: 14, color: AppColors.textPrimary),
           label: const Text('Reschedule', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
           style: OutlinedButton.styleFrom(
@@ -128,7 +130,7 @@ class DeliveryDetailsView extends GetView<DeliveryDetailsController> {
         ),
         const SizedBox(width: 10),
         ElevatedButton.icon(
-          onPressed: () {},
+          onPressed: () => Get.dialog(const EditDeliveryDialog()),
           icon: const Icon(Icons.edit_outlined, size: 14, color: Colors.white),
           label: const Text('Edit Delivery', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
           style: ElevatedButton.styleFrom(

@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../app/routes/app_routes.dart';
 import '../../../app/utils/app_colors.dart';
 import '../../../app/widgets/common_loader.dart';
 import '../../home/widgets/app_drawer.dart';
 import '../../home/widgets/dashboard_app_bar.dart';
-import '../controller/shipper_files_controller.dart';
+import '../controller/packing_list_controller.dart';
 
-class ShipperFilesView extends GetView<ShipperFilesController> {
-  const ShipperFilesView({super.key});
+class PackingListView extends GetView<PackingListController> {
+  const PackingListView({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -31,19 +30,12 @@ class ShipperFilesView extends GetView<ShipperFilesController> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Header Title & Subtitle Toolbar
                       _buildHeaderToolbar(),
+                      const SizedBox(height: 20),
+                      _buildFilterRow(),
                       const SizedBox(height: 16),
-
-                      // Search & Filter Bar
-                      _buildSearchAndFilterBar(),
-                      const SizedBox(height: 16),
-
-                      // Main Projects Data Table Card
                       _buildProjectsTableCard(),
                       const SizedBox(height: 16),
-
-                      // Pagination Footer
                       _buildPaginationFooter(),
                       const SizedBox(height: 32),
                     ],
@@ -58,33 +50,52 @@ class ShipperFilesView extends GetView<ShipperFilesController> {
   }
 
   Widget _buildHeaderToolbar() {
-    return Column(
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: const [
-        Text(
-          'Shipper Files',
-          style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
-          ),
+      children: [
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: const [
+            Text(
+              'Packing List',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            SizedBox(height: 4),
+            Text(
+              'View and manage packing lists generated from load planning for plant loading and\nshipment verification.',
+              style: TextStyle(
+                fontSize: 12,
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ],
         ),
-        SizedBox(height: 4),
-        Text(
-          'Manage vendor shipment files and prepare for validation',
-          style: TextStyle(
-            fontSize: 12,
-            color: AppColors.textSecondary,
+        OutlinedButton.icon(
+          onPressed: () {},
+          icon: const Icon(Icons.ios_share, size: 14, color: AppColors.textPrimary),
+          label: const Text(
+            'Export',
+            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+          ),
+          style: OutlinedButton.styleFrom(
+            backgroundColor: Colors.white,
+            side: const BorderSide(color: AppColors.inputBorder),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildSearchAndFilterBar() {
+  Widget _buildFilterRow() {
     return Row(
       children: [
-        // Search Input Box
         Container(
           width: 220,
           padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -112,8 +123,6 @@ class ShipperFilesView extends GetView<ShipperFilesController> {
           ),
         ),
         const SizedBox(width: 12),
-
-        // Filter Button
         OutlinedButton.icon(
           onPressed: () {},
           icon: const Icon(Icons.filter_list, size: 14, color: AppColors.textSecondary),
@@ -139,7 +148,6 @@ class ShipperFilesView extends GetView<ShipperFilesController> {
       ),
       child: Column(
         children: [
-          // Table Header
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             child: Row(
@@ -147,30 +155,25 @@ class ShipperFilesView extends GetView<ShipperFilesController> {
                 SizedBox(
                   width: 32,
                   child: Checkbox(
-                    value: controller.projectsList.every((item) => item.isSelected),
-                    onChanged: (val) {
-                      for (var item in controller.projectsList) {
-                        item.isSelected = val ?? false;
-                      }
-                      controller.projectsList.refresh();
-                    },
+                    value: controller.projectsList.isNotEmpty && controller.projectsList.every((item) => item.isSelected),
+                    onChanged: (val) => controller.toggleSelectAllProjects(val),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
                   ),
                 ),
                 const SizedBox(width: 12),
                 const Expanded(
-                  flex: 3,
+                  flex: 2,
                   child: Text('Project ID', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
                 ),
                 const Expanded(
-                  flex: 4,
+                  flex: 3,
                   child: Text('Project Name', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
                 ),
                 const Expanded(
                   flex: 3,
                   child: Row(
                     children: [
-                      Text('File Received', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                      Text('List Generated Date', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
                       SizedBox(width: 4),
                       Icon(Icons.swap_vert, size: 14, color: AppColors.textSecondary),
                     ],
@@ -180,7 +183,7 @@ class ShipperFilesView extends GetView<ShipperFilesController> {
                   flex: 3,
                   child: Row(
                     children: [
-                      Text('Total Shippers Files', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                      Text('Total Packing List', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
                       SizedBox(width: 4),
                       Icon(Icons.swap_vert, size: 14, color: AppColors.textSecondary),
                     ],
@@ -191,8 +194,6 @@ class ShipperFilesView extends GetView<ShipperFilesController> {
             ),
           ),
           const Divider(height: 1, color: AppColors.divider),
-
-          // Table Rows
           Obx(() {
             return ListView.separated(
               shrinkWrap: true,
@@ -202,7 +203,7 @@ class ShipperFilesView extends GetView<ShipperFilesController> {
               itemBuilder: (context, index) {
                 final item = controller.projectsList[index];
                 return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   child: Row(
                     children: [
                       SizedBox(
@@ -210,19 +211,20 @@ class ShipperFilesView extends GetView<ShipperFilesController> {
                         child: Checkbox(
                           value: item.isSelected,
                           onChanged: (val) => controller.toggleSelectProject(index, val),
+                          activeColor: const Color(0xFF6366F1),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
                         ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
-                        flex: 3,
+                        flex: 2,
                         child: Text(
-                          item.projectId,
+                          item.id,
                           style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
                         ),
                       ),
                       Expanded(
-                        flex: 4,
+                        flex: 3,
                         child: Text(
                           item.projectName,
                           style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
@@ -231,23 +233,27 @@ class ShipperFilesView extends GetView<ShipperFilesController> {
                       Expanded(
                         flex: 3,
                         child: Text(
-                          item.fileReceived,
+                          item.listGeneratedDate,
                           style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
                         ),
                       ),
                       Expanded(
                         flex: 3,
                         child: Text(
-                          '${item.totalShipperFiles}',
+                          '${item.totalPackingList}',
                           style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                         ),
                       ),
                       IconButton(
-                        onPressed: () {
-                          controller.selectedProjectName.value = item.projectName;
-                          Get.toNamed(AppRoutes.projectShipperFiles);
-                        },
-                        icon: const Icon(Icons.visibility_outlined, size: 18, color: AppColors.textPrimary),
+                        onPressed: () => controller.openProjectPackingList(item),
+                        icon: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: AppColors.inputBorder),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: const Icon(Icons.visibility_outlined, size: 16, color: AppColors.textPrimary),
+                        ),
                       ),
                     ],
                   ),

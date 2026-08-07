@@ -13,4 +13,14 @@ abstract class AppRoutes {
   static const deliveryDetails = '/delivery-details';
   static const shipperFiles = '/shipper-files';
   static const shipperFileDetails = '/shipper-file-details';
+  static const additionalMaterialRequest = '/additional-material-request';
+  static const uploadedBomFiles = '/uploaded-bom-files';
+  static const projectShipperFiles = '/project-shipper-files';
+  static const orderVerification = '/order-verification';
+  static const comparisonResult = '/comparison-result';
+  static const loadPlanning = '/load-planning';
+  static const projectLoadPlanning = '/project-load-planning';
+  static const packingList = '/packing-list';
+  static const projectPackingList = '/project-packing-list';
+  static const packingListDetails = '/packing-list-details';
 }

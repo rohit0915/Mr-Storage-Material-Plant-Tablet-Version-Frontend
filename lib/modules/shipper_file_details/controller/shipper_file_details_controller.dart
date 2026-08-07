@@ -1,4 +1,7 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../app/routes/app_routes.dart';
+import '../../shipper_files/widgets/ready_for_planning_dialog.dart';
 
 class SalesOrderItemModel {
   final int qty;
@@ -22,9 +25,8 @@ class SalesOrderItemModel {
 
 class ShipperFileDetailsController extends GetxController {
   final RxBool isLoading = false.obs;
-
   final RxList<SalesOrderItemModel> salesOrderItems = <SalesOrderItemModel>[].obs;
-  final RxString status = 'Approved'.obs;
+  final RxString status = 'Under Review'.obs;
 
   @override
   void onInit() {
@@ -48,5 +50,13 @@ class ShipperFileDetailsController extends GetxController {
     ]);
 
     isLoading.value = false;
+  }
+
+  void openOrderVerificationDialog() {
+    Get.toNamed(AppRoutes.orderVerification);
+  }
+
+  void startLoadPlanning() {
+    Get.dialog(const ReadyForPlanningDialog());
   }
 }

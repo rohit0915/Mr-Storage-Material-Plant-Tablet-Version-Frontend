@@ -43,6 +43,18 @@ import '../../modules/packing_list/binding/packing_list_binding.dart';
 import '../../modules/packing_list/view/packing_list_view.dart';
 import '../../modules/packing_list/view/project_packing_list_view.dart';
 import '../../modules/packing_list/view/packing_list_details_view.dart';
+import '../../modules/qr_labels/binding/qr_labels_binding.dart';
+import '../../modules/qr_labels/view/qr_labels_view.dart';
+import '../../modules/qr_labels/view/project_qr_labels_view.dart';
+import '../../modules/freight_loads/binding/freight_loads_binding.dart';
+import '../../modules/freight_loads/view/freight_loads_view.dart';
+import '../../modules/freight_loads/view/freight_request_details_view.dart';
+import '../../modules/awarded_loads/binding/awarded_loads_binding.dart';
+import '../../modules/awarded_loads/view/awarded_loads_view.dart';
+import '../../modules/delivery_calendar/binding/delivery_calendar_binding.dart';
+import '../../modules/delivery_calendar/view/delivery_calendar_view.dart';
+import '../../modules/notification_history/binding/notification_history_binding.dart';
+import '../../modules/notification_history/view/notification_history_view.dart';
 import 'app_routes.dart';
 
 class AppPages {
@@ -168,6 +180,41 @@ class AppPages {
       name: AppRoutes.packingListDetails,
       page: () => const PackingListDetailsView(),
       binding: PackingListBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.qrLabels,
+      page: () => const QrLabelsView(),
+      binding: QrLabelsBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.projectQrLabels,
+      page: () => const ProjectQrLabelsView(),
+      binding: QrLabelsBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.freightLoads,
+      page: () => const FreightLoadsView(),
+      binding: FreightLoadsBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.freightRequestDetails,
+      page: () => const FreightRequestDetailsView(),
+      binding: FreightLoadsBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.awardedLoads,
+      page: () => const AwardedLoadsView(),
+      binding: AwardedLoadsBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.deliveryCalendar,
+      page: () => const DeliveryCalendarView(),
+      binding: DeliveryCalendarBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.notificationHistory,
+      page: () => const NotificationHistoryView(),
+      binding: NotificationHistoryBinding(),
     ),
   ];
 }

@@ -18,13 +18,11 @@ class FileStatusChangedDialog extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: const BoxDecoration(
-                color: Color(0xFFDCFCE7),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.check, color: Color(0xFF16A34A), size: 36),
+            Image.asset(
+              'assets/icons/ic_successfully.png',
+              width: 56,
+              height: 56,
+              fit: BoxFit.contain,
             ),
             const SizedBox(height: 20),
             const Text(

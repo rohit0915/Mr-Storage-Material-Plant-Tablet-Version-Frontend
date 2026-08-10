@@ -23,4 +23,11 @@ abstract class AppRoutes {
   static const packingList = '/packing-list';
   static const projectPackingList = '/project-packing-list';
   static const packingListDetails = '/packing-list-details';
+  static const qrLabels = '/qr-labels';
+  static const projectQrLabels = '/project-qr-labels';
+  static const freightLoads = '/freight-loads';
+  static const freightRequestDetails = '/freight-request-details';
+  static const awardedLoads = '/awarded-loads';
+  static const deliveryCalendar = '/delivery-calendar';
+  static const notificationHistory = '/notification-history';
 }

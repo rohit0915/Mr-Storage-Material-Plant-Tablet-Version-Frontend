@@ -184,8 +184,10 @@ class AppDrawer extends StatelessWidget {
             Get.offAllNamed(AppRoutes.home);
           } else if (title == 'Projects' && Get.currentRoute != AppRoutes.projects) {
             Get.offAllNamed(AppRoutes.projects);
-          } else if ((title == 'All Deliveries' || title == 'Deliveries Calendar') && Get.currentRoute != AppRoutes.deliveryDetails) {
+          } else if (title == 'All Deliveries' && Get.currentRoute != AppRoutes.deliveryDetails) {
             Get.toNamed(AppRoutes.deliveryDetails);
+          } else if ((title == 'Deliveries Calendar' || title == 'Delivery Calendar') && Get.currentRoute != AppRoutes.deliveryCalendar) {
+            Get.toNamed(AppRoutes.deliveryCalendar);
           } else if ((title == 'Shipper Quotations' || title == 'Shippers') && Get.currentRoute != AppRoutes.shipperFiles) {
             Get.toNamed(AppRoutes.shipperFiles);
           } else if (title == 'Uploaded BOM Files' && Get.currentRoute != AppRoutes.uploadedBomFiles) {
@@ -194,6 +196,14 @@ class AppDrawer extends StatelessWidget {
             Get.toNamed(AppRoutes.loadPlanning);
           } else if (title == 'Packing List' && Get.currentRoute != AppRoutes.packingList) {
             Get.toNamed(AppRoutes.packingList);
+          } else if (title == 'QR Labels' && Get.currentRoute != AppRoutes.qrLabels) {
+            Get.toNamed(AppRoutes.qrLabels);
+          } else if (title == 'Freight Loads' && Get.currentRoute != AppRoutes.freightLoads) {
+            Get.toNamed(AppRoutes.freightLoads);
+          } else if (title == 'Awarded Loads' && Get.currentRoute != AppRoutes.awardedLoads) {
+            Get.toNamed(AppRoutes.awardedLoads);
+          } else if ((title == 'Notification History' || title == 'Notifications' || title == 'Notification Details') && Get.currentRoute != AppRoutes.notificationHistory) {
+            Get.toNamed(AppRoutes.notificationHistory);
           }
         },
         borderRadius: BorderRadius.circular(10),

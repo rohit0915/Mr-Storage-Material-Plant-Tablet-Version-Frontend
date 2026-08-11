@@ -30,4 +30,17 @@ abstract class AppRoutes {
   static const awardedLoads = '/awarded-loads';
   static const deliveryCalendar = '/delivery-calendar';
   static const notificationHistory = '/notification-history';
+  static const itemCostList = '/item-cost-list';
+  static const missingItemCostList = '/missing-item-cost-list';
+  static const savings = '/savings';
+  static const shippersList = '/shippers-list';
+  static const vendorDetails = '/vendor-details';
+  static const addShipper = '/add-shipper';
+  static const editShipper = '/edit-shipper';
+  static const freightCarriers = '/freight-carriers';
+  static const addFreightCarrier = '/add-freight-carrier';
+  static const editFreightCarrier = '/edit-freight-carrier';
 }
+
+
+

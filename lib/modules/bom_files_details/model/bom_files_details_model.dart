@@ -10,6 +10,16 @@ class BomSummaryModel {
   });
 }
 
+class MissingItemCostSummaryModel {
+  final double totalAmount;
+  final int missingItemQty;
+
+  MissingItemCostSummaryModel({
+    required this.totalAmount,
+    required this.missingItemQty,
+  });
+}
+
 class BomItemModel {
   final int qty;
   final String mark;
@@ -20,6 +30,8 @@ class BomItemModel {
   final String thick;
   final String length;
   final String weight;
+  final String amount;
+  final bool isMissing;
 
   BomItemModel({
     required this.qty,
@@ -31,5 +43,7 @@ class BomItemModel {
     required this.thick,
     required this.length,
     required this.weight,
+    required this.amount,
+    this.isMissing = false,
   });
 }

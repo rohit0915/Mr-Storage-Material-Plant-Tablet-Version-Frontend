@@ -167,33 +167,83 @@ class BomFilesDetailsView extends GetView<BomFilesDetailsController> {
 
             const SizedBox(height: 20),
 
-            // BOM Summary Box
-            Container(
-              width: 320,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF8FAFC),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'BOM Summary',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
+            // Summary Cards Row (BOM Summary + Missing Item Cost List)
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // BOM Summary Box
+                Container(
+                  width: 320,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'BOM Summary',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      _buildSummaryRow('Total Items', '${controller.summary.value?.totalItems ?? 125}'),
+                      const SizedBox(height: 8),
+                      _buildSummaryRow('Total Weight', controller.summary.value?.totalWeight ?? '32,000 lbs', isBold: true),
+                      const SizedBox(height: 8),
+                      _buildSummaryRow('Total Panels Area', controller.summary.value?.totalPanelsArea ?? '3,300 sqm', isBold: true),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(width: 24),
+
+                // Missing Item Cost list Box
+                if (controller.missingSummary.value != null)
+                  Container(
+                    width: 340,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF8FAFC),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Missing Item Cost list',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        _buildSummaryRow('Total Amount', '\$${controller.missingSummary.value!.totalAmount.toInt()}', isBold: true),
+                        const SizedBox(height: 8),
+                        _buildSummaryRow('Missing Item QTY', '${controller.missingSummary.value!.missingItemQty}', isBold: true),
+                        const SizedBox(height: 14),
+                        ElevatedButton(
+                          onPressed: () => Get.toNamed(AppRoutes.missingItemCostList),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF2563EB),
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                          ),
+                          child: const Text(
+                            'Add Item in Cost List',
+                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  _buildSummaryRow('Total Items', '${controller.summary.value?.totalItems ?? 125}'),
-                  const SizedBox(height: 8),
-                  _buildSummaryRow('Total Weight', controller.summary.value?.totalWeight ?? '32,000 lbs', isBold: true),
-                  const SizedBox(height: 8),
-                  _buildSummaryRow('Total Panels Area', controller.summary.value?.totalPanelsArea ?? '3,300 sqm', isBold: true),
-                ],
-              ),
+              ],
             ),
 
             const SizedBox(height: 24),
@@ -370,10 +420,10 @@ class BomFilesDetailsView extends GetView<BomFilesDetailsController> {
                 _buildTh('Description', flex: 2),
                 _buildTh('Part', flex: 2),
                 _buildTh('Color', flex: 1),
-                _buildTh('Angle', flex: 1, sortable: true),
                 _buildTh('Thick', flex: 1),
                 _buildTh('Length', flex: 2, sortable: true),
                 _buildTh('Weight', flex: 1, sortable: true),
+                _buildTh('Amount', flex: 1, sortable: true),
               ],
             ),
           ),
@@ -392,10 +442,23 @@ class BomFilesDetailsView extends GetView<BomFilesDetailsController> {
                       _buildTd(item.description, flex: 2, color: AppColors.textSecondary),
                       _buildTd(item.part, flex: 2, isBold: true),
                       _buildTd(item.color, flex: 1, color: AppColors.textSecondary),
-                      _buildTd(item.angle, flex: 1, color: AppColors.textSecondary),
                       _buildTd(item.thick, flex: 1, color: AppColors.textSecondary),
                       _buildTd(item.length, flex: 2, color: AppColors.textSecondary),
                       _buildTd(item.weight, flex: 1, color: AppColors.textSecondary),
+                      if (item.isMissing)
+                        Expanded(
+                          flex: 1,
+                          child: Text(
+                            'Missing',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFFEF4444),
+                            ),
+                          ),
+                        )
+                      else
+                        _buildTd(item.amount, flex: 1, color: AppColors.textPrimary),
                     ],
                   ),
                 ),
@@ -410,12 +473,11 @@ class BomFilesDetailsView extends GetView<BomFilesDetailsController> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Row(
               children: [
-                const Expanded(flex: 2, child: Text('QTY Total', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold))),
+                const Expanded(flex: 1, child: Text('QTY Total\n199', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold))),
                 const Expanded(flex: 2, child: Text('Total Tons:   1.71', style: TextStyle(fontSize: 12, color: AppColors.textSecondary))),
                 const Expanded(flex: 1, child: Text('RO', style: TextStyle(fontSize: 12, color: AppColors.textSecondary))),
-                const Expanded(flex: 1, child: Text('-', style: TextStyle(fontSize: 12, color: AppColors.textSecondary))),
-                const Expanded(flex: 2, child: Text('Total Weight (lbs)', style: TextStyle(fontSize: 12, color: AppColors.textSecondary))),
-                const Expanded(flex: 1, child: Text('3423', style: TextStyle(fontSize: 12, color: AppColors.textSecondary))),
+                const Expanded(flex: 2, child: Text('Total Weight (lbs)\n3423', style: TextStyle(fontSize: 12, color: AppColors.textSecondary))),
+                const Expanded(flex: 1, child: Text('\$25678', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary))),
               ],
             ),
           ),

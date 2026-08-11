@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../app/routes/app_routes.dart';
 import '../../../app/utils/app_colors.dart';
-import '../../delivery_details/widgets/in_transit_success_dialog.dart';
 import '../../delivery_details/widgets/marked_as_delivered_dialog.dart';
 import '../../delivery_details/widgets/reschedule_delivery_dialog.dart';
 import '../model/delivery_calendar_model.dart';

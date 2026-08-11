@@ -188,8 +188,10 @@ class AppDrawer extends StatelessWidget {
             Get.toNamed(AppRoutes.deliveryDetails);
           } else if ((title == 'Deliveries Calendar' || title == 'Delivery Calendar') && Get.currentRoute != AppRoutes.deliveryCalendar) {
             Get.toNamed(AppRoutes.deliveryCalendar);
-          } else if ((title == 'Shipper Quotations' || title == 'Shippers') && Get.currentRoute != AppRoutes.shipperFiles) {
+          } else if (title == 'Shipper Quotations' && Get.currentRoute != AppRoutes.shipperFiles) {
             Get.toNamed(AppRoutes.shipperFiles);
+          } else if (title == 'Shippers' && Get.currentRoute != AppRoutes.shippersList) {
+            Get.toNamed(AppRoutes.shippersList);
           } else if (title == 'Uploaded BOM Files' && Get.currentRoute != AppRoutes.uploadedBomFiles) {
             Get.toNamed(AppRoutes.uploadedBomFiles);
           } else if (title == 'Load Planning' && Get.currentRoute != AppRoutes.loadPlanning) {
@@ -204,6 +206,12 @@ class AppDrawer extends StatelessWidget {
             Get.toNamed(AppRoutes.awardedLoads);
           } else if ((title == 'Notification History' || title == 'Notifications' || title == 'Notification Details') && Get.currentRoute != AppRoutes.notificationHistory) {
             Get.toNamed(AppRoutes.notificationHistory);
+          } else if (title == 'Costings' && Get.currentRoute != AppRoutes.itemCostList) {
+            Get.toNamed(AppRoutes.itemCostList);
+          } else if (title == 'Savings' && Get.currentRoute != AppRoutes.savings) {
+            Get.toNamed(AppRoutes.savings);
+          } else if (title == 'Freight Carriers' && Get.currentRoute != AppRoutes.freightCarriers) {
+            Get.toNamed(AppRoutes.freightCarriers);
           }
         },
         borderRadius: BorderRadius.circular(10),

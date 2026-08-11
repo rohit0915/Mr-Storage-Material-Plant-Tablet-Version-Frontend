@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../model/shipper_files_model.dart';
 import '../widgets/file_status_changed_dialog.dart';

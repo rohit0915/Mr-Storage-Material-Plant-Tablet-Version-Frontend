@@ -25,6 +25,13 @@ class DeliveryScheduledDialog extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            Image.asset(
+              'assets/icons/ic_successfully.png',
+              width: 80,
+              height: 80,
+              fit: BoxFit.contain,
+            ),
+            const SizedBox(height: 20),
             const Text(
               'Delivery Scheduled',
               textAlign: TextAlign.center,

@@ -55,6 +55,20 @@ import '../../modules/delivery_calendar/binding/delivery_calendar_binding.dart';
 import '../../modules/delivery_calendar/view/delivery_calendar_view.dart';
 import '../../modules/notification_history/binding/notification_history_binding.dart';
 import '../../modules/notification_history/view/notification_history_view.dart';
+import '../../modules/item_cost_list/binding/item_cost_binding.dart';
+import '../../modules/item_cost_list/view/item_cost_list_view.dart';
+import '../../modules/missing_item_cost_list/binding/missing_item_cost_binding.dart';
+import '../../modules/missing_item_cost_list/view/missing_item_cost_list_view.dart';
+import '../../modules/savings/binding/savings_binding.dart';
+import '../../modules/savings/view/savings_view.dart';
+import '../../modules/shippers/binding/shippers_binding.dart';
+import '../../modules/shippers/view/shippers_list_view.dart';
+import '../../modules/shippers/view/vendor_details_view.dart';
+import '../../modules/shippers/view/add_shipper_view.dart';
+import '../../modules/shippers/view/edit_shipper_view.dart';
+import '../../modules/freight_carriers/binding/freight_carriers_binding.dart';
+import '../../modules/freight_carriers/view/freight_carriers_view.dart';
+import '../../modules/freight_carriers/view/add_freight_carrier_view.dart';
 import 'app_routes.dart';
 
 class AppPages {
@@ -215,6 +229,56 @@ class AppPages {
       name: AppRoutes.notificationHistory,
       page: () => const NotificationHistoryView(),
       binding: NotificationHistoryBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.itemCostList,
+      page: () => const ItemCostListView(),
+      binding: ItemCostBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.missingItemCostList,
+      page: () => const MissingItemCostListView(),
+      binding: MissingItemCostBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.savings,
+      page: () => const SavingsView(),
+      binding: SavingsBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.shippersList,
+      page: () => const ShippersListView(),
+      binding: ShippersBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.vendorDetails,
+      page: () => const VendorDetailsView(),
+      binding: ShippersBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.addShipper,
+      page: () => const AddShipperView(),
+      binding: ShippersBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.editShipper,
+      page: () => const EditShipperView(),
+      binding: ShippersBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.freightCarriers,
+      page: () => const FreightCarriersView(),
+      binding: FreightCarriersBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.addFreightCarrier,
+      page: () => const AddFreightCarrierView(),
+      binding: FreightCarriersBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.editFreightCarrier,
+      page: () => const AddFreightCarrierView(isEdit: true),
+      binding: FreightCarriersBinding(),
     ),
   ];
 }

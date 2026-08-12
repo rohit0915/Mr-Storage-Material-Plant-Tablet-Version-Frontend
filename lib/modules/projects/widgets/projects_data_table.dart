@@ -249,11 +249,14 @@ class ProjectsDataTable extends StatelessWidget {
                           flex: 2,
                           child: Align(
                             alignment: Alignment.centerLeft,
-                            child: Stack(
-                              clipBehavior: Clip.none,
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            child: InkWell(
+                              onTap: () => Get.toNamed(AppRoutes.chat),
+                              borderRadius: BorderRadius.circular(16),
+                              child: Stack(
+                                clipBehavior: Clip.none,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                   decoration: BoxDecoration(
                                     color: AppColors.primary.withValues(alpha: 0.1),
                                     borderRadius: BorderRadius.circular(16),
@@ -296,6 +299,7 @@ class ProjectsDataTable extends StatelessWidget {
                               ],
                             ),
                           ),
+                        ),
                         ),
                         // Actions (Eye + Edit/Document)
                         Expanded(

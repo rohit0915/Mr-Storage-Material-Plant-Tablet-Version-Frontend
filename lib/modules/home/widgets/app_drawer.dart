@@ -212,6 +212,8 @@ class AppDrawer extends StatelessWidget {
             Get.toNamed(AppRoutes.savings);
           } else if (title == 'Freight Carriers' && Get.currentRoute != AppRoutes.freightCarriers) {
             Get.toNamed(AppRoutes.freightCarriers);
+          } else if (title == 'Communication' && Get.currentRoute != AppRoutes.chat) {
+            Get.toNamed(AppRoutes.chat);
           }
         },
         borderRadius: BorderRadius.circular(10),

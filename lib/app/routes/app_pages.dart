@@ -69,6 +69,9 @@ import '../../modules/shippers/view/edit_shipper_view.dart';
 import '../../modules/freight_carriers/binding/freight_carriers_binding.dart';
 import '../../modules/freight_carriers/view/freight_carriers_view.dart';
 import '../../modules/freight_carriers/view/add_freight_carrier_view.dart';
+import '../../modules/chat/binding/chat_binding.dart';
+import '../../modules/chat/view/chat_view.dart';
+import 'auth_middleware.dart';
 import 'app_routes.dart';
 
 class AppPages {
@@ -79,6 +82,7 @@ class AppPages {
       name: AppRoutes.home,
       page: () => const HomeView(),
       binding: HomeBinding(),
+      middlewares: [AuthMiddleware()],
     ),
     GetPage(
       name: AppRoutes.projects,
@@ -279,6 +283,11 @@ class AppPages {
       name: AppRoutes.editFreightCarrier,
       page: () => const AddFreightCarrierView(isEdit: true),
       binding: FreightCarriersBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.chat,
+      page: () => const ChatView(),
+      binding: ChatBinding(),
     ),
   ];
 }

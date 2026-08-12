@@ -10,12 +10,49 @@ class SharedPrefService extends GetxService {
     return this;
   }
 
+  // Onboarding Status
+  Future<bool> setHasSeenOnboarding(bool seen) async {
+    return await _prefs.setBool(AppConstants.hasSeenOnboardingKey, seen);
+  }
+
+  bool getHasSeenOnboarding() {
+    return _prefs.getBool(AppConstants.hasSeenOnboardingKey) ?? false;
+  }
+
+  // Auth Status & Token
+  Future<bool> setIsLoggedIn(bool loggedIn) async {
+    return await _prefs.setBool(AppConstants.isLoggedInKey, loggedIn);
+  }
+
+  bool isLoggedIn() {
+    final tokenExists = getToken() != null && getToken()!.isNotEmpty;
+    final flag = _prefs.getBool(AppConstants.isLoggedInKey) ?? false;
+    return flag || tokenExists;
+  }
+
   Future<bool> setToken(String token) async {
+    await setIsLoggedIn(true);
     return await _prefs.setString(AppConstants.tokenKey, token);
   }
 
   String? getToken() {
     return _prefs.getString(AppConstants.tokenKey);
+  }
+
+  // User Data Storage
+  Future<bool> setUserData(String userDataJson) async {
+    return await _prefs.setString(AppConstants.userKey, userDataJson);
+  }
+
+  String? getUserData() {
+    return _prefs.getString(AppConstants.userKey);
+  }
+
+  // Clear session on logout
+  Future<bool> clearSession() async {
+    await _prefs.remove(AppConstants.tokenKey);
+    await _prefs.remove(AppConstants.userKey);
+    return await _prefs.setBool(AppConstants.isLoggedInKey, false);
   }
 
   Future<bool> clearAll() async {

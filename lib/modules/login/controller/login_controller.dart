@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../app/routes/app_routes.dart';
+import '../../../app/services/shared_pref_service.dart';
 
 class LoginController extends GetxController {
   final emailController = TextEditingController();
@@ -27,11 +29,33 @@ class LoginController extends GetxController {
     }
   }
 
-  void login() {
+  void login() async {
     if (isFormValid.value) {
-      // Perform login API call
-      // For now, simulate success
-      Get.snackbar('Success', 'Logged in successfully!', snackPosition: SnackPosition.BOTTOM);
+      // Save token and login status in SharedPrefService
+      if (Get.isRegistered<SharedPrefService>()) {
+        final prefService = Get.find<SharedPrefService>();
+        await prefService.setToken('sample_auth_token_steel_depot_2025');
+        await prefService.setIsLoggedIn(true);
+      }
+
+      Get.snackbar(
+        'Success',
+        'Logged in successfully!',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: const Color(0xFF22C55E),
+        colorText: Colors.white,
+      );
+
+      // Navigate to Home Dashboard after login
+      Get.offAllNamed(AppRoutes.home);
+    } else {
+      Get.snackbar(
+        'Invalid Input',
+        'Please enter a valid email and password (min 6 chars)',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: const Color(0xFFEF4444),
+        colorText: Colors.white,
+      );
     }
   }
 

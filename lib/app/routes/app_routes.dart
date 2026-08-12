@@ -40,6 +40,7 @@ abstract class AppRoutes {
   static const freightCarriers = '/freight-carriers';
   static const addFreightCarrier = '/add-freight-carrier';
   static const editFreightCarrier = '/edit-freight-carrier';
+  static const chat = '/chat';
 }
 
 

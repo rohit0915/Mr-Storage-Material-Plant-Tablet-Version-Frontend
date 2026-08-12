@@ -2,33 +2,25 @@ import 'package:flutter/material.dart';
 
 class NotificationItemModel {
   final String id;
-  final String notificationTitle;
-  final String channel;
-  final String deliveryId;
-  final String project;
-  final String itemDescription;
-  final String recipientName;
-  final String recipientContact;
-  final String deliveryStatus;
-  final String recipientType;
-  final String sentDate;
-  final bool isError;
-  final String? errorMessage;
+  final String title;
+  final String description;
+  final String time;
+  final String category; // 'all', 'unread', 'equipment', 'finance', 'meetings'
+  final IconData icon;
+  final Color iconBgColor;
+  final Color iconFgColor;
+  final bool isUnread;
 
   NotificationItemModel({
     required this.id,
-    required this.notificationTitle,
-    required this.channel,
-    required this.deliveryId,
-    required this.project,
-    required this.itemDescription,
-    required this.recipientName,
-    required this.recipientContact,
-    required this.deliveryStatus,
-    required this.recipientType,
-    required this.sentDate,
-    this.isError = false,
-    this.errorMessage,
+    required this.title,
+    required this.description,
+    required this.time,
+    required this.category,
+    required this.icon,
+    required this.iconBgColor,
+    required this.iconFgColor,
+    this.isUnread = false,
   });
 }
 

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import '../../../app/routes/app_routes.dart';
 import '../../../app/utils/app_colors.dart';
 import '../model/dashboard_models.dart';
 
@@ -196,27 +198,31 @@ class DrawingApprovalStatusTable extends StatelessWidget {
                               ),
                             ),
                             // Eye Action Button
-                            Container(
-                              width: 30,
-                              height: 30,
-                              padding: const EdgeInsets.all(5),
-                              decoration: BoxDecoration(
-                                gradient: AppColors.primaryGradient,
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: Colors.white, width: 1.5),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: const Color(0xFF2563EB).withValues(alpha: 0.25),
-                                    blurRadius: 6,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-                              child: Image.asset(
-                                'assets/icons/ic_eye.png',
-                                color: Colors.white,
-                                fit: BoxFit.contain,
-                                errorBuilder: (context, error, stackTrace) => const Icon(Icons.visibility, color: Colors.white, size: 16),
+                            InkWell(
+                              onTap: () => Get.toNamed(AppRoutes.projectDrawings),
+                              borderRadius: BorderRadius.circular(8),
+                              child: Container(
+                                width: 30,
+                                height: 30,
+                                padding: const EdgeInsets.all(5),
+                                decoration: BoxDecoration(
+                                  gradient: AppColors.primaryGradient,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: Colors.white, width: 1.5),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color(0xFF2563EB).withValues(alpha: 0.25),
+                                      blurRadius: 6,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: Image.asset(
+                                  'assets/icons/ic_eye.png',
+                                  color: Colors.white,
+                                  fit: BoxFit.contain,
+                                  errorBuilder: (context, error, stackTrace) => const Icon(Icons.visibility, color: Colors.white, size: 16),
+                                ),
                               ),
                             ),
                           ],

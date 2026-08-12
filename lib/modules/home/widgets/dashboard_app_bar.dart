@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:steel_building_plant_panel/app/utils/app_icons.dart';
+import '../../../app/routes/app_routes.dart';
+import '../../../app/services/shared_pref_service.dart';
 import '../../../app/utils/app_colors.dart';
 
 class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -120,6 +123,10 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
                         iconFg: AppColors.badgeBlueText,
                         title: 'Shipper File Comparison Completed SH-001',
                         action: 'View Result',
+                        onTap: () {
+                          Navigator.pop(context);
+                          Get.toNamed(AppRoutes.comparisonResult);
+                        },
                       ),
                       _buildNotificationItem(
                         icon: Icons.local_shipping_outlined,
@@ -153,7 +160,10 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
                       SizedBox(
                         width: double.infinity,
                         child: OutlinedButton(
-                          onPressed: () => Navigator.pop(context),
+                          onPressed: () {
+                            Navigator.pop(context);
+                            Get.toNamed(AppRoutes.notificationHistory);
+                          },
                           style: OutlinedButton.styleFrom(
                             side: const BorderSide(color: AppColors.primary),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -200,7 +210,14 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
             elevation: 8,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             color: Colors.white,
-            onSelected: (value) {},
+            onSelected: (value) async {
+              if (value == 'signout') {
+                if (Get.isRegistered<SharedPrefService>()) {
+                  await Get.find<SharedPrefService>().clearSession();
+                }
+                Get.offAllNamed(AppRoutes.login);
+              }
+            },
             itemBuilder: (context) => [
               PopupMenuItem<String>(
                 value: 'profile',
@@ -268,6 +285,7 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
     required String title,
     String? action,
     String? time,
+    VoidCallback? onTap,
   }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -297,12 +315,15 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
           ),
           const SizedBox(width: 6),
           if (action != null)
-            Text(
-              action,
-              style: const TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.bold,
-                color: AppColors.primary,
+            GestureDetector(
+              onTap: onTap,
+              child: Text(
+                action,
+                style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.primary,
+                ),
               ),
             )
           else if (time != null)

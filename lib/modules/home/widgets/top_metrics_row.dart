@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import '../../../app/routes/app_routes.dart';
 import '../model/dashboard_models.dart';
 
 class TopMetricsRow extends StatelessWidget {
@@ -14,22 +16,37 @@ class TopMetricsRow extends StatelessWidget {
         children: List.generate(metrics.length, (index) {
           final item = metrics[index];
           return Expanded(
-            child: Container(
-              margin: EdgeInsets.only(
-                right: index == metrics.length - 1 ? 0 : 12.0,
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
-              decoration: BoxDecoration(
-                color: item.backgroundColor,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: item.backgroundColor.withValues(alpha: 0.2),
-                    blurRadius: 8,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
-              ),
+            child: InkWell(
+              onTap: () {
+                if (index == 0) {
+                  Get.toNamed(AppRoutes.projects);
+                } else if (index == 1) {
+                  Get.toNamed(AppRoutes.loadPlanning);
+                } else if (index == 2) {
+                  Get.toNamed(AppRoutes.packingList);
+                } else if (index == 3) {
+                  Get.toNamed(AppRoutes.deliveryDetails);
+                } else if (index == 4) {
+                  Get.toNamed(AppRoutes.projectDrawings);
+                }
+              },
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                margin: EdgeInsets.only(
+                  right: index == metrics.length - 1 ? 0 : 12.0,
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
+                decoration: BoxDecoration(
+                  color: item.backgroundColor,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: item.backgroundColor.withValues(alpha: 0.2),
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -78,7 +95,8 @@ class TopMetricsRow extends StatelessWidget {
                 ],
               ),
             ),
-          );
+          ),
+        );
         }),
       ),
     );

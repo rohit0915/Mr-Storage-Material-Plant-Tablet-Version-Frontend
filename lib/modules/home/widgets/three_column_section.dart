@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import '../../../app/routes/app_routes.dart';
 import '../../../app/utils/app_colors.dart';
 import '../model/dashboard_models.dart';
 
@@ -154,7 +156,7 @@ class ThreeColumnSection extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             child: OutlinedButton(
-              onPressed: () {},
+              onPressed: () => Get.toNamed(AppRoutes.shipperFiles),
               style: OutlinedButton.styleFrom(
                 side: const BorderSide(color: AppColors.primary),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -240,7 +242,7 @@ class ThreeColumnSection extends StatelessWidget {
                           const SizedBox(width: 8),
                           if (item.actionText != null)
                             GestureDetector(
-                              onTap: () {},
+                              onTap: () => Get.toNamed(AppRoutes.comparisonResult),
                               child: Text(
                                 item.actionText!,
                                 style: const TextStyle(
@@ -272,7 +274,7 @@ class ThreeColumnSection extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             child: OutlinedButton(
-              onPressed: () {},
+              onPressed: () => Get.toNamed(AppRoutes.notificationHistory),
               style: OutlinedButton.styleFrom(
                 side: const BorderSide(color: AppColors.primary),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -394,7 +396,7 @@ class ThreeColumnSection extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             child: OutlinedButton(
-              onPressed: () {},
+              onPressed: () => Get.toNamed(AppRoutes.freightCarriers),
               style: OutlinedButton.styleFrom(
                 side: const BorderSide(color: AppColors.primary),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),

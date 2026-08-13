@@ -2,15 +2,20 @@ class ApiEndpoints {
   ApiEndpoints._();
 
   // Auth Endpoints
-  static const String login = '/auth/login';
-  static const String logout = '/auth/logout';
-  static const String profile = '/auth/profile';
+  static const String login = 'auth/login';
+  static const String logout = 'auth/logout';
+  static const String refreshToken = 'auth/refresh';
 
-  // Dashboard & Projects Endpoints
-  static const String dashboard = '/dashboard/summary';
-  static const String projects = '/projects';
-  static const String projectDetails = '/projects/details';
-  static const String drawings = '/drawings';
+  // Plant Dashboard & Projects Endpoints
+  static const String plantProjectStats = 'plant/projects/stats';
+  static const String plantProjects = 'plant/projects';
+  static String plantProjectDetail(String leadId) => 'plant/projects/$leadId/detail';
+  static String plantProjectLifecycle(String leadId) => 'plant/projects/$leadId/lifecycle';
+  static String plantProjectInvoices(String leadId) => 'plant/projects/$leadId/invoices';
+  static String plantProjectNotes(String leadId) => 'plant/projects/$leadId/notes';
+  static const String plantShipperFilesStats = 'plant/shipper-files/stats';
+  static const String plantBomStats = 'plant/bom/stats';
+  static const String plantDeliveriesStats = 'plant/deliveries/stats';
 
   // Logistics & Delivery Endpoints
   static const String shipperFiles = '/shipper/files';

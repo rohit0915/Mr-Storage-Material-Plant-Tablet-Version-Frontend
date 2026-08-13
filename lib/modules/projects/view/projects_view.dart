@@ -38,18 +38,18 @@ class ProjectsView extends GetView<ProjectsController> {
                       const ProjectsHeader(),
 
                       // Stat Cards (Total Projects, Active Projects, Pending, Canceled)
-                      ProjectsStatCards(stats: controller.projectStats),
+                      Obx(() => ProjectsStatCards(stats: controller.projectStats.toList())),
 
                       // Toolbar (Import CSV, Export Data, Filter dropdowns)
                       const ProjectsToolbar(),
 
                       // Projects Data Table
-                      ProjectsDataTable(
-                        items: controller.projectItems,
-                        selectAll: controller.selectAllRows.value,
-                        onSelectAll: controller.toggleSelectAll,
-                        onSelectRow: controller.toggleRowSelect,
-                      ),
+                      Obx(() => ProjectsDataTable(
+                            items: controller.projectItems.toList(),
+                            selectAll: controller.selectAllRows.value,
+                            onSelectAll: controller.toggleSelectAll,
+                            onSelectRow: controller.toggleRowSelect,
+                          )),
 
                       const SizedBox(height: 32),
                     ],

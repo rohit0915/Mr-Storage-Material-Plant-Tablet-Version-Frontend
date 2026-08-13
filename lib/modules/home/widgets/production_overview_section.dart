@@ -4,8 +4,17 @@ import '../model/dashboard_models.dart';
 
 class ProductionOverviewSection extends StatelessWidget {
   final List<ProductionOverviewModel> overviewItems;
+  final String activeFilterLabel;
+  final String activeFilterValue;
+  final Function(String) onFilterChanged;
 
-  const ProductionOverviewSection({super.key, required this.overviewItems});
+  const ProductionOverviewSection({
+    super.key,
+    required this.overviewItems,
+    required this.activeFilterLabel,
+    required this.activeFilterValue,
+    required this.onFilterChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -17,36 +26,59 @@ class ProductionOverviewSection extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Production Overview (Today)',
-                style: TextStyle(
+              Text(
+                'Production Overview ($activeFilterLabel)',
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: AppColors.textPrimary,
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: AppColors.inputBorder),
+              PopupMenuButton<String>(
+                tooltip: 'Select Filter',
+                offset: const Offset(0, 42),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
                 ),
-                child: Row(
-                  children: const [
-                    Icon(Icons.filter_list, size: 14, color: AppColors.textSecondary),
-                    SizedBox(width: 6),
-                    Text(
-                      'Today',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.textPrimary,
+                color: Colors.white,
+                elevation: 6,
+                onSelected: onFilterChanged,
+                itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                  _buildMenuItem('today', 'Today', activeFilterValue == 'today'),
+                  _buildMenuItem('week', 'This Week', activeFilterValue == 'week'),
+                  _buildMenuItem('month', 'This Month', activeFilterValue == 'month'),
+                ],
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: const Color(0xFFE2E4E6)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.04),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
                       ),
-                    ),
-                    SizedBox(width: 4),
-                    Icon(Icons.keyboard_arrow_down, size: 16, color: AppColors.textSecondary),
-                  ],
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.filter_list_rounded, size: 16, color: Color(0xFF637381)),
+                      const SizedBox(width: 8),
+                      Text(
+                        activeFilterLabel,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF212B36),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      const Icon(Icons.keyboard_arrow_down_rounded, size: 18, color: Color(0xFF637381)),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -87,7 +119,8 @@ class ProductionOverviewSection extends StatelessWidget {
                           item.iconAsset,
                           color: Colors.white,
                           fit: BoxFit.contain,
-                          errorBuilder: (context, error, stackTrace) => const Icon(Icons.insert_drive_file_outlined, color: Colors.white, size: 18),
+                          errorBuilder: (context, error, stackTrace) =>
+                              const Icon(Icons.insert_drive_file_outlined, color: Colors.white, size: 18),
                         ),
                       ),
                       const SizedBox(width: 10),
@@ -124,6 +157,29 @@ class ProductionOverviewSection extends StatelessWidget {
             }),
           ),
         ],
+      ),
+    );
+  }
+
+  PopupMenuItem<String> _buildMenuItem(String value, String label, bool isSelected) {
+    return PopupMenuItem<String>(
+      value: value,
+      height: 40,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFFF0F5FF) : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+            color: isSelected ? const Color(0xFF155DFC) : const Color(0xFF212B36),
+          ),
+        ),
       ),
     );
   }

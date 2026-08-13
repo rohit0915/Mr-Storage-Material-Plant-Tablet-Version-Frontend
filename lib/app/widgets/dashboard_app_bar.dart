@@ -2,10 +2,10 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:steel_building_plant_panel/app/utils/app_icons.dart';
-import '../../../app/routes/app_routes.dart';
-import '../../../app/services/shared_pref_service.dart';
-import '../../../app/utils/app_colors.dart';
-import '../controller/home_controller.dart';
+import '../routes/app_routes.dart';
+import '../services/shared_pref_service.dart';
+import '../utils/app_colors.dart';
+import '../../modules/home/controller/home_controller.dart';
 
 class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
   const DashboardAppBar({super.key});

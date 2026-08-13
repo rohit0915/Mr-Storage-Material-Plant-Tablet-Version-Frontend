@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../app/routes/app_routes.dart';
 import '../../../app/utils/app_colors.dart';
-import '../../../app/widgets/common_loader.dart';
+import '../widgets/project_details_shimmer.dart';
 import '../../home/widgets/dashboard_app_bar.dart';
 import '../controller/project_details_controller.dart';
 import '../widgets/add_notes_dialog.dart';
@@ -24,7 +24,7 @@ class ProjectDetailsView extends GetView<ProjectDetailsController> {
             Expanded(
               child: Obx(() {
                 if (controller.isLoading.value) {
-                  return const CommonLoader();
+                  return const ProjectDetailsShimmer();
                 }
 
                 return SingleChildScrollView(

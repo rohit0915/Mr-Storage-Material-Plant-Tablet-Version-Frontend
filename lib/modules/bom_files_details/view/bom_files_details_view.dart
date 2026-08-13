@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../../../app/routes/app_routes.dart';
 import '../../../app/utils/app_colors.dart';
 import '../../../app/widgets/common_loader.dart';
+import '../../../app/widgets/common_error_widget.dart';
 import '../../home/widgets/app_drawer.dart';
 import '../../home/widgets/dashboard_app_bar.dart';
 import '../controller/bom_files_details_controller.dart';
@@ -25,6 +26,12 @@ class BomFilesDetailsView extends GetView<BomFilesDetailsController> {
               child: Obx(() {
                 if (controller.isLoading.value) {
                   return const CommonLoader();
+                }
+                if (controller.errorMessage.value.isNotEmpty) {
+                  return CommonErrorWidget(
+                    message: controller.errorMessage.value,
+                    onRetry: controller.loadBomData,
+                  );
                 }
 
                 return SingleChildScrollView(
@@ -71,7 +78,9 @@ class BomFilesDetailsView extends GetView<BomFilesDetailsController> {
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF2563EB),
               elevation: 0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             ),
           ),
@@ -88,30 +97,50 @@ class BomFilesDetailsView extends GetView<BomFilesDetailsController> {
           // Action buttons
           OutlinedButton.icon(
             onPressed: () {},
-            icon: const Icon(Icons.description_outlined, size: 14, color: AppColors.textPrimary),
+            icon: const Icon(
+              Icons.description_outlined,
+              size: 14,
+              color: AppColors.textPrimary,
+            ),
             label: const Text(
               'Download Excel',
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
             ),
             style: OutlinedButton.styleFrom(
               backgroundColor: Colors.white,
               side: const BorderSide(color: AppColors.inputBorder),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             ),
           ),
           const SizedBox(width: 10),
           OutlinedButton.icon(
             onPressed: () => Get.toNamed(AppRoutes.pdfView),
-            icon: const Icon(Icons.picture_as_pdf_outlined, size: 14, color: AppColors.textPrimary),
+            icon: const Icon(
+              Icons.picture_as_pdf_outlined,
+              size: 14,
+              color: AppColors.textPrimary,
+            ),
             label: const Text(
               'Download PDF',
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
             ),
             style: OutlinedButton.styleFrom(
               backgroundColor: Colors.white,
               side: const BorderSide(color: AppColors.inputBorder),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             ),
           ),
@@ -121,12 +150,18 @@ class BomFilesDetailsView extends GetView<BomFilesDetailsController> {
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF6366F1),
               elevation: 0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
               padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
             ),
             child: const Text(
               'Share with Shippers',
-              style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
             ),
           ),
         ],
@@ -191,11 +226,23 @@ class BomFilesDetailsView extends GetView<BomFilesDetailsController> {
                         ),
                       ),
                       const SizedBox(height: 12),
-                      _buildSummaryRow('Total Items', '${controller.summary.value?.totalItems ?? 125}'),
+                      _buildSummaryRow(
+                        'Total Items',
+                        '${controller.summary.value?.totalItems ?? 125}',
+                      ),
                       const SizedBox(height: 8),
-                      _buildSummaryRow('Total Weight', controller.summary.value?.totalWeight ?? '32,000 lbs', isBold: true),
+                      _buildSummaryRow(
+                        'Total Weight',
+                        controller.summary.value?.totalWeight ?? '32,000 lbs',
+                        isBold: true,
+                      ),
                       const SizedBox(height: 8),
-                      _buildSummaryRow('Total Panels Area', controller.summary.value?.totalPanelsArea ?? '3,300 sqm', isBold: true),
+                      _buildSummaryRow(
+                        'Total Panels Area',
+                        controller.summary.value?.totalPanelsArea ??
+                            '3,300 sqm',
+                        isBold: true,
+                      ),
                     ],
                   ),
                 ),
@@ -223,21 +270,39 @@ class BomFilesDetailsView extends GetView<BomFilesDetailsController> {
                           ),
                         ),
                         const SizedBox(height: 12),
-                        _buildSummaryRow('Total Amount', '\$${controller.missingSummary.value!.totalAmount.toInt()}', isBold: true),
+                        _buildSummaryRow(
+                          'Total Amount',
+                          '\$${controller.missingSummary.value!.totalAmount.toInt()}',
+                          isBold: true,
+                        ),
                         const SizedBox(height: 8),
-                        _buildSummaryRow('Missing Item QTY', '${controller.missingSummary.value!.missingItemQty}', isBold: true),
+                        _buildSummaryRow(
+                          'Missing Item QTY',
+                          '${controller.missingSummary.value!.missingItemQty}',
+                          isBold: true,
+                        ),
                         const SizedBox(height: 14),
                         ElevatedButton(
-                          onPressed: () => Get.toNamed(AppRoutes.missingItemCostList),
+                          onPressed: () =>
+                              Get.toNamed(AppRoutes.missingItemCostList),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF2563EB),
                             elevation: 0,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 10,
+                            ),
                           ),
                           child: const Text(
                             'Add Item in Cost List',
-                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
                           ),
                         ),
                       ],
@@ -272,7 +337,10 @@ class BomFilesDetailsView extends GetView<BomFilesDetailsController> {
                             ),
                           ),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
                             color: const Color(0xFF2563EB),
                             child: const Text(
                               'MATERIALS',
@@ -298,23 +366,38 @@ class BomFilesDetailsView extends GetView<BomFilesDetailsController> {
                         // Title row
                         Container(
                           width: double.infinity,
-                          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 8,
+                            horizontal: 12,
+                          ),
                           decoration: const BoxDecoration(
-                            border: Border(bottom: BorderSide(color: Colors.black, width: 1.5)),
+                            border: Border(
+                              bottom: BorderSide(
+                                color: Colors.black,
+                                width: 1.5,
+                              ),
+                            ),
                           ),
                           child: Row(
                             children: [
                               const Expanded(
                                 child: Text(
                                   'STUDS & TOP CHANNELS',
-                                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black),
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black,
+                                  ),
                                 ),
                               ),
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   _buildHeaderGridCell('Date', controller.date),
-                                  _buildHeaderGridCell('Job Id', controller.jobId),
+                                  _buildHeaderGridCell(
+                                    'Job Id',
+                                    controller.jobId,
+                                  ),
                                 ],
                               ),
                             ],
@@ -323,25 +406,66 @@ class BomFilesDetailsView extends GetView<BomFilesDetailsController> {
                         // Customer row
                         Container(
                           width: double.infinity,
-                          padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 6,
+                            horizontal: 12,
+                          ),
                           decoration: const BoxDecoration(
-                            border: Border(bottom: BorderSide(color: Colors.black, width: 1.5)),
+                            border: Border(
+                              bottom: BorderSide(
+                                color: Colors.black,
+                                width: 1.5,
+                              ),
+                            ),
                           ),
                           child: Row(
                             children: [
-                              const SizedBox(width: 100, child: Text('Customer:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold))),
-                              Text(controller.customerName, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                              const SizedBox(
+                                width: 100,
+                                child: Text(
+                                  'Customer:',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              Text(
+                                controller.customerName,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ],
                           ),
                         ),
                         // Project Name row
                         Container(
                           width: double.infinity,
-                          padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 6,
+                            horizontal: 12,
+                          ),
                           child: Row(
                             children: [
-                              const SizedBox(width: 100, child: Text('Project Name:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold))),
-                              Text(controller.projectName, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                              const SizedBox(
+                                width: 100,
+                                child: Text(
+                                  'Project Name:',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              Text(
+                                controller.projectName,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -361,10 +485,7 @@ class BomFilesDetailsView extends GetView<BomFilesDetailsController> {
 
             const Text(
               'Received By:',
-              style: TextStyle(
-                fontSize: 12,
-                color: AppColors.textSecondary,
-              ),
+              style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
             ),
           ],
         ),
@@ -395,8 +516,17 @@ class BomFilesDetailsView extends GetView<BomFilesDetailsController> {
   Widget _buildHeaderGridCell(String label, String val) {
     return Row(
       children: [
-        SizedBox(width: 45, child: Text(label, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold))),
-        Text(val, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+        SizedBox(
+          width: 45,
+          child: Text(
+            label,
+            style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+          ),
+        ),
+        Text(
+          val,
+          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+        ),
       ],
     );
   }
@@ -434,17 +564,40 @@ class BomFilesDetailsView extends GetView<BomFilesDetailsController> {
             return Column(
               children: [
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
                   child: Row(
                     children: [
                       _buildTd('${item.qty}', flex: 1, isBold: true),
                       _buildTd(item.mark, flex: 1),
-                      _buildTd(item.description, flex: 2, color: AppColors.textSecondary),
+                      _buildTd(
+                        item.description,
+                        flex: 2,
+                        color: AppColors.textSecondary,
+                      ),
                       _buildTd(item.part, flex: 2, isBold: true),
-                      _buildTd(item.color, flex: 1, color: AppColors.textSecondary),
-                      _buildTd(item.thick, flex: 1, color: AppColors.textSecondary),
-                      _buildTd(item.length, flex: 2, color: AppColors.textSecondary),
-                      _buildTd(item.weight, flex: 1, color: AppColors.textSecondary),
+                      _buildTd(
+                        item.color,
+                        flex: 1,
+                        color: AppColors.textSecondary,
+                      ),
+                      _buildTd(
+                        item.thick,
+                        flex: 1,
+                        color: AppColors.textSecondary,
+                      ),
+                      _buildTd(
+                        item.length,
+                        flex: 2,
+                        color: AppColors.textSecondary,
+                      ),
+                      _buildTd(
+                        item.weight,
+                        flex: 1,
+                        color: AppColors.textSecondary,
+                      ),
                       if (item.isMissing)
                         Expanded(
                           flex: 1,
@@ -458,7 +611,11 @@ class BomFilesDetailsView extends GetView<BomFilesDetailsController> {
                           ),
                         )
                       else
-                        _buildTd(item.amount, flex: 1, color: AppColors.textPrimary),
+                        _buildTd(
+                          item.amount,
+                          flex: 1,
+                          color: AppColors.textPrimary,
+                        ),
                     ],
                   ),
                 ),
@@ -473,11 +630,54 @@ class BomFilesDetailsView extends GetView<BomFilesDetailsController> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Row(
               children: [
-                const Expanded(flex: 1, child: Text('QTY Total\n199', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold))),
-                const Expanded(flex: 2, child: Text('Total Tons:   1.71', style: TextStyle(fontSize: 12, color: AppColors.textSecondary))),
-                const Expanded(flex: 1, child: Text('RO', style: TextStyle(fontSize: 12, color: AppColors.textSecondary))),
-                const Expanded(flex: 2, child: Text('Total Weight (lbs)\n3423', style: TextStyle(fontSize: 12, color: AppColors.textSecondary))),
-                const Expanded(flex: 1, child: Text('\$25678', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary))),
+                const Expanded(
+                  flex: 1,
+                  child: Text(
+                    'QTY Total\n199',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                const Expanded(
+                  flex: 2,
+                  child: Text(
+                    'Total Tons:   1.71',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ),
+                const Expanded(
+                  flex: 1,
+                  child: Text(
+                    'RO',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ),
+                const Expanded(
+                  flex: 2,
+                  child: Text(
+                    'Total Weight (lbs)\n3423',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ),
+                const Expanded(
+                  flex: 1,
+                  child: Text(
+                    '\$25678',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -508,7 +708,12 @@ class BomFilesDetailsView extends GetView<BomFilesDetailsController> {
     );
   }
 
-  Widget _buildTd(String text, {int flex = 1, bool isBold = false, Color color = AppColors.textPrimary}) {
+  Widget _buildTd(
+    String text, {
+    int flex = 1,
+    bool isBold = false,
+    Color color = AppColors.textPrimary,
+  }) {
     return Expanded(
       flex: flex,
       child: Text(

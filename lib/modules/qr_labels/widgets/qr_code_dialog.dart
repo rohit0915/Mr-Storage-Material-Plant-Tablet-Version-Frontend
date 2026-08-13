@@ -109,9 +109,15 @@ class QrCodeDialog extends StatelessWidget {
                       const SizedBox(height: 8),
                       _buildDetailRow('Parts :', 'parts=${item.parts}'),
                       const SizedBox(height: 8),
-                      _buildDetailRow('Weight :', 'weight=${item.weight.replaceAll(RegExp(r'[^0-9]'), '')}'),
+                      _buildDetailRow(
+                        'Weight :',
+                        'weight=${item.weight.replaceAll(RegExp(r'[^0-9]'), '')}',
+                      ),
                       const SizedBox(height: 8),
-                      _buildDetailRow('Length :', 'Length=${item.length.replaceAll(RegExp(r'[^0-9]'), '')}'),
+                      _buildDetailRow(
+                        'Length :',
+                        'Length=${item.length.replaceAll(RegExp(r'[^0-9]'), '')}',
+                      ),
                     ],
                   ),
                 ),
@@ -128,8 +134,11 @@ class QrCodeDialog extends StatelessWidget {
                     height: 48,
                     child: ElevatedButton(
                       onPressed: () {
-                        Get.snackbar('Export', 'Exporting PDF for ${item.bundleId}',
-                            snackPosition: SnackPosition.BOTTOM);
+                        Get.snackbar(
+                          'Export',
+                          'Exporting PDF for ${item.bundleId}',
+                          snackPosition: SnackPosition.BOTTOM,
+                        );
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF3B82F6),
@@ -155,8 +164,11 @@ class QrCodeDialog extends StatelessWidget {
                     height: 52,
                     child: ElevatedButton(
                       onPressed: () {
-                        Get.snackbar('Print', 'Printing label for ${item.bundleId}',
-                            snackPosition: SnackPosition.BOTTOM);
+                        Get.snackbar(
+                          'Print',
+                          'Printing label for ${item.bundleId}',
+                          snackPosition: SnackPosition.BOTTOM,
+                        );
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF4F46E5),
@@ -237,7 +249,11 @@ class QrPainter extends CustomPainter {
     void drawFinderPattern(int topRow, int leftCol) {
       for (int r = 0; r < 7; r++) {
         for (int c = 0; c < 7; c++) {
-          if (r == 0 || r == 6 || c == 0 || c == 6 || (r >= 2 && r <= 4 && c >= 2 && c <= 4)) {
+          if (r == 0 ||
+              r == 6 ||
+              c == 0 ||
+              c == 6 ||
+              (r >= 2 && r <= 4 && c >= 2 && c <= 4)) {
             drawCell(topRow + r, leftCol + c);
           }
         }
@@ -245,9 +261,9 @@ class QrPainter extends CustomPainter {
     }
 
     // Draw the 3 standard QR finder patterns
-    drawFinderPattern(0, 0);   // Top Left
-    drawFinderPattern(0, 14);  // Top Right
-    drawFinderPattern(14, 0);  // Bottom Left
+    drawFinderPattern(0, 0); // Top Left
+    drawFinderPattern(0, 14); // Top Right
+    drawFinderPattern(14, 0); // Bottom Left
 
     // Standard timing pattern lines
     for (int i = 6; i < 15; i += 2) {

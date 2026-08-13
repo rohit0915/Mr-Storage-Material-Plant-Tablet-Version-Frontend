@@ -4,6 +4,7 @@ import '../../../app/routes/app_routes.dart';
 import '../../../app/utils/app_colors.dart';
 import '../../../app/utils/app_icons.dart';
 import '../../../app/widgets/common_loader.dart';
+import '../../../app/widgets/common_error_widget.dart';
 import '../../home/widgets/app_drawer.dart';
 import '../../home/widgets/dashboard_app_bar.dart';
 import '../../project_details/widgets/upload_bom_dialog.dart';
@@ -26,10 +27,19 @@ class UploadedBomFilesView extends GetView<UploadedBomFilesController> {
                 if (controller.isLoading.value) {
                   return const CommonLoader();
                 }
+                if (controller.errorMessage.value.isNotEmpty) {
+                  return CommonErrorWidget(
+                    message: controller.errorMessage.value,
+                    onRetry: controller.loadBomFiles,
+                  );
+                }
 
                 return SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 16,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -71,7 +81,9 @@ class UploadedBomFilesView extends GetView<UploadedBomFilesController> {
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFF2563EB),
             elevation: 0,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           ),
           child: const Text(
@@ -93,7 +105,7 @@ class UploadedBomFilesView extends GetView<UploadedBomFilesController> {
         Expanded(
           child: _buildMetricCard(
             title: 'Total BOM Files',
-            value: '58 Files',
+            value: '${controller.totalProjects.value} Files',
             backgroundColor: const Color(0xFF1D51A4),
             iconAsset: AppIcons.totalProject,
           ),
@@ -102,7 +114,7 @@ class UploadedBomFilesView extends GetView<UploadedBomFilesController> {
         Expanded(
           child: _buildMetricCard(
             title: 'Pending Upload',
-            value: '12 Files',
+            value: '${controller.pendingExtraction.value} Files',
             backgroundColor: const Color(0xFF22C55E),
             iconAsset: AppIcons.pendingApproval,
           ),
@@ -111,7 +123,7 @@ class UploadedBomFilesView extends GetView<UploadedBomFilesController> {
         Expanded(
           child: _buildMetricCard(
             title: 'Ready for Shipper',
-            value: '26 Files',
+            value: '${controller.readyForReview.value} Files',
             backgroundColor: const Color(0xFFEAB308),
             iconAsset: AppIcons.producedTonnage,
           ),
@@ -119,8 +131,8 @@ class UploadedBomFilesView extends GetView<UploadedBomFilesController> {
         const SizedBox(width: 16),
         Expanded(
           child: _buildMetricCard(
-            title: 'Issues Detected',
-            value: '8 Files',
+            title: 'All Confirmed',
+            value: '${controller.allConfirmed.value} Files',
             backgroundColor: const Color(0xFFF97316),
             iconAsset: AppIcons.utilization,
           ),
@@ -149,12 +161,20 @@ class UploadedBomFilesView extends GetView<UploadedBomFilesController> {
             children: [
               Text(
                 title,
-                style: const TextStyle(fontSize: 12, color: Colors.white70, fontWeight: FontWeight.w500),
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Colors.white70,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
               const SizedBox(height: 6),
               Text(
                 value,
-                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
               ),
             ],
           ),
@@ -169,7 +189,8 @@ class UploadedBomFilesView extends GetView<UploadedBomFilesController> {
             child: Image.asset(
               iconAsset,
               fit: BoxFit.contain,
-              errorBuilder: (context, error, stackTrace) => Icon(Icons.build_outlined, color: backgroundColor, size: 20),
+              errorBuilder: (context, error, stackTrace) =>
+                  Icon(Icons.build_outlined, color: backgroundColor, size: 20),
             ),
           ),
         ],
@@ -196,7 +217,10 @@ class UploadedBomFilesView extends GetView<UploadedBomFilesController> {
                 child: TextField(
                   decoration: InputDecoration(
                     hintText: 'Search',
-                    hintStyle: TextStyle(fontSize: 12, color: AppColors.textHint),
+                    hintStyle: TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textHint,
+                    ),
                     border: InputBorder.none,
                     isDense: true,
                     contentPadding: EdgeInsets.symmetric(vertical: 10),
@@ -209,12 +233,21 @@ class UploadedBomFilesView extends GetView<UploadedBomFilesController> {
         const SizedBox(width: 12),
         OutlinedButton.icon(
           onPressed: () {},
-          icon: const Icon(Icons.filter_list, size: 14, color: AppColors.textSecondary),
-          label: const Text('Filter', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+          icon: const Icon(
+            Icons.filter_list,
+            size: 14,
+            color: AppColors.textSecondary,
+          ),
+          label: const Text(
+            'Filter',
+            style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+          ),
           style: OutlinedButton.styleFrom(
             backgroundColor: Colors.white,
             side: const BorderSide(color: AppColors.inputBorder),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           ),
         ),
@@ -233,10 +266,18 @@ class UploadedBomFilesView extends GetView<UploadedBomFilesController> {
               SizedBox(width: 6),
               Text(
                 'Sort by : Latest',
-                style: TextStyle(fontSize: 12, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
+                style: TextStyle(
+                  fontSize: 12,
+                  color: AppColors.textSecondary,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
               SizedBox(width: 4),
-              Icon(Icons.keyboard_arrow_down, size: 16, color: AppColors.textSecondary),
+              Icon(
+                Icons.keyboard_arrow_down,
+                size: 16,
+                color: AppColors.textSecondary,
+              ),
             ],
           ),
         ),
@@ -261,23 +302,47 @@ class UploadedBomFilesView extends GetView<UploadedBomFilesController> {
                 SizedBox(
                   width: 32,
                   child: Checkbox(
-                    value: controller.bomFilesList.isNotEmpty && controller.bomFilesList.every((item) => item.isSelected),
+                    value:
+                        controller.bomFilesList.isNotEmpty &&
+                        controller.bomFilesList.every(
+                          (item) => item.isSelected,
+                        ),
                     onChanged: (val) => controller.toggleSelectAll(val),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(4),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
                 const Expanded(
                   flex: 3,
-                  child: Text('Project', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                  child: Text(
+                    'Project',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
                 ),
                 const Expanded(
                   flex: 3,
                   child: Row(
                     children: [
-                      Text('Upload Date', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                      Text(
+                        'Upload Date',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
                       SizedBox(width: 4),
-                      Icon(Icons.swap_vert, size: 14, color: AppColors.textSecondary),
+                      Icon(
+                        Icons.swap_vert,
+                        size: 14,
+                        color: AppColors.textSecondary,
+                      ),
                     ],
                   ),
                 ),
@@ -285,15 +350,33 @@ class UploadedBomFilesView extends GetView<UploadedBomFilesController> {
                   flex: 2,
                   child: Row(
                     children: [
-                      Text('Items', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                      Text(
+                        'Items',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
                       SizedBox(width: 4),
-                      Icon(Icons.swap_vert, size: 14, color: AppColors.textSecondary),
+                      Icon(
+                        Icons.swap_vert,
+                        size: 14,
+                        color: AppColors.textSecondary,
+                      ),
                     ],
                   ),
                 ),
                 const Expanded(
                   flex: 3,
-                  child: Text('File Status', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                  child: Text(
+                    'File Status',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
                 ),
                 const SizedBox(width: 44),
               ],
@@ -305,20 +388,27 @@ class UploadedBomFilesView extends GetView<UploadedBomFilesController> {
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: controller.bomFilesList.length,
-              separatorBuilder: (context, index) => const Divider(height: 1, color: AppColors.divider),
+              separatorBuilder: (context, index) =>
+                  const Divider(height: 1, color: AppColors.divider),
               itemBuilder: (context, index) {
                 final item = controller.bomFilesList[index];
                 return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                   child: Row(
                     children: [
                       SizedBox(
                         width: 32,
                         child: Checkbox(
                           value: item.isSelected,
-                          onChanged: (val) => controller.toggleSelectItem(index, val),
+                          onChanged: (val) =>
+                              controller.toggleSelectItem(index, val),
                           activeColor: const Color(0xFF6366F1),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(4),
+                          ),
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -326,21 +416,31 @@ class UploadedBomFilesView extends GetView<UploadedBomFilesController> {
                         flex: 3,
                         child: Text(
                           item.project,
-                          style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: AppColors.textSecondary,
+                          ),
                         ),
                       ),
                       Expanded(
                         flex: 3,
                         child: Text(
                           item.uploadDate,
-                          style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: AppColors.textSecondary,
+                          ),
                         ),
                       ),
                       Expanded(
                         flex: 2,
                         child: Text(
                           '${item.items}',
-                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary,
+                          ),
                         ),
                       ),
                       Expanded(
@@ -351,14 +451,21 @@ class UploadedBomFilesView extends GetView<UploadedBomFilesController> {
                         ),
                       ),
                       IconButton(
-                        onPressed: () => Get.toNamed(AppRoutes.bomFilesDetails),
+                        onPressed: () => Get.toNamed(
+                          AppRoutes.bomFilesDetails,
+                          parameters: {'id': item.id},
+                        ),
                         icon: Container(
                           padding: const EdgeInsets.all(6),
                           decoration: BoxDecoration(
                             color: const Color(0xFF2563EB),
                             borderRadius: BorderRadius.circular(6),
                           ),
-                          child: const Icon(Icons.visibility_outlined, size: 16, color: Colors.white),
+                          child: const Icon(
+                            Icons.visibility_outlined,
+                            size: 16,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                     ],
@@ -383,9 +490,20 @@ class UploadedBomFilesView extends GetView<UploadedBomFilesController> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: const [
-            Text('Pending', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFFD97706))),
+            Text(
+              'Pending',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFFD97706),
+              ),
+            ),
             SizedBox(width: 4),
-            Icon(Icons.check_circle_outline, size: 12, color: Color(0xFFD97706)),
+            Icon(
+              Icons.check_circle_outline,
+              size: 12,
+              color: Color(0xFFD97706),
+            ),
           ],
         ),
       );
@@ -401,9 +519,20 @@ class UploadedBomFilesView extends GetView<UploadedBomFilesController> {
           children: const [
             Icon(Icons.check, size: 12, color: Color(0xFF16A34A)),
             SizedBox(width: 4),
-            Text('Shared to Shippers', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF16A34A))),
+            Text(
+              'Shared to Shippers',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF16A34A),
+              ),
+            ),
             SizedBox(width: 4),
-            Icon(Icons.check_circle_outline, size: 12, color: Color(0xFF16A34A)),
+            Icon(
+              Icons.check_circle_outline,
+              size: 12,
+              color: Color(0xFF16A34A),
+            ),
           ],
         ),
       );
@@ -419,9 +548,20 @@ class UploadedBomFilesView extends GetView<UploadedBomFilesController> {
           children: const [
             Icon(Icons.lock_outline, size: 12, color: Color(0xFF16A34A)),
             SizedBox(width: 4),
-            Text('Locked', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF16A34A))),
+            Text(
+              'Locked',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF16A34A),
+              ),
+            ),
             SizedBox(width: 4),
-            Icon(Icons.check_circle_outline, size: 12, color: Color(0xFF16A34A)),
+            Icon(
+              Icons.check_circle_outline,
+              size: 12,
+              color: Color(0xFF16A34A),
+            ),
           ],
         ),
       );
@@ -441,7 +581,10 @@ class UploadedBomFilesView extends GetView<UploadedBomFilesController> {
         children: [
           Row(
             children: [
-              const Text('Row Per Page', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+              const Text(
+                'Row Per Page',
+                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+              ),
               const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -451,19 +594,32 @@ class UploadedBomFilesView extends GetView<UploadedBomFilesController> {
                 ),
                 child: Row(
                   children: const [
-                    Text('10', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                    Text(
+                      '10',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     SizedBox(width: 4),
                     Icon(Icons.keyboard_arrow_down, size: 14),
                   ],
                 ),
               ),
               const SizedBox(width: 8),
-              const Text('Entries', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+              const Text(
+                'Entries',
+                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+              ),
             ],
           ),
           Row(
             children: [
-              const Icon(Icons.chevron_left, size: 18, color: AppColors.textSecondary),
+              const Icon(
+                Icons.chevron_left,
+                size: 18,
+                color: AppColors.textSecondary,
+              ),
               const SizedBox(width: 8),
               _buildPageNumber('1', false),
               _buildPageNumber('2', false),
@@ -471,11 +627,21 @@ class UploadedBomFilesView extends GetView<UploadedBomFilesController> {
               _buildPageNumber('4', true),
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 4),
-                child: Text('...', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                child: Text(
+                  '...',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
               ),
               _buildPageNumber('15', false),
               const SizedBox(width: 8),
-              const Icon(Icons.chevron_right, size: 18, color: AppColors.textSecondary),
+              const Icon(
+                Icons.chevron_right,
+                size: 18,
+                color: AppColors.textSecondary,
+              ),
             ],
           ),
         ],

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../app/utils/app_colors.dart';
 import '../../../app/widgets/common_loader.dart';
+import '../../../app/widgets/common_error_widget.dart';
 import '../../home/widgets/app_drawer.dart';
 import '../../home/widgets/dashboard_app_bar.dart';
 import '../controller/delivery_details_controller.dart';
@@ -25,10 +26,22 @@ class DeliveryDetailsView extends GetView<DeliveryDetailsController> {
                 if (controller.isLoading.value) {
                   return const CommonLoader();
                 }
+                if (controller.hasNoDeliveries.value) {
+                  return _buildEmptyDeliveryState();
+                }
+                if (controller.errorMessage.value.isNotEmpty) {
+                  return CommonErrorWidget(
+                    message: controller.errorMessage.value,
+                    onRetry: controller.loadDeliveryDetails,
+                  );
+                }
 
                 return SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 16,
+                  ),
                   child: Column(
                     children: [
                       // Header Navigation & Actions Bar
@@ -93,11 +106,20 @@ class DeliveryDetailsView extends GetView<DeliveryDetailsController> {
         ElevatedButton.icon(
           onPressed: () => Get.back(),
           icon: const Icon(Icons.arrow_back, size: 16, color: Colors.white),
-          label: const Text('Back', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white)),
+          label: const Text(
+            'Back',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFF2563EB),
             elevation: 0,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           ),
         ),
@@ -107,24 +129,44 @@ class DeliveryDetailsView extends GetView<DeliveryDetailsController> {
           children: [
             const Text(
               'Delivery Details',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
             ),
             const SizedBox(height: 2),
             Text(
               '${controller.delivery.deliveryId} - ${controller.delivery.title}',
-              style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+              style: const TextStyle(
+                fontSize: 12,
+                color: AppColors.textSecondary,
+              ),
             ),
           ],
         ),
         const Spacer(),
         OutlinedButton.icon(
           onPressed: () => Get.dialog(const RescheduleDeliveryDialog()),
-          icon: const Icon(Icons.refresh, size: 14, color: AppColors.textPrimary),
-          label: const Text('Reschedule', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+          icon: const Icon(
+            Icons.refresh,
+            size: 14,
+            color: AppColors.textPrimary,
+          ),
+          label: const Text(
+            'Reschedule',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
+          ),
           style: OutlinedButton.styleFrom(
             backgroundColor: Colors.white,
             side: const BorderSide(color: AppColors.inputBorder),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           ),
         ),
@@ -132,11 +174,20 @@ class DeliveryDetailsView extends GetView<DeliveryDetailsController> {
         ElevatedButton.icon(
           onPressed: () => Get.dialog(const EditDeliveryDialog()),
           icon: const Icon(Icons.edit_outlined, size: 14, color: Colors.white),
-          label: const Text('Edit Delivery', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
+          label: const Text(
+            'Edit Delivery',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFF2563EB),
             elevation: 0,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           ),
         ),
@@ -151,17 +202,31 @@ class DeliveryDetailsView extends GetView<DeliveryDetailsController> {
         children: [
           Row(
             children: [
-              const Text('Delivery Overview', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+              const Text(
+                'Delivery Overview',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+              ),
               const Spacer(),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFFDBEAFE),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
                   controller.delivery.status,
-                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF2563EB)),
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF2563EB),
+                  ),
                 ),
               ),
             ],
@@ -169,19 +234,46 @@ class DeliveryDetailsView extends GetView<DeliveryDetailsController> {
           const SizedBox(height: 16),
           Row(
             children: [
-              Expanded(child: _buildMetaField('PROJECT', controller.delivery.projectName, icon: Icons.business)),
-              Expanded(child: _buildMetaField('CUSTOMER', controller.delivery.customer)),
+              Expanded(
+                child: _buildMetaField(
+                  'PROJECT',
+                  controller.delivery.projectName,
+                  icon: Icons.business,
+                ),
+              ),
+              Expanded(
+                child: _buildMetaField(
+                  'CUSTOMER',
+                  controller.delivery.customer,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 16),
           Row(
             children: [
-              Expanded(child: _buildMetaField('DELIVERY DATE', controller.delivery.deliveryDate, icon: Icons.calendar_today_outlined)),
-              Expanded(child: _buildMetaField('TIME WINDOW', controller.delivery.timeWindow, icon: Icons.access_time)),
+              Expanded(
+                child: _buildMetaField(
+                  'DELIVERY DATE',
+                  controller.delivery.deliveryDate,
+                  icon: Icons.calendar_today_outlined,
+                ),
+              ),
+              Expanded(
+                child: _buildMetaField(
+                  'TIME WINDOW',
+                  controller.delivery.timeWindow,
+                  icon: Icons.access_time,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 16),
-          _buildMetaField('SITE ADDRESS', controller.delivery.siteAddress, icon: Icons.location_on_outlined),
+          _buildMetaField(
+            'SITE ADDRESS',
+            controller.delivery.siteAddress,
+            icon: Icons.location_on_outlined,
+          ),
         ],
       ),
     );
@@ -192,14 +284,35 @@ class DeliveryDetailsView extends GetView<DeliveryDetailsController> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Delivery Information', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+          const Text(
+            'Delivery Information',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+            ),
+          ),
           const SizedBox(height: 16),
-          _buildMetaField('DESCRIPTION', controller.delivery.description, icon: Icons.check_circle_outline),
+          _buildMetaField(
+            'DESCRIPTION',
+            controller.delivery.description,
+            icon: Icons.check_circle_outline,
+          ),
           const SizedBox(height: 16),
           Row(
             children: [
-              Expanded(child: _buildMetaField('MATERIAL CATEGORY', controller.delivery.materialCategory)),
-              Expanded(child: _buildMetaField('PICKUP DATE', controller.delivery.pickupDate)),
+              Expanded(
+                child: _buildMetaField(
+                  'MATERIAL CATEGORY',
+                  controller.delivery.materialCategory,
+                ),
+              ),
+              Expanded(
+                child: _buildMetaField(
+                  'PICKUP DATE',
+                  controller.delivery.pickupDate,
+                ),
+              ),
             ],
           ),
         ],
@@ -215,15 +328,37 @@ class DeliveryDetailsView extends GetView<DeliveryDetailsController> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Vendor', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                const Text(
+                  'Vendor',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
                 const SizedBox(height: 10),
-                Text(controller.delivery.vendorName, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                Text(
+                  controller.delivery.vendorName,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
                 const SizedBox(height: 6),
-                _buildIconText(Icons.person_outline, controller.delivery.vendorContact),
+                _buildIconText(
+                  Icons.person_outline,
+                  controller.delivery.vendorContact,
+                ),
                 const SizedBox(height: 4),
-                _buildIconText(Icons.phone_outlined, controller.delivery.vendorPhone),
+                _buildIconText(
+                  Icons.phone_outlined,
+                  controller.delivery.vendorPhone,
+                ),
                 const SizedBox(height: 4),
-                _buildIconText(Icons.email_outlined, controller.delivery.vendorEmail),
+                _buildIconText(
+                  Icons.email_outlined,
+                  controller.delivery.vendorEmail,
+                ),
               ],
             ),
           ),
@@ -234,13 +369,29 @@ class DeliveryDetailsView extends GetView<DeliveryDetailsController> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Delivery Company', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                const Text(
+                  'Delivery Company',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
                 const SizedBox(height: 10),
-                _buildIconText(Icons.local_shipping_outlined, controller.delivery.deliveryCompany),
+                _buildIconText(
+                  Icons.local_shipping_outlined,
+                  controller.delivery.deliveryCompany,
+                ),
                 const SizedBox(height: 6),
-                _buildIconText(Icons.person_outline, controller.delivery.carrierContact),
+                _buildIconText(
+                  Icons.person_outline,
+                  controller.delivery.carrierContact,
+                ),
                 const SizedBox(height: 4),
-                _buildIconText(Icons.phone_outlined, controller.delivery.carrierPhone),
+                _buildIconText(
+                  Icons.phone_outlined,
+                  controller.delivery.carrierPhone,
+                ),
               ],
             ),
           ),
@@ -257,15 +408,37 @@ class DeliveryDetailsView extends GetView<DeliveryDetailsController> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Internal Owner', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                const Text(
+                  'Internal Owner',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
                 const SizedBox(height: 10),
-                Text(controller.delivery.internalOwner, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                Text(
+                  controller.delivery.internalOwner,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
                 const SizedBox(height: 6),
-                _buildIconText(Icons.person_outline, controller.delivery.internalContact),
+                _buildIconText(
+                  Icons.person_outline,
+                  controller.delivery.internalContact,
+                ),
                 const SizedBox(height: 4),
-                _buildIconText(Icons.phone_outlined, controller.delivery.vendorPhone),
+                _buildIconText(
+                  Icons.phone_outlined,
+                  controller.delivery.vendorPhone,
+                ),
                 const SizedBox(height: 4),
-                _buildIconText(Icons.email_outlined, controller.delivery.vendorEmail),
+                _buildIconText(
+                  Icons.email_outlined,
+                  controller.delivery.vendorEmail,
+                ),
               ],
             ),
           ),
@@ -276,15 +449,46 @@ class DeliveryDetailsView extends GetView<DeliveryDetailsController> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Delivery Priority, Type, Size', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                const Text(
+                  'Delivery Priority, Type, Size',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
                 const SizedBox(height: 10),
-                Text('${controller.delivery.deliveryId} - ${controller.delivery.title}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                Text(
+                  '${controller.delivery.deliveryId} - ${controller.delivery.title}',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
                 const SizedBox(height: 6),
-                Text('Priority: ${controller.delivery.priority}', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                Text(
+                  'Priority: ${controller.delivery.priority}',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
                 const SizedBox(height: 4),
-                Text('Delivery Type: ${controller.delivery.deliveryType}', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                Text(
+                  'Delivery Type: ${controller.delivery.deliveryType}',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
                 const SizedBox(height: 4),
-                Text('Load Size / Quantity: ${controller.delivery.quantity}', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                Text(
+                  'Load Size / Quantity: ${controller.delivery.quantity}',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
               ],
             ),
           ),
@@ -298,13 +502,29 @@ class DeliveryDetailsView extends GetView<DeliveryDetailsController> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Site Coordination', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+          const Text(
+            'Site Coordination',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+            ),
+          ),
           const SizedBox(height: 14),
-          _buildMetaField('SITE INSTRUCTIONS', controller.delivery.siteInstructions),
+          _buildMetaField(
+            'SITE INSTRUCTIONS',
+            controller.delivery.siteInstructions,
+          ),
           const SizedBox(height: 12),
-          _buildMetaField('REQUIRED EQUIPMENT', controller.delivery.requiredEquipment),
+          _buildMetaField(
+            'REQUIRED EQUIPMENT',
+            controller.delivery.requiredEquipment,
+          ),
           const SizedBox(height: 12),
-          _buildMetaField('EQUIPMENT CONFIRMATION STATUS', '✓ ${controller.delivery.equipmentStatus}'),
+          _buildMetaField(
+            'EQUIPMENT CONFIRMATION STATUS',
+            '✓ ${controller.delivery.equipmentStatus}',
+          ),
           const SizedBox(height: 12),
           _buildMetaField('SPECIAL NOTES', controller.delivery.specialNotes),
         ],
@@ -317,11 +537,21 @@ class DeliveryDetailsView extends GetView<DeliveryDetailsController> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Freight Link', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+          const Text(
+            'Freight Link',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+            ),
+          ),
           const SizedBox(height: 14),
           _buildMetaField('FREIGHT LOAD ID', controller.delivery.freightLoadId),
           const SizedBox(height: 12),
-          _buildMetaField('AWARDED CARRIER', controller.delivery.awardedCarrier),
+          _buildMetaField(
+            'AWARDED CARRIER',
+            controller.delivery.awardedCarrier,
+          ),
           const SizedBox(height: 12),
           _buildMetaField('PRICE', controller.delivery.price),
         ],
@@ -334,7 +564,14 @@ class DeliveryDetailsView extends GetView<DeliveryDetailsController> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Notification History', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+          const Text(
+            'Notification History',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+            ),
+          ),
           const SizedBox(height: 14),
           ...controller.notificationHistory.map((item) {
             return Container(
@@ -347,15 +584,32 @@ class DeliveryDetailsView extends GetView<DeliveryDetailsController> {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.notifications_none_outlined, size: 16, color: AppColors.textSecondary),
+                  const Icon(
+                    Icons.notifications_none_outlined,
+                    size: 16,
+                    color: AppColors.textSecondary,
+                  ),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(item.title, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                        Text(
+                          item.title,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
                         const SizedBox(height: 2),
-                        Text(item.subtitle, style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+                        Text(
+                          item.subtitle,
+                          style: const TextStyle(
+                            fontSize: 10,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -363,9 +617,14 @@ class DeliveryDetailsView extends GetView<DeliveryDetailsController> {
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
-                          color: item.status == 'Sent' ? const Color(0xFFDCFCE7) : const Color(0xFFDBEAFE),
+                          color: item.status == 'Sent'
+                              ? const Color(0xFFDCFCE7)
+                              : const Color(0xFFDBEAFE),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
@@ -373,12 +632,20 @@ class DeliveryDetailsView extends GetView<DeliveryDetailsController> {
                           style: TextStyle(
                             fontSize: 9,
                             fontWeight: FontWeight.bold,
-                            color: item.status == 'Sent' ? const Color(0xFF16A34A) : const Color(0xFF2563EB),
+                            color: item.status == 'Sent'
+                                ? const Color(0xFF16A34A)
+                                : const Color(0xFF2563EB),
                           ),
                         ),
                       ),
                       const SizedBox(height: 4),
-                      Text(item.timestamp, style: const TextStyle(fontSize: 9, color: AppColors.textSecondary)),
+                      Text(
+                        item.timestamp,
+                        style: const TextStyle(
+                          fontSize: 9,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
                     ],
                   ),
                 ],
@@ -395,7 +662,14 @@ class DeliveryDetailsView extends GetView<DeliveryDetailsController> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Receiving Point of Contact', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+          const Text(
+            'Receiving Point of Contact',
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+            ),
+          ),
           const SizedBox(height: 14),
           Row(
             children: [
@@ -403,18 +677,37 @@ class DeliveryDetailsView extends GetView<DeliveryDetailsController> {
                 radius: 18,
                 backgroundColor: const Color(0xFFDBEAFE),
                 child: Text(
-                  controller.delivery.receivingName.split(' ').map((e) => e[0]).join(),
-                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF2563EB)),
+                  controller.delivery.receivingName
+                      .split(' ')
+                      .map((e) => e[0])
+                      .join(),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF2563EB),
+                  ),
                 ),
               ),
               const SizedBox(width: 10),
-              Text(controller.delivery.receivingName, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+              Text(
+                controller.delivery.receivingName,
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 12),
-          _buildIconText(Icons.phone_outlined, controller.delivery.receivingPhone),
+          _buildIconText(
+            Icons.phone_outlined,
+            controller.delivery.receivingPhone,
+          ),
           const SizedBox(height: 6),
-          _buildIconText(Icons.email_outlined, controller.delivery.receivingEmail),
+          _buildIconText(
+            Icons.email_outlined,
+            controller.delivery.receivingEmail,
+          ),
         ],
       ),
     );
@@ -425,7 +718,14 @@ class DeliveryDetailsView extends GetView<DeliveryDetailsController> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Status History', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+          const Text(
+            'Status History',
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+            ),
+          ),
           const SizedBox(height: 16),
           ...List.generate(controller.statusHistory.length, (index) {
             final item = controller.statusHistory[index];
@@ -457,11 +757,30 @@ class DeliveryDetailsView extends GetView<DeliveryDetailsController> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(item.title, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                      Text(
+                        item.title,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
                       const SizedBox(height: 2),
-                      Text(item.timestamp, style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+                      Text(
+                        item.timestamp,
+                        style: const TextStyle(
+                          fontSize: 10,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
                       const SizedBox(height: 2),
-                      Text(item.description, style: const TextStyle(fontSize: 10, color: AppColors.textHint)),
+                      Text(
+                        item.description,
+                        style: const TextStyle(
+                          fontSize: 10,
+                          color: AppColors.textHint,
+                        ),
+                      ),
                       const SizedBox(height: 12),
                     ],
                   ),
@@ -491,7 +810,15 @@ class DeliveryDetailsView extends GetView<DeliveryDetailsController> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.textHint, letterSpacing: 0.5)),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.bold,
+            color: AppColors.textHint,
+            letterSpacing: 0.5,
+          ),
+        ),
         const SizedBox(height: 4),
         Row(
           children: [
@@ -502,7 +829,11 @@ class DeliveryDetailsView extends GetView<DeliveryDetailsController> {
             Expanded(
               child: Text(
                 value,
-                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
+                ),
               ),
             ),
           ],
@@ -516,8 +847,70 @@ class DeliveryDetailsView extends GetView<DeliveryDetailsController> {
       children: [
         Icon(icon, size: 13, color: AppColors.textSecondary),
         const SizedBox(width: 6),
-        Text(text, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+        Text(
+          text,
+          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+        ),
       ],
+    );
+  }
+
+  Widget _buildEmptyDeliveryState() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 40.0),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 48.0, horizontal: 24.0),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.inputBorder),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const Text(
+              'No Delivery Available',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              "We couldn't find any delivery details for this project.",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 13,
+                color: AppColors.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: () => Get.back(),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF1D4ED8),
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
+              ),
+              child: const Text(
+                'Go Back',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../app/utils/app_colors.dart';
 import '../../../app/widgets/common_loader.dart';
+import '../../../app/widgets/common_error_widget.dart';
 import '../../home/widgets/app_drawer.dart';
 import '../../home/widgets/dashboard_app_bar.dart';
 import '../../project_details/widgets/upload_drawings_dialog.dart';
@@ -27,6 +28,12 @@ class ProjectDrawingsView extends GetView<ProjectDrawingsController> {
               child: Obx(() {
                 if (controller.isLoading.value) {
                   return const CommonLoader();
+                }
+                if (controller.errorMessage.value.isNotEmpty) {
+                  return CommonErrorWidget(
+                    message: controller.errorMessage.value,
+                    onRetry: controller.loadDrawings,
+                  );
                 }
 
                 return SingleChildScrollView(
@@ -69,12 +76,18 @@ class ProjectDrawingsView extends GetView<ProjectDrawingsController> {
             icon: const Icon(Icons.arrow_back, size: 16, color: Colors.white),
             label: const Text(
               'Back',
-              style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
             ),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF2563EB),
               elevation: 0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             ),
           ),
@@ -93,12 +106,18 @@ class ProjectDrawingsView extends GetView<ProjectDrawingsController> {
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF2563EB),
               elevation: 0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
               padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
             ),
             child: const Text(
               'Upload Drawing/Photos',
-              style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
             ),
           ),
         ],
@@ -128,10 +147,16 @@ class ProjectDrawingsView extends GetView<ProjectDrawingsController> {
                 Expanded(
                   child: TextField(
                     onChanged: (val) => controller.searchQuery.value = val,
-                    style: const TextStyle(fontSize: 12, color: AppColors.textPrimary),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textPrimary,
+                    ),
                     decoration: const InputDecoration(
                       hintText: 'Search',
-                      hintStyle: TextStyle(fontSize: 12, color: AppColors.textHint),
+                      hintStyle: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textHint,
+                      ),
                       border: InputBorder.none,
                       isDense: true,
                     ),
@@ -143,44 +168,64 @@ class ProjectDrawingsView extends GetView<ProjectDrawingsController> {
           const Spacer(),
 
           // Status Filter Dropdown (Matching Image 4)
-          Obx(() => Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: AppColors.inputBorder),
-                ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    value: controller.selectedStatus.value == 'All' ? 'Select Status' : controller.selectedStatus.value,
-                    icon: const Icon(Icons.keyboard_arrow_down, size: 18, color: AppColors.textPrimary),
-                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
-                    items: [
-                      const DropdownMenuItem<String>(
-                        value: 'Select Status',
-                        child: Row(
-                          children: [
-                            Icon(Icons.filter_list, size: 14, color: AppColors.textSecondary),
-                            SizedBox(width: 6),
-                            Text('Select Status'),
-                          ],
-                        ),
-                      ),
-                      ...controller.statusOptions.where((opt) => opt != 'All').map((opt) {
-                        return DropdownMenuItem<String>(
-                          value: opt,
-                          child: Text(opt),
-                        );
-                      }),
-                    ],
-                    onChanged: (val) {
-                      if (val != null) {
-                        controller.selectedStatus.value = val == 'Select Status' ? 'All' : val;
-                      }
-                    },
+          Obx(
+            () => Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.inputBorder),
+              ),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<String>(
+                  value: controller.selectedStatus.value == 'All'
+                      ? 'Select Status'
+                      : controller.selectedStatus.value,
+                  icon: const Icon(
+                    Icons.keyboard_arrow_down,
+                    size: 18,
+                    color: AppColors.textPrimary,
                   ),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
+                  items: [
+                    const DropdownMenuItem<String>(
+                      value: 'Select Status',
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.filter_list,
+                            size: 14,
+                            color: AppColors.textSecondary,
+                          ),
+                          SizedBox(width: 6),
+                          Text('Select Status'),
+                        ],
+                      ),
+                    ),
+                    ...controller.statusOptions
+                        .where((opt) => opt != 'All')
+                        .map((opt) {
+                          return DropdownMenuItem<String>(
+                            value: opt,
+                            child: Text(opt),
+                          );
+                        }),
+                  ],
+                  onChanged: (val) {
+                    if (val != null) {
+                      controller.selectedStatus.value = val == 'Select Status'
+                          ? 'All'
+                          : val;
+                    }
+                  },
                 ),
-              )),
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -216,7 +261,10 @@ class ProjectDrawingsView extends GetView<ProjectDrawingsController> {
               if (drawings.isEmpty) {
                 return const Padding(
                   padding: EdgeInsets.symmetric(vertical: 16),
-                  child: Text('No drawings match your search.', style: TextStyle(color: AppColors.textSecondary)),
+                  child: Text(
+                    'No drawings match your search.',
+                    style: TextStyle(color: AppColors.textSecondary),
+                  ),
                 );
               }
               return GridView.builder(
@@ -229,7 +277,8 @@ class ProjectDrawingsView extends GetView<ProjectDrawingsController> {
                   mainAxisExtent: 82,
                 ),
                 itemCount: drawings.length,
-                itemBuilder: (context, index) => _buildDrawingCard(drawings[index]),
+                itemBuilder: (context, index) =>
+                    _buildDrawingCard(drawings[index]),
               );
             }),
 
@@ -251,7 +300,10 @@ class ProjectDrawingsView extends GetView<ProjectDrawingsController> {
               if (photos.isEmpty) {
                 return const Padding(
                   padding: EdgeInsets.symmetric(vertical: 16),
-                  child: Text('No photos match your search.', style: TextStyle(color: AppColors.textSecondary)),
+                  child: Text(
+                    'No photos match your search.',
+                    style: TextStyle(color: AppColors.textSecondary),
+                  ),
                 );
               }
               return GridView.builder(
@@ -304,7 +356,11 @@ class ProjectDrawingsView extends GetView<ProjectDrawingsController> {
                   border: Border.all(color: const Color(0xFFFECDD3)),
                 ),
                 child: const Center(
-                  child: Icon(Icons.picture_as_pdf_outlined, color: Color(0xFFE11D48), size: 22),
+                  child: Icon(
+                    Icons.picture_as_pdf_outlined,
+                    color: Color(0xFFE11D48),
+                    size: 22,
+                  ),
                 ),
               ),
               const SizedBox(width: 10),
@@ -317,12 +373,19 @@ class ProjectDrawingsView extends GetView<ProjectDrawingsController> {
                       item.title,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
                     ),
                     const SizedBox(height: 3),
                     Text(
                       item.size,
-                      style: const TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: Color(0xFF94A3B8),
+                      ),
                     ),
                   ],
                 ),
@@ -331,13 +394,21 @@ class ProjectDrawingsView extends GetView<ProjectDrawingsController> {
               // Action Icons: Download (↓) & Eye (👁️)
               IconButton(
                 onPressed: () {},
-                icon: const Icon(Icons.arrow_downward, size: 16, color: Color(0xFF475569)),
+                icon: const Icon(
+                  Icons.arrow_downward,
+                  size: 16,
+                  color: Color(0xFF475569),
+                ),
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(minWidth: 26, minHeight: 26),
               ),
               IconButton(
                 onPressed: () => Get.dialog(DrawingDetailsDialog(item: item)),
-                icon: const Icon(Icons.remove_red_eye_outlined, size: 18, color: Color(0xFF2563EB)),
+                icon: const Icon(
+                  Icons.remove_red_eye_outlined,
+                  size: 18,
+                  color: Color(0xFF2563EB),
+                ),
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(minWidth: 26, minHeight: 26),
               ),
@@ -345,11 +416,7 @@ class ProjectDrawingsView extends GetView<ProjectDrawingsController> {
           ),
         ),
         // Floating Top-Right Status Badge Pill
-        Positioned(
-          top: -2,
-          right: 20,
-          child: _buildStatusBadge(item.status),
-        ),
+        Positioned(top: -2, right: 20, child: _buildStatusBadge(item.status)),
       ],
     );
   }
@@ -378,20 +445,15 @@ class ProjectDrawingsView extends GetView<ProjectDrawingsController> {
               // Building Photo Thumbnail
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child: Image.asset(
-                  'assets/images/img_construction.png',
-                  width: 40,
-                  height: 40,
-                  fit: BoxFit.cover,
-                  errorBuilder: (ctx, err, stack) {
-                    return Container(
-                      width: 40,
-                      height: 40,
-                      color: const Color(0xFFE2E8F0),
-                      child: const Icon(Icons.business, size: 22, color: Color(0xFF2563EB)),
-                    );
-                  },
-                ),
+                child: item.fileUrl.isNotEmpty
+                    ? Image.network(
+                        item.fileUrl,
+                        width: 40,
+                        height: 40,
+                        fit: BoxFit.cover,
+                        errorBuilder: (ctx, err, stack) => _photoFallback(),
+                      )
+                    : _photoFallback(),
               ),
               const SizedBox(width: 10),
               Expanded(
@@ -403,12 +465,19 @@ class ProjectDrawingsView extends GetView<ProjectDrawingsController> {
                       item.title,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
                     ),
                     const SizedBox(height: 3),
                     Text(
                       item.size,
-                      style: const TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: Color(0xFF94A3B8),
+                      ),
                     ),
                   ],
                 ),
@@ -417,13 +486,21 @@ class ProjectDrawingsView extends GetView<ProjectDrawingsController> {
               // Action Icons: Download (↓) & Eye (👁️)
               IconButton(
                 onPressed: () {},
-                icon: const Icon(Icons.arrow_downward, size: 16, color: Color(0xFF475569)),
+                icon: const Icon(
+                  Icons.arrow_downward,
+                  size: 16,
+                  color: Color(0xFF475569),
+                ),
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(minWidth: 26, minHeight: 26),
               ),
               IconButton(
                 onPressed: () => Get.dialog(DrawingDetailsDialog(item: item)),
-                icon: const Icon(Icons.remove_red_eye_outlined, size: 18, color: Color(0xFF2563EB)),
+                icon: const Icon(
+                  Icons.remove_red_eye_outlined,
+                  size: 18,
+                  color: Color(0xFF2563EB),
+                ),
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(minWidth: 26, minHeight: 26),
               ),
@@ -431,12 +508,21 @@ class ProjectDrawingsView extends GetView<ProjectDrawingsController> {
           ),
         ),
         // Floating Top-Right Status Badge Pill
-        Positioned(
-          top: -2,
-          right: 20,
-          child: _buildStatusBadge(item.status),
-        ),
+        Positioned(top: -2, right: 20, child: _buildStatusBadge(item.status)),
       ],
+    );
+  }
+
+  Widget _photoFallback() {
+    return Container(
+      width: 40,
+      height: 40,
+      color: const Color(0xFFE2E8F0),
+      child: const Icon(
+        Icons.image_outlined,
+        size: 22,
+        color: Color(0xFF2563EB),
+      ),
     );
   }
 
@@ -447,7 +533,8 @@ class ProjectDrawingsView extends GetView<ProjectDrawingsController> {
     if (status == 'Approved') {
       bg = const Color(0xFFDCFCE7);
       fg = const Color(0xFF16A34A);
-    } else if (status == 'Revision Required' || status == 'Revision Requested') {
+    } else if (status == 'Revision Required' ||
+        status == 'Revision Requested') {
       bg = const Color(0xFFFEE2E2);
       fg = const Color(0xFFDC2626);
     } else {

@@ -8,6 +8,8 @@ class ProjectDetailsController extends GetxController {
   ProjectDetailsController({this.repository});
 
   final RxBool isLoading = true.obs;
+  final RxBool isUpdatingLifecycle = false.obs;
+  final RxBool isAddingNote = false.obs;
   final RxString errorMessage = ''.obs;
 
   final RxInt currentStepIndex = 1.obs; // Step 2 (0-indexed 1)
@@ -186,15 +188,27 @@ class ProjectDetailsController extends GetxController {
           ? _formatDate(signedRaw)
           : 'N/A';
 
-      // Activities Timeline
       final actList = detailData['activityLog'] ?? leadObj['activityLog'];
       if (actList is List && actList.isNotEmpty) {
         final mappedActivities = actList.map((a) {
+          final rawMsg = (a['displayMessage'] ?? a['message'] ?? a['title'] ?? '').toString();
+          final rawAction = (a['action'] ?? '').toString();
+          final titleStr = rawMsg.isNotEmpty ? rawMsg : _formatActionName(rawAction);
+
+          String performer = '';
+          if (a['performedBy'] != null) {
+            if (a['performedBy'] is Map) {
+              performer = (a['performedBy']['name'] ?? a['performedBy']['email'] ?? '').toString();
+            } else if (a['performedBy'] is String) {
+              performer = a['performedBy'].toString();
+            }
+          }
+
+          final subtitleStr = performer.isNotEmpty ? 'by $performer' : _formatActionName(rawAction);
+
           return ActivityTimelineItemModel(
-            title:
-                (a['displayMessage'] ?? a['action'] ?? a['title'] ?? 'Activity')
-                    .toString(),
-            subtitle: (a['action'] ?? a['message'] ?? '').toString(),
+            title: titleStr,
+            subtitle: subtitleStr,
             date: _formatDate(
               a['createdAt']?.toString() ?? a['date']?.toString(),
             ),
@@ -444,6 +458,20 @@ class ProjectDetailsController extends GetxController {
         .trim();
   }
 
+  String _formatActionName(String action) {
+    if (action.isEmpty) return 'Activity';
+    final clean = action.replaceAll('_', ' ').replaceAll('.', ' • ');
+    final words = clean.split(' ');
+    return words
+        .map(
+          (w) => w.isNotEmpty
+              ? '${w[0].toUpperCase()}${w.substring(1).toLowerCase()}'
+              : '',
+        )
+        .join(' ')
+        .trim();
+  }
+
   void _loadDefaultData() {
     _loadDefaultLifecycleSteps();
     _loadDefaultInvoices();
@@ -497,42 +525,74 @@ class ProjectDetailsController extends GetxController {
     }
   }
 
-  void updateStepStatus(int newIndex) {
-    currentStepIndex.value = newIndex;
-    for (int i = 0; i < lifecycleSteps.length; i++) {
-      final step = lifecycleSteps[i];
-      if (i < newIndex) {
-        lifecycleSteps[i] = LifecycleStepModel(
-          stepNumber: step.stepNumber,
-          title: step.title,
-          date: '12/08/26',
-          isCompleted: true,
-          isCurrent: false,
-        );
-      } else if (i == newIndex) {
-        lifecycleSteps[i] = LifecycleStepModel(
-          stepNumber: step.stepNumber,
-          title: step.title,
-          date: 'Current Step',
-          isCompleted: false,
-          isCurrent: true,
-        );
-      } else {
-        lifecycleSteps[i] = LifecycleStepModel(
-          stepNumber: step.stepNumber,
-          title: step.title,
-          date: '',
-          isCompleted: false,
-          isCurrent: false,
-        );
-      }
+  Future<bool> updateStepStatus(int newIndex, {String? note}) async {
+    const stageKeys = [
+      'released_to_plant',
+      'drawings_received',
+      'bom_received',
+      'bom_review',
+      'material_check',
+      'production_planning',
+      'fabrication_started',
+      'quality_inspection',
+      'packing_bundling',
+      'shipper_prepared',
+      'ready_for_delivery',
+      'dispatched',
+      'delivered',
+    ];
+    if (repository == null ||
+        projectId.isEmpty ||
+        newIndex < 0 ||
+        newIndex >= stageKeys.length) {
+      errorMessage.value = 'Unable to update this project step.';
+      return false;
     }
-    lifecycleSteps.refresh();
+
+    isUpdatingLifecycle.value = true;
+    errorMessage.value = '';
+    try {
+      await repository!.updateLifecycle(
+        leadId: projectId,
+        lifecycleStatus: stageKeys[newIndex],
+        note: note,
+      );
+      if (note != null && note.trim().isNotEmpty) {
+        notes.insert(0, note.trim());
+      }
+      await loadProjectDetails();
+      return true;
+    } catch (e) {
+      errorMessage.value = e.toString();
+      return false;
+    } finally {
+      isUpdatingLifecycle.value = false;
+    }
   }
 
-  void addNewNote(String title, String content) {
-    if (content.isNotEmpty) {
-      notes.insert(0, content);
+  Future<bool> addNewNote(String title, String content) async {
+    final trimmedContent = content.trim();
+    if (repository == null || projectId.isEmpty || trimmedContent.isEmpty) {
+      errorMessage.value = trimmedContent.isEmpty
+          ? 'Please enter a note.'
+          : 'Project id is missing.';
+      return false;
+    }
+
+    isAddingNote.value = true;
+    errorMessage.value = '';
+    try {
+      final note = title.trim().isEmpty
+          ? trimmedContent
+          : '${title.trim()}: $trimmedContent';
+      await repository!.addNote(leadId: projectId, note: note);
+      await loadProjectDetails();
+      return true;
+    } catch (e) {
+      errorMessage.value = e.toString();
+      return false;
+    } finally {
+      isAddingNote.value = false;
     }
   }
 }

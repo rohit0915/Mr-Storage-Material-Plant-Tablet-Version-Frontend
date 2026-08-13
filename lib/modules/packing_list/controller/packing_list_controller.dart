@@ -1,88 +1,236 @@
 import 'package:get/get.dart';
 import '../../../app/routes/app_routes.dart';
 import '../model/packing_list_model.dart';
+import '../repository/packing_list_repository.dart';
 
 class PackingListController extends GetxController {
-  final RxBool isLoading = false.obs;
-  final RxList<ProjectPackingListSummaryModel> projectsList = <ProjectPackingListSummaryModel>[].obs;
-  final RxList<PackingListItemModel> packingItemsList = <PackingListItemModel>[].obs;
-  final RxList<PackingListTableItemModel> packingListTableItems = <PackingListTableItemModel>[].obs;
-  final RxList<BundleListItemModel> bundleListItems = <BundleListItemModel>[].obs;
+  final PackingListRepository repository;
+  PackingListController({required this.repository});
 
-  final RxString selectedProjectName = 'Project 2'.obs;
+  final RxBool isLoading = true.obs;
+  final RxString errorMessage = ''.obs;
+  final RxList<ProjectPackingListSummaryModel> projectsList =
+      <ProjectPackingListSummaryModel>[].obs;
+  final RxList<PackingListItemModel> packingItemsList =
+      <PackingListItemModel>[].obs;
+  final RxList<PackingListTableItemModel> packingListTableItems =
+      <PackingListTableItemModel>[].obs;
+  final RxList<BundleListItemModel> bundleListItems =
+      <BundleListItemModel>[].obs;
+  final RxString selectedProjectId = ''.obs;
+  final RxString selectedProjectName = ''.obs;
   final RxString selectedProjectFilter = 'Select Project'.obs;
-
-  final List<String> availableProjects = [
-    'ABC Construction',
-    'XYZ Construction',
-    'PQR Construction',
-  ];
+  final RxList<String> projectOptions = <String>[].obs;
+  List<String> get availableProjects => projectOptions;
 
   @override
   void onInit() {
     super.onInit();
-    loadProjectsData();
-    loadPackingItemsData();
-    loadPackingDetailsData();
+    selectedProjectId.value = Get.parameters['id'] ?? '';
+    selectedProjectName.value = Get.parameters['name'] ?? '';
+    if (selectedProjectId.value.isEmpty) {
+      loadProjectsData();
+    } else {
+      loadPackingDetailsData(selectedProjectId.value);
+    }
   }
 
-  void loadProjectsData() {
+  Future<void> loadProjectsData() async {
     isLoading.value = true;
-    projectsList.assignAll([
-      ProjectPackingListSummaryModel(id: 'PRJ-001', projectName: 'ABC Warehouse', listGeneratedDate: '22 Feb 2025', totalPackingList: 5),
-      ProjectPackingListSummaryModel(id: 'PRJ-002', projectName: 'Tech Park Dev', listGeneratedDate: '07 Feb 2025', totalPackingList: 3),
-      ProjectPackingListSummaryModel(id: 'PRJ-003', projectName: 'Downtown Plaza', listGeneratedDate: '30 Jan 2025', totalPackingList: 2),
-      ProjectPackingListSummaryModel(id: 'PRJ-004', projectName: 'Riverside Complex', listGeneratedDate: '17 Jan 2025', totalPackingList: 6),
-      ProjectPackingListSummaryModel(id: 'PRJ-005', projectName: 'Tech Park Dev', listGeneratedDate: '04 Jan 2025', totalPackingList: 4),
-      ProjectPackingListSummaryModel(id: 'PRJ-006', projectName: 'Downtown Plaza', listGeneratedDate: '09 Dec 2024', totalPackingList: 8),
-    ]);
-    isLoading.value = false;
+    errorMessage.value = '';
+    try {
+      final data = await repository.fetchProjects();
+      final projects = data['projects'] is List
+          ? data['projects'] as List
+          : const [];
+      projectsList.assignAll(
+        projects.whereType<Map>().map((raw) {
+          final item = Map<String, dynamic>.from(raw);
+          final lead = _map(item['lead']);
+          return ProjectPackingListSummaryModel(
+            id:
+                (item['packingListId'] ??
+                        item['packingListPlanId'] ??
+                        item['leadId'] ??
+                        item['_id'] ??
+                        lead['_id'] ??
+                        '')
+                    .toString(),
+            projectName:
+                (item['projectName'] ?? lead['projectName'] ?? 'Project')
+                    .toString(),
+            listGeneratedDate: _date(
+              item['generatedAt'] ?? item['updatedAt'] ?? item['createdAt'],
+            ),
+            totalPackingList: _int(
+              item['totalPackingLists'] ??
+                  item['packingListCount'] ??
+                  item['totalLists'],
+            ),
+          );
+        }),
+      );
+      projectOptions.assignAll(
+        projectsList.map((item) => item.projectName).toSet(),
+      );
+    } catch (e) {
+      errorMessage.value = e.toString();
+      projectsList.clear();
+    } finally {
+      isLoading.value = false;
+    }
   }
 
-  void loadPackingItemsData() {
-    packingItemsList.assignAll([
-      PackingListItemModel(packingId: 'PKL-101', loadId: 'LOAD-101', truck: 'TX-4135', bundles: 5, weight: '18,500 IBS', destination: 'Site A', date: '22 Feb 2025', status: 'Dispatched'),
-      PackingListItemModel(packingId: 'PKL-102', loadId: 'LOAD-102', truck: 'TX-4135', bundles: 8, weight: '37,700 IBS', destination: 'Site A', date: '07 Feb 2025', status: 'Ready'),
-      PackingListItemModel(packingId: 'PKL-103', loadId: 'LOAD-103', truck: 'TX-4135', bundles: 6, weight: '21,400 IBS', destination: 'Site B', date: '30 Jan 2025', status: 'Dispatched'),
-      PackingListItemModel(packingId: 'PKL-104', loadId: 'LOAD-104', truck: 'TX-4135', bundles: 5, weight: '18,500 IBS', destination: 'Site A', date: '17 Jan 2025', status: 'Ready'),
-      PackingListItemModel(packingId: 'PKL-105', loadId: 'LOAD-105', truck: 'TX-4135', bundles: 8, weight: '37,700 IBS', destination: 'Site A', date: '04 Jan 2025', status: 'Dispatched'),
-      PackingListItemModel(packingId: 'PKL-106', loadId: 'LOAD-106', truck: 'TX-4135', bundles: 6, weight: '21,400 IBS', destination: 'Site B', date: '09 Dec 2024', status: 'Ready'),
-      PackingListItemModel(packingId: 'PKL-107', loadId: 'LOAD-107', truck: 'TX-4135', bundles: 3, weight: '18,500 IBS', destination: 'Site A', date: '02 Dec 2024', status: 'Dispatched'),
-      PackingListItemModel(packingId: 'PKL-108', loadId: 'LOAD-108', truck: 'TX-4135', bundles: 4, weight: '37,700 IBS', destination: 'Site A', date: '15 Nov 2024', status: 'Ready'),
-    ]);
-  }
-
-  void loadPackingDetailsData() {
-    packingListTableItems.assignAll([
-      PackingListTableItemModel(id: 1, loadId: 'LOAD-001', truck: 'TX-2141', bundles: 3, weight: '36000 IBS', destination: 'Riverside Site A', status: 'Ready'),
-      PackingListTableItemModel(id: 2, loadId: 'LOAD-002', truck: 'TX-4712', bundles: 2, weight: '45500 IBS', destination: 'Riverside Site A', status: 'Ready'),
-    ]);
-
-    bundleListItems.assignAll([
-      BundleListItemModel(id: 1, bundleId: 'BND-001', profile: 'Beam', items: 'STL-B12 × 30', length: '20 ft', unitWeight: '3600 IBS'),
-      BundleListItemModel(id: 2, bundleId: 'BND-002', profile: 'Angle', items: 'STL-B12 × 30', length: '12 ft', unitWeight: '2400 IBS'),
-      BundleListItemModel(id: 3, bundleId: 'BND-003', profile: 'Channel', items: 'STL-B12 × 30', length: '15 ft', unitWeight: '4500 IBS'),
-      BundleListItemModel(id: 4, bundleId: 'BND-004', profile: 'Beam', items: 'STL-B12 × 30', length: '20 ft', unitWeight: '2700 IBS'),
-    ]);
+  Future<void> loadPackingDetailsData(String id) async {
+    isLoading.value = true;
+    errorMessage.value = '';
+    try {
+      final data = await repository.fetchPackingList(id);
+      final trucks = data['trucks'] is List ? data['trucks'] as List : [data];
+      packingItemsList.assignAll(
+        trucks.whereType<Map>().map((raw) {
+          final item = Map<String, dynamic>.from(raw);
+          final bundles = item['bundles'] is List
+              ? item['bundles'] as List
+              : const [];
+          return PackingListItemModel(
+            packingId:
+                (item['packingId'] ?? item['_id'] ?? data['_id'] ?? 'N/A')
+                    .toString(),
+            loadId:
+                (item['loadId'] ??
+                        item['truckId'] ??
+                        item['truckNumber'] ??
+                        'N/A')
+                    .toString(),
+            truck:
+                (item['truck'] ??
+                        item['truckType'] ??
+                        item['vehicleNumber'] ??
+                        'N/A')
+                    .toString(),
+            bundles: _int(
+              item['bundleCount'] ??
+                  (bundles.isNotEmpty ? bundles.length : null),
+            ),
+            weight: _weight(item['totalWeight'] ?? item['weight']),
+            destination:
+                (item['destination'] ?? item['deliveryAddress'] ?? 'N/A')
+                    .toString(),
+            date: _date(item['generatedAt'] ?? item['createdAt']),
+            status: _status(item['status']),
+          );
+        }),
+      );
+      packingListTableItems.assignAll(
+        packingItemsList.asMap().entries.map((entry) {
+          final item = entry.value;
+          return PackingListTableItemModel(
+            id: entry.key + 1,
+            loadId: item.loadId,
+            truck: item.truck,
+            bundles: item.bundles,
+            weight: item.weight,
+            destination: item.destination,
+            status: item.status,
+          );
+        }),
+      );
+      final bundles = data['bundles'] is List
+          ? data['bundles'] as List
+          : const [];
+      bundleListItems.assignAll(
+        bundles.whereType<Map>().toList().asMap().entries.map((entry) {
+          final item = Map<String, dynamic>.from(entry.value);
+          return BundleListItemModel(
+            id: entry.key + 1,
+            bundleId: (item['bundleId'] ?? item['_id'] ?? 'N/A').toString(),
+            profile:
+                (item['profile'] ??
+                        item['profileType'] ??
+                        item['category'] ??
+                        'N/A')
+                    .toString(),
+            items:
+                (item['itemsDescription'] ??
+                        item['partNumber'] ??
+                        item['itemsCount'] ??
+                        'N/A')
+                    .toString(),
+            length: (item['length'] ?? item['maxLength'] ?? 'N/A').toString(),
+            unitWeight: _weight(
+              item['unitWeight'] ?? item['totalWeight'] ?? item['weight'],
+            ),
+          );
+        }),
+      );
+    } catch (e) {
+      errorMessage.value = e.toString();
+      packingItemsList.clear();
+      packingListTableItems.clear();
+      bundleListItems.clear();
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   void openProjectPackingList(ProjectPackingListSummaryModel item) {
-    selectedProjectName.value = item.projectName;
-    Get.toNamed(AppRoutes.projectPackingList);
+    Get.toNamed(
+      AppRoutes.projectPackingList,
+      parameters: {'id': item.id, 'name': item.projectName},
+    );
   }
 
   void openPackingListDetails(PackingListItemModel item) {
-    Get.toNamed(AppRoutes.packingListDetails);
+    Get.toNamed(
+      AppRoutes.packingListDetails,
+      parameters: {'id': item.packingId, 'name': selectedProjectName.value},
+    );
   }
 
-  void selectProjectFilter(String project) {
-    selectedProjectFilter.value = project;
+  Map<String, dynamic> _map(dynamic value) =>
+      value is Map ? Map<String, dynamic>.from(value) : {};
+  int _int(dynamic value) =>
+      value is num ? value.toInt() : int.tryParse('$value') ?? 0;
+  String _weight(dynamic value) =>
+      value == null ? '0 lbs' : '${value.toString()} lbs';
+  String _status(dynamic value) {
+    final text = (value ?? 'Ready').toString().replaceAll('_', ' ');
+    return text
+        .split(' ')
+        .map(
+          (word) => word.isEmpty
+              ? word
+              : '${word[0].toUpperCase()}${word.substring(1).toLowerCase()}',
+        )
+        .join(' ');
   }
 
+  String _date(dynamic value) {
+    final date = DateTime.tryParse((value ?? '').toString())?.toLocal();
+    if (date == null) return 'N/A';
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    return '${date.day.toString().padLeft(2, '0')} ${months[date.month - 1]} ${date.year}';
+  }
+
+  void selectProjectFilter(String project) =>
+      selectedProjectFilter.value = project;
   void toggleSelectAllProjects(bool? val) {
-    final value = val ?? false;
-    for (var item in projectsList) {
-      item.isSelected = value;
+    for (final item in projectsList) {
+      item.isSelected = val ?? false;
     }
     projectsList.refresh();
   }
@@ -93,9 +241,8 @@ class PackingListController extends GetxController {
   }
 
   void toggleSelectAllPackingItems(bool? val) {
-    final value = val ?? false;
-    for (var item in packingItemsList) {
-      item.isSelected = value;
+    for (final item in packingItemsList) {
+      item.isSelected = val ?? false;
     }
     packingItemsList.refresh();
   }

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../app/utils/app_colors.dart';
-import '../../../app/widgets/common_loader.dart';
 import '../../home/widgets/app_drawer.dart';
 import '../../home/widgets/dashboard_app_bar.dart';
 import '../controller/projects_controller.dart';
 import '../widgets/projects_data_table.dart';
 import '../widgets/projects_header.dart';
+import '../widgets/projects_shimmer.dart';
 import '../widgets/projects_stat_cards.dart';
 import '../widgets/projects_toolbar.dart';
 
@@ -26,7 +26,7 @@ class ProjectsView extends GetView<ProjectsController> {
             Expanded(
               child: Obx(() {
                 if (controller.isLoading.value) {
-                  return const CommonLoader();
+                  return const ProjectsShimmer();
                 }
 
                 return SingleChildScrollView(

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../app/routes/app_routes.dart';
 import '../../../app/utils/app_colors.dart';
 import '../../../app/widgets/common_loader.dart';
+import '../../../app/widgets/common_error_widget.dart';
 import '../../home/widgets/app_drawer.dart';
 import '../../home/widgets/dashboard_app_bar.dart';
 import '../controller/shipper_files_controller.dart';
@@ -24,10 +24,19 @@ class ShipperFilesView extends GetView<ShipperFilesController> {
                 if (controller.isLoading.value) {
                   return const CommonLoader();
                 }
+                if (controller.errorMessage.value.isNotEmpty) {
+                  return CommonErrorWidget(
+                    message: controller.errorMessage.value,
+                    onRetry: controller.loadData,
+                  );
+                }
 
                 return SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 16,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -72,10 +81,7 @@ class ShipperFilesView extends GetView<ShipperFilesController> {
         SizedBox(height: 4),
         Text(
           'Manage vendor shipment files and prepare for validation',
-          style: TextStyle(
-            fontSize: 12,
-            color: AppColors.textSecondary,
-          ),
+          style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
         ),
       ],
     );
@@ -101,7 +107,10 @@ class ShipperFilesView extends GetView<ShipperFilesController> {
                 child: TextField(
                   decoration: InputDecoration(
                     hintText: 'Search',
-                    hintStyle: TextStyle(fontSize: 12, color: AppColors.textHint),
+                    hintStyle: TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textHint,
+                    ),
                     border: InputBorder.none,
                     isDense: true,
                     contentPadding: EdgeInsets.symmetric(vertical: 10),
@@ -116,12 +125,21 @@ class ShipperFilesView extends GetView<ShipperFilesController> {
         // Filter Button
         OutlinedButton.icon(
           onPressed: () {},
-          icon: const Icon(Icons.filter_list, size: 14, color: AppColors.textSecondary),
-          label: const Text('Filter', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+          icon: const Icon(
+            Icons.filter_list,
+            size: 14,
+            color: AppColors.textSecondary,
+          ),
+          label: const Text(
+            'Filter',
+            style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+          ),
           style: OutlinedButton.styleFrom(
             backgroundColor: Colors.white,
             side: const BorderSide(color: AppColors.inputBorder),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           ),
         ),
@@ -147,32 +165,61 @@ class ShipperFilesView extends GetView<ShipperFilesController> {
                 SizedBox(
                   width: 32,
                   child: Checkbox(
-                    value: controller.projectsList.every((item) => item.isSelected),
+                    value: controller.projectsList.every(
+                      (item) => item.isSelected,
+                    ),
                     onChanged: (val) {
                       for (var item in controller.projectsList) {
                         item.isSelected = val ?? false;
                       }
                       controller.projectsList.refresh();
                     },
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(4),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
                 const Expanded(
                   flex: 3,
-                  child: Text('Project ID', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                  child: Text(
+                    'Project ID',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
                 ),
                 const Expanded(
                   flex: 4,
-                  child: Text('Project Name', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                  child: Text(
+                    'Project Name',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
                 ),
                 const Expanded(
                   flex: 3,
                   child: Row(
                     children: [
-                      Text('File Received', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                      Text(
+                        'File Received',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
                       SizedBox(width: 4),
-                      Icon(Icons.swap_vert, size: 14, color: AppColors.textSecondary),
+                      Icon(
+                        Icons.swap_vert,
+                        size: 14,
+                        color: AppColors.textSecondary,
+                      ),
                     ],
                   ),
                 ),
@@ -180,9 +227,20 @@ class ShipperFilesView extends GetView<ShipperFilesController> {
                   flex: 3,
                   child: Row(
                     children: [
-                      Text('Total Shippers Files', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                      Text(
+                        'Total Shippers Files',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
                       SizedBox(width: 4),
-                      Icon(Icons.swap_vert, size: 14, color: AppColors.textSecondary),
+                      Icon(
+                        Icons.swap_vert,
+                        size: 14,
+                        color: AppColors.textSecondary,
+                      ),
                     ],
                   ),
                 ),
@@ -198,19 +256,26 @@ class ShipperFilesView extends GetView<ShipperFilesController> {
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: controller.projectsList.length,
-              separatorBuilder: (context, index) => const Divider(height: 1, color: AppColors.divider),
+              separatorBuilder: (context, index) =>
+                  const Divider(height: 1, color: AppColors.divider),
               itemBuilder: (context, index) {
                 final item = controller.projectsList[index];
                 return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
                   child: Row(
                     children: [
                       SizedBox(
                         width: 32,
                         child: Checkbox(
                           value: item.isSelected,
-                          onChanged: (val) => controller.toggleSelectProject(index, val),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                          onChanged: (val) =>
+                              controller.toggleSelectProject(index, val),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(4),
+                          ),
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -218,36 +283,51 @@ class ShipperFilesView extends GetView<ShipperFilesController> {
                         flex: 3,
                         child: Text(
                           item.projectId,
-                          style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: AppColors.textSecondary,
+                          ),
                         ),
                       ),
                       Expanded(
                         flex: 4,
                         child: Text(
                           item.projectName,
-                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary,
+                          ),
                         ),
                       ),
                       Expanded(
                         flex: 3,
                         child: Text(
                           item.fileReceived,
-                          style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: AppColors.textSecondary,
+                          ),
                         ),
                       ),
                       Expanded(
                         flex: 3,
                         child: Text(
                           '${item.totalShipperFiles}',
-                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary,
+                          ),
                         ),
                       ),
                       IconButton(
-                        onPressed: () {
-                          controller.selectedProjectName.value = item.projectName;
-                          Get.toNamed(AppRoutes.projectShipperFiles);
-                        },
-                        icon: const Icon(Icons.visibility_outlined, size: 18, color: AppColors.textPrimary),
+                        onPressed: () => controller.openProject(item),
+                        icon: const Icon(
+                          Icons.visibility_outlined,
+                          size: 18,
+                          color: AppColors.textPrimary,
+                        ),
                       ),
                     ],
                   ),
@@ -273,7 +353,10 @@ class ShipperFilesView extends GetView<ShipperFilesController> {
         children: [
           Row(
             children: [
-              const Text('Row Per Page', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+              const Text(
+                'Row Per Page',
+                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+              ),
               const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -283,19 +366,32 @@ class ShipperFilesView extends GetView<ShipperFilesController> {
                 ),
                 child: Row(
                   children: const [
-                    Text('10', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                    Text(
+                      '10',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     SizedBox(width: 4),
                     Icon(Icons.keyboard_arrow_down, size: 14),
                   ],
                 ),
               ),
               const SizedBox(width: 8),
-              const Text('Entries', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+              const Text(
+                'Entries',
+                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+              ),
             ],
           ),
           Row(
             children: [
-              const Icon(Icons.chevron_left, size: 18, color: AppColors.textSecondary),
+              const Icon(
+                Icons.chevron_left,
+                size: 18,
+                color: AppColors.textSecondary,
+              ),
               const SizedBox(width: 8),
               _buildPageNumber('1', false),
               _buildPageNumber('2', false),
@@ -303,11 +399,21 @@ class ShipperFilesView extends GetView<ShipperFilesController> {
               _buildPageNumber('4', true),
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 4),
-                child: Text('...', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                child: Text(
+                  '...',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
               ),
               _buildPageNumber('15', false),
               const SizedBox(width: 8),
-              const Icon(Icons.chevron_right, size: 18, color: AppColors.textSecondary),
+              const Icon(
+                Icons.chevron_right,
+                size: 18,
+                color: AppColors.textSecondary,
+              ),
             ],
           ),
         ],

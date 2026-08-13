@@ -57,7 +57,11 @@ class DrawingDetailsDialog extends StatelessWidget {
                 const Spacer(),
                 IconButton(
                   onPressed: () => Get.back(),
-                  icon: const Icon(Icons.close, color: AppColors.textPrimary, size: 20),
+                  icon: const Icon(
+                    Icons.close,
+                    color: AppColors.textPrimary,
+                    size: 20,
+                  ),
                 ),
               ],
             ),
@@ -76,16 +80,13 @@ class DrawingDetailsDialog extends StatelessWidget {
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(6),
-                child: Image.asset(
-                  AppImages.blueprint,
-                  fit: BoxFit.contain,
-                  errorBuilder: (ctx, err, stack) {
-                    return Image.asset(
-                      'assets/images/img_blueprint.png',
-                      fit: BoxFit.contain,
-                    );
-                  },
-                ),
+                child: item.fileUrl.isNotEmpty
+                    ? Image.network(
+                        item.fileUrl,
+                        fit: BoxFit.contain,
+                        errorBuilder: (ctx, err, stack) => _fallbackPreview(),
+                      )
+                    : _fallbackPreview(),
               ),
             ),
 
@@ -107,18 +108,30 @@ class DrawingDetailsDialog extends StatelessWidget {
                   icon: const Icon(Icons.south, size: 16, color: Colors.white),
                   label: const Text(
                     'Download',
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF94A3B8),
                     elevation: 0,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 10,
+                    ),
                   ),
                 ),
                 const Spacer(),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 8,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFEAB308),
                     borderRadius: BorderRadius.circular(20),
@@ -147,6 +160,20 @@ class DrawingDetailsDialog extends StatelessWidget {
         fontSize: 11,
         color: AppColors.textSecondary,
         height: 1.3,
+      ),
+    );
+  }
+
+  Widget _fallbackPreview() {
+    return Image.asset(
+      AppImages.blueprint,
+      fit: BoxFit.contain,
+      errorBuilder: (ctx, err, stack) => const Center(
+        child: Icon(
+          Icons.broken_image_outlined,
+          size: 64,
+          color: AppColors.textSecondary,
+        ),
       ),
     );
   }

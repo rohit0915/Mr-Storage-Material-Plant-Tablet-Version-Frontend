@@ -10,10 +10,18 @@ class EditDeliveryDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = Get.find<DeliveryDetailsController>();
 
-    final projectController = TextEditingController(text: controller.delivery.projectName);
-    final customerController = TextEditingController(text: controller.delivery.customer);
-    final addressController = TextEditingController(text: controller.delivery.siteAddress);
-    final notesController = TextEditingController(text: controller.delivery.specialNotes);
+    final projectController = TextEditingController(
+      text: controller.delivery.projectName,
+    );
+    final customerController = TextEditingController(
+      text: controller.delivery.customer,
+    );
+    final addressController = TextEditingController(
+      text: controller.delivery.siteAddress,
+    );
+    final notesController = TextEditingController(
+      text: controller.delivery.specialNotes,
+    );
 
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -36,7 +44,11 @@ class EditDeliveryDialog extends StatelessWidget {
                       color: const Color(0xFFEFF6FF),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Icon(Icons.edit_outlined, color: Color(0xFF2563EB), size: 22),
+                    child: const Icon(
+                      Icons.edit_outlined,
+                      color: Color(0xFF2563EB),
+                      size: 22,
+                    ),
                   ),
                   const SizedBox(width: 12),
                   const Text(
@@ -54,7 +66,11 @@ class EditDeliveryDialog extends StatelessWidget {
 
               const Text(
                 'Project Name',
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
               ),
               const SizedBox(height: 6),
               _buildInputField(projectController),
@@ -63,7 +79,11 @@ class EditDeliveryDialog extends StatelessWidget {
 
               const Text(
                 'Customer',
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
               ),
               const SizedBox(height: 6),
               _buildInputField(customerController),
@@ -72,7 +92,11 @@ class EditDeliveryDialog extends StatelessWidget {
 
               const Text(
                 'Site Address',
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
               ),
               const SizedBox(height: 6),
               _buildInputField(addressController),
@@ -81,11 +105,18 @@ class EditDeliveryDialog extends StatelessWidget {
 
               const Text(
                 'Special Notes / Instructions',
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
               ),
               const SizedBox(height: 6),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFFF8FAFC),
                   borderRadius: BorderRadius.circular(8),
@@ -94,8 +125,14 @@ class EditDeliveryDialog extends StatelessWidget {
                 child: TextField(
                   controller: notesController,
                   maxLines: 3,
-                  style: const TextStyle(fontSize: 13, color: AppColors.textPrimary),
-                  decoration: const InputDecoration(border: InputBorder.none, isDense: true),
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: AppColors.textPrimary,
+                  ),
+                  decoration: const InputDecoration(
+                    border: InputBorder.none,
+                    isDense: true,
+                  ),
                 ),
               ),
 
@@ -107,12 +144,21 @@ class EditDeliveryDialog extends StatelessWidget {
                     onPressed: () => Get.back(),
                     style: OutlinedButton.styleFrom(
                       side: const BorderSide(color: AppColors.inputBorder),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 12,
+                      ),
                     ),
                     child: const Text(
                       'Cancel',
-                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textSecondary),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textSecondary,
+                      ),
                     ),
                   ),
                   const Spacer(),
@@ -131,12 +177,21 @@ class EditDeliveryDialog extends StatelessWidget {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF2563EB),
                       elevation: 0,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 12,
+                      ),
                     ),
                     child: const Text(
                       'Save Changes',
-                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                 ],

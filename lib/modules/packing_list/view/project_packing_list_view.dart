@@ -26,7 +26,10 @@ class ProjectPackingListView extends GetView<PackingListController> {
 
                 return SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 16,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -56,11 +59,20 @@ class ProjectPackingListView extends GetView<PackingListController> {
         ElevatedButton.icon(
           onPressed: () => Get.back(),
           icon: const Icon(Icons.arrow_back, size: 16, color: Colors.white),
-          label: const Text('Back', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white)),
+          label: const Text(
+            'Back',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFF2563EB),
             elevation: 0,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           ),
         ),
@@ -72,14 +84,16 @@ class ProjectPackingListView extends GetView<PackingListController> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Obx(() => Text(
-                      '${controller.selectedProjectName.value} - Packing List',
-                      style: const TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                      ),
-                    )),
+                Obx(
+                  () => Text(
+                    '${controller.selectedProjectName.value} - Packing List',
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                ),
                 const SizedBox(height: 4),
                 const Text(
                   'View and manage packing lists generated from load planning for plant loading and\nshipment verification.',
@@ -92,16 +106,29 @@ class ProjectPackingListView extends GetView<PackingListController> {
             ),
             OutlinedButton.icon(
               onPressed: () {},
-              icon: const Icon(Icons.ios_share, size: 14, color: AppColors.textPrimary),
+              icon: const Icon(
+                Icons.ios_share,
+                size: 14,
+                color: AppColors.textPrimary,
+              ),
               label: const Text(
                 'Export',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
               ),
               style: OutlinedButton.styleFrom(
                 backgroundColor: Colors.white,
                 side: const BorderSide(color: AppColors.inputBorder),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 10,
+                ),
               ),
             ),
           ],
@@ -129,7 +156,10 @@ class ProjectPackingListView extends GetView<PackingListController> {
                 child: TextField(
                   decoration: InputDecoration(
                     hintText: 'Search',
-                    hintStyle: TextStyle(fontSize: 12, color: AppColors.textHint),
+                    hintStyle: TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textHint,
+                    ),
                     border: InputBorder.none,
                     isDense: true,
                     contentPadding: EdgeInsets.symmetric(vertical: 10),
@@ -142,7 +172,9 @@ class ProjectPackingListView extends GetView<PackingListController> {
         const SizedBox(width: 12),
         PopupMenuButton<String>(
           onSelected: (val) => controller.selectProjectFilter(val),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           offset: const Offset(0, 42),
           itemBuilder: (context) {
             return [
@@ -150,20 +182,36 @@ class ProjectPackingListView extends GetView<PackingListController> {
                 enabled: false,
                 child: Row(
                   children: const [
-                    Icon(Icons.filter_alt_outlined, size: 16, color: AppColors.textPrimary),
+                    Icon(
+                      Icons.filter_alt_outlined,
+                      size: 16,
+                      color: AppColors.textPrimary,
+                    ),
                     SizedBox(width: 8),
                     Text(
                       'Select Project',
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
                     ),
                   ],
                 ),
               ),
               const PopupMenuDivider(),
-              ...controller.availableProjects.map((proj) => PopupMenuItem<String>(
-                    value: proj,
-                    child: Text(proj, style: const TextStyle(fontSize: 13, color: AppColors.textPrimary)),
-                  )),
+              ...controller.availableProjects.map(
+                (proj) => PopupMenuItem<String>(
+                  value: proj,
+                  child: Text(
+                    proj,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                ),
+              ),
             ];
           },
           child: Container(
@@ -175,12 +223,22 @@ class ProjectPackingListView extends GetView<PackingListController> {
             ),
             child: Row(
               children: [
-                const Icon(Icons.filter_alt_outlined, size: 14, color: AppColors.textSecondary),
+                const Icon(
+                  Icons.filter_alt_outlined,
+                  size: 14,
+                  color: AppColors.textSecondary,
+                ),
                 const SizedBox(width: 6),
-                Obx(() => Text(
-                      controller.selectedProjectFilter.value,
-                      style: const TextStyle(fontSize: 12, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
-                    )),
+                Obx(
+                  () => Text(
+                    controller.selectedProjectFilter.value,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -200,10 +258,18 @@ class ProjectPackingListView extends GetView<PackingListController> {
               SizedBox(width: 6),
               Text(
                 'Sort by : Latest',
-                style: TextStyle(fontSize: 12, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
+                style: TextStyle(
+                  fontSize: 12,
+                  color: AppColors.textSecondary,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
               SizedBox(width: 4),
-              Icon(Icons.keyboard_arrow_down, size: 16, color: AppColors.textSecondary),
+              Icon(
+                Icons.keyboard_arrow_down,
+                size: 16,
+                color: AppColors.textSecondary,
+              ),
             ],
           ),
         ),
@@ -228,27 +294,59 @@ class ProjectPackingListView extends GetView<PackingListController> {
                 SizedBox(
                   width: 28,
                   child: Checkbox(
-                    value: controller.packingItemsList.isNotEmpty && controller.packingItemsList.every((item) => item.isSelected),
-                    onChanged: (val) => controller.toggleSelectAllPackingItems(val),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                    value:
+                        controller.packingItemsList.isNotEmpty &&
+                        controller.packingItemsList.every(
+                          (item) => item.isSelected,
+                        ),
+                    onChanged: (val) =>
+                        controller.toggleSelectAllPackingItems(val),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(4),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 8),
                 const Expanded(
                   flex: 2,
-                  child: Text('Packing ID', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                  child: Text(
+                    'Packing ID',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
                 ),
                 const Expanded(
                   flex: 2,
-                  child: Text('Load ID', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                  child: Text(
+                    'Load ID',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
                 ),
                 const Expanded(
                   flex: 2,
                   child: Row(
                     children: [
-                      Text('Truck', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                      Text(
+                        'Truck',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
                       SizedBox(width: 4),
-                      Icon(Icons.swap_vert, size: 14, color: AppColors.textSecondary),
+                      Icon(
+                        Icons.swap_vert,
+                        size: 14,
+                        color: AppColors.textSecondary,
+                      ),
                     ],
                   ),
                 ),
@@ -256,9 +354,20 @@ class ProjectPackingListView extends GetView<PackingListController> {
                   flex: 1,
                   child: Row(
                     children: [
-                      Text('Bundles', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                      Text(
+                        'Bundles',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
                       SizedBox(width: 2),
-                      Icon(Icons.swap_vert, size: 14, color: AppColors.textSecondary),
+                      Icon(
+                        Icons.swap_vert,
+                        size: 14,
+                        color: AppColors.textSecondary,
+                      ),
                     ],
                   ),
                 ),
@@ -266,9 +375,20 @@ class ProjectPackingListView extends GetView<PackingListController> {
                   flex: 2,
                   child: Row(
                     children: [
-                      Text('Weight', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                      Text(
+                        'Weight',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
                       SizedBox(width: 2),
-                      Icon(Icons.swap_vert, size: 14, color: AppColors.textSecondary),
+                      Icon(
+                        Icons.swap_vert,
+                        size: 14,
+                        color: AppColors.textSecondary,
+                      ),
                     ],
                   ),
                 ),
@@ -276,9 +396,20 @@ class ProjectPackingListView extends GetView<PackingListController> {
                   flex: 2,
                   child: Row(
                     children: [
-                      Text('Destination', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                      Text(
+                        'Destination',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
                       SizedBox(width: 2),
-                      Icon(Icons.swap_vert, size: 14, color: AppColors.textSecondary),
+                      Icon(
+                        Icons.swap_vert,
+                        size: 14,
+                        color: AppColors.textSecondary,
+                      ),
                     ],
                   ),
                 ),
@@ -286,15 +417,33 @@ class ProjectPackingListView extends GetView<PackingListController> {
                   flex: 2,
                   child: Row(
                     children: [
-                      Text('Date', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                      Text(
+                        'Date',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
                       SizedBox(width: 2),
-                      Icon(Icons.swap_vert, size: 14, color: AppColors.textSecondary),
+                      Icon(
+                        Icons.swap_vert,
+                        size: 14,
+                        color: AppColors.textSecondary,
+                      ),
                     ],
                   ),
                 ),
                 const Expanded(
                   flex: 2,
-                  child: Text('Status', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                  child: Text(
+                    'Status',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
                 ),
                 const SizedBox(width: 60),
               ],
@@ -306,20 +455,27 @@ class ProjectPackingListView extends GetView<PackingListController> {
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: controller.packingItemsList.length,
-              separatorBuilder: (context, index) => const Divider(height: 1, color: AppColors.divider),
+              separatorBuilder: (context, index) =>
+                  const Divider(height: 1, color: AppColors.divider),
               itemBuilder: (context, index) {
                 final item = controller.packingItemsList[index];
                 return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
                   child: Row(
                     children: [
                       SizedBox(
                         width: 28,
                         child: Checkbox(
                           value: item.isSelected,
-                          onChanged: (val) => controller.toggleSelectPackingItem(index, val),
+                          onChanged: (val) =>
+                              controller.toggleSelectPackingItem(index, val),
                           activeColor: const Color(0xFF6366F1),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(4),
+                          ),
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -327,49 +483,71 @@ class ProjectPackingListView extends GetView<PackingListController> {
                         flex: 2,
                         child: Text(
                           item.packingId,
-                          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textSecondary,
+                          ),
                         ),
                       ),
                       Expanded(
                         flex: 2,
                         child: Text(
                           item.loadId,
-                          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textSecondary,
+                          ),
                         ),
                       ),
                       Expanded(
                         flex: 2,
                         child: Text(
                           item.truck,
-                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary,
+                          ),
                         ),
                       ),
                       Expanded(
                         flex: 1,
                         child: Text(
                           '${item.bundles}',
-                          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textSecondary,
+                          ),
                         ),
                       ),
                       Expanded(
                         flex: 2,
                         child: Text(
                           item.weight,
-                          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textSecondary,
+                          ),
                         ),
                       ),
                       Expanded(
                         flex: 2,
                         child: Text(
                           item.destination,
-                          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textSecondary,
+                          ),
                         ),
                       ),
                       Expanded(
                         flex: 2,
                         child: Text(
                           item.date,
-                          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textSecondary,
+                          ),
                         ),
                       ),
                       Expanded(
@@ -382,16 +560,26 @@ class ProjectPackingListView extends GetView<PackingListController> {
                       SizedBox(
                         width: 60,
                         child: ElevatedButton(
-                          onPressed: () => controller.openPackingListDetails(item),
+                          onPressed: () =>
+                              controller.openPackingListDetails(item),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF2563EB),
                             elevation: 0,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 6,
+                            ),
                           ),
                           child: const Text(
                             'View',
-                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white),
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
                           ),
                         ),
                       ),
@@ -417,9 +605,20 @@ class ProjectPackingListView extends GetView<PackingListController> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: const [
-            Text('Dispatched', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF16A34A))),
+            Text(
+              'Dispatched',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF16A34A),
+              ),
+            ),
             SizedBox(width: 4),
-            Icon(Icons.check_circle_outline, size: 12, color: Color(0xFF16A34A)),
+            Icon(
+              Icons.check_circle_outline,
+              size: 12,
+              color: Color(0xFF16A34A),
+            ),
           ],
         ),
       );
@@ -433,7 +632,14 @@ class ProjectPackingListView extends GetView<PackingListController> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: const [
-            Text('Ready', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF2563EB))),
+            Text(
+              'Ready',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF2563EB),
+              ),
+            ),
             SizedBox(width: 4),
             Icon(Icons.check_circle, size: 12, color: Color(0xFF2563EB)),
           ],
@@ -455,7 +661,10 @@ class ProjectPackingListView extends GetView<PackingListController> {
         children: [
           Row(
             children: [
-              const Text('Showing', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+              const Text(
+                'Showing',
+                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+              ),
               const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -465,30 +674,53 @@ class ProjectPackingListView extends GetView<PackingListController> {
                 ),
                 child: Row(
                   children: const [
-                    Text('10', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                    Text(
+                      '10',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     SizedBox(width: 4),
                     Icon(Icons.keyboard_arrow_down, size: 14),
                   ],
                 ),
               ),
               const SizedBox(width: 8),
-              const Text('Results', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+              const Text(
+                'Results',
+                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+              ),
             ],
           ),
           Row(
             children: [
-              const Icon(Icons.chevron_left, size: 18, color: AppColors.textSecondary),
+              const Icon(
+                Icons.chevron_left,
+                size: 18,
+                color: AppColors.textSecondary,
+              ),
               const SizedBox(width: 8),
               _buildPageNumber('1', true),
               _buildPageNumber('2', false),
               _buildPageNumber('3', false),
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 4),
-                child: Text('...', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                child: Text(
+                  '...',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
               ),
               _buildPageNumber('15', false),
               const SizedBox(width: 8),
-              const Icon(Icons.chevron_right, size: 18, color: AppColors.textSecondary),
+              const Icon(
+                Icons.chevron_right,
+                size: 18,
+                color: AppColors.textSecondary,
+              ),
             ],
           ),
         ],

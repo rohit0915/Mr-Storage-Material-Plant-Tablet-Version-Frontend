@@ -26,7 +26,10 @@ class ProjectLoadPlanningView extends GetView<LoadPlanningController> {
 
                 return SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 16,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -56,11 +59,20 @@ class ProjectLoadPlanningView extends GetView<LoadPlanningController> {
         ElevatedButton.icon(
           onPressed: () => Get.back(),
           icon: const Icon(Icons.arrow_back, size: 16, color: Colors.white),
-          label: const Text('Back', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white)),
+          label: const Text(
+            'Back',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFF2563EB),
             elevation: 0,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           ),
         ),
@@ -72,14 +84,16 @@ class ProjectLoadPlanningView extends GetView<LoadPlanningController> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Obx(() => Text(
-                      '${controller.selectedProjectName.value} - Load Planning',
-                      style: const TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                      ),
-                    )),
+                Obx(
+                  () => Text(
+                    '${controller.selectedProjectName.value} - Load Planning',
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                ),
                 const SizedBox(height: 4),
                 const Text(
                   'Plan shipments by uploading shipper data, optimizing bundles, and building truckloads.',
@@ -92,16 +106,29 @@ class ProjectLoadPlanningView extends GetView<LoadPlanningController> {
             ),
             OutlinedButton.icon(
               onPressed: () {},
-              icon: const Icon(Icons.ios_share, size: 14, color: AppColors.textPrimary),
+              icon: const Icon(
+                Icons.ios_share,
+                size: 14,
+                color: AppColors.textPrimary,
+              ),
               label: const Text(
                 'Export',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
               ),
               style: OutlinedButton.styleFrom(
                 backgroundColor: Colors.white,
                 side: const BorderSide(color: AppColors.inputBorder),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 10,
+                ),
               ),
             ),
           ],
@@ -129,7 +156,10 @@ class ProjectLoadPlanningView extends GetView<LoadPlanningController> {
                 child: TextField(
                   decoration: InputDecoration(
                     hintText: 'Search',
-                    hintStyle: TextStyle(fontSize: 12, color: AppColors.textHint),
+                    hintStyle: TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textHint,
+                    ),
                     border: InputBorder.none,
                     isDense: true,
                     contentPadding: EdgeInsets.symmetric(vertical: 10),
@@ -142,7 +172,9 @@ class ProjectLoadPlanningView extends GetView<LoadPlanningController> {
         const SizedBox(width: 12),
         PopupMenuButton<String>(
           onSelected: (val) => controller.selectProjectFilter(val),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           offset: const Offset(0, 42),
           itemBuilder: (context) {
             return [
@@ -150,26 +182,39 @@ class ProjectLoadPlanningView extends GetView<LoadPlanningController> {
                 enabled: false,
                 child: Row(
                   children: const [
-                    Icon(Icons.filter_alt_outlined, size: 16, color: AppColors.textPrimary),
+                    Icon(
+                      Icons.filter_alt_outlined,
+                      size: 16,
+                      color: AppColors.textPrimary,
+                    ),
                     SizedBox(width: 8),
                     Text(
                       'Select Project',
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
                     ),
                   ],
                 ),
               ),
               const PopupMenuDivider(),
-              ...controller.availableProjects.map((proj) => PopupMenuItem<String>(
-                    value: proj,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4.0),
-                      child: Text(
-                        proj,
-                        style: const TextStyle(fontSize: 13, color: AppColors.textPrimary),
+              ...controller.availableProjects.map(
+                (proj) => PopupMenuItem<String>(
+                  value: proj,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4.0),
+                    child: Text(
+                      proj,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: AppColors.textPrimary,
                       ),
                     ),
-                  )),
+                  ),
+                ),
+              ),
             ];
           },
           child: Container(
@@ -181,12 +226,22 @@ class ProjectLoadPlanningView extends GetView<LoadPlanningController> {
             ),
             child: Row(
               children: [
-                const Icon(Icons.filter_alt_outlined, size: 14, color: AppColors.textSecondary),
+                const Icon(
+                  Icons.filter_alt_outlined,
+                  size: 14,
+                  color: AppColors.textSecondary,
+                ),
                 const SizedBox(width: 6),
-                Obx(() => Text(
-                      controller.selectedProjectFilter.value,
-                      style: const TextStyle(fontSize: 12, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
-                    )),
+                Obx(
+                  () => Text(
+                    controller.selectedProjectFilter.value,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -206,10 +261,18 @@ class ProjectLoadPlanningView extends GetView<LoadPlanningController> {
               SizedBox(width: 6),
               Text(
                 'Sort by : Latest',
-                style: TextStyle(fontSize: 12, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
+                style: TextStyle(
+                  fontSize: 12,
+                  color: AppColors.textSecondary,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
               SizedBox(width: 4),
-              Icon(Icons.keyboard_arrow_down, size: 16, color: AppColors.textSecondary),
+              Icon(
+                Icons.keyboard_arrow_down,
+                size: 16,
+                color: AppColors.textSecondary,
+              ),
             ],
           ),
         ),
@@ -234,27 +297,59 @@ class ProjectLoadPlanningView extends GetView<LoadPlanningController> {
                 SizedBox(
                   width: 28,
                   child: Checkbox(
-                    value: controller.loadPlansList.isNotEmpty && controller.loadPlansList.every((item) => item.isSelected),
-                    onChanged: (val) => controller.toggleSelectAllLoadPlans(val),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                    value:
+                        controller.loadPlansList.isNotEmpty &&
+                        controller.loadPlansList.every(
+                          (item) => item.isSelected,
+                        ),
+                    onChanged: (val) =>
+                        controller.toggleSelectAllLoadPlans(val),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(4),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 8),
                 const Expanded(
                   flex: 2,
-                  child: Text('Load Plan ID', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                  child: Text(
+                    'Load Plan ID',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
                 ),
                 const Expanded(
                   flex: 2,
-                  child: Text('Shipper Reference', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                  child: Text(
+                    'Shipper Reference',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
                 ),
                 const Expanded(
                   flex: 3,
                   child: Row(
                     children: [
-                      Text('Vendor', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                      Text(
+                        'Vendor',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
                       SizedBox(width: 4),
-                      Icon(Icons.swap_vert, size: 14, color: AppColors.textSecondary),
+                      Icon(
+                        Icons.swap_vert,
+                        size: 14,
+                        color: AppColors.textSecondary,
+                      ),
                     ],
                   ),
                 ),
@@ -262,9 +357,20 @@ class ProjectLoadPlanningView extends GetView<LoadPlanningController> {
                   flex: 1,
                   child: Row(
                     children: [
-                      Text('Bundles', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                      Text(
+                        'Bundles',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
                       SizedBox(width: 2),
-                      Icon(Icons.swap_vert, size: 14, color: AppColors.textSecondary),
+                      Icon(
+                        Icons.swap_vert,
+                        size: 14,
+                        color: AppColors.textSecondary,
+                      ),
                     ],
                   ),
                 ),
@@ -272,9 +378,20 @@ class ProjectLoadPlanningView extends GetView<LoadPlanningController> {
                   flex: 1,
                   child: Row(
                     children: [
-                      Text('Loads', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                      Text(
+                        'Loads',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
                       SizedBox(width: 2),
-                      Icon(Icons.swap_vert, size: 14, color: AppColors.textSecondary),
+                      Icon(
+                        Icons.swap_vert,
+                        size: 14,
+                        color: AppColors.textSecondary,
+                      ),
                     ],
                   ),
                 ),
@@ -282,23 +399,52 @@ class ProjectLoadPlanningView extends GetView<LoadPlanningController> {
                   flex: 2,
                   child: Row(
                     children: [
-                      Text('Weight', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                      Text(
+                        'Weight',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
                       SizedBox(width: 2),
-                      Icon(Icons.swap_vert, size: 14, color: AppColors.textSecondary),
+                      Icon(
+                        Icons.swap_vert,
+                        size: 14,
+                        color: AppColors.textSecondary,
+                      ),
                     ],
                   ),
                 ),
                 const Expanded(
                   flex: 2,
-                  child: Text('Status', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                  child: Text(
+                    'Status',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
                 ),
                 const Expanded(
                   flex: 2,
                   child: Row(
                     children: [
-                      Text('Date', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                      Text(
+                        'Date',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
                       SizedBox(width: 2),
-                      Icon(Icons.swap_vert, size: 14, color: AppColors.textSecondary),
+                      Icon(
+                        Icons.swap_vert,
+                        size: 14,
+                        color: AppColors.textSecondary,
+                      ),
                     ],
                   ),
                 ),
@@ -312,20 +458,27 @@ class ProjectLoadPlanningView extends GetView<LoadPlanningController> {
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: controller.loadPlansList.length,
-              separatorBuilder: (context, index) => const Divider(height: 1, color: AppColors.divider),
+              separatorBuilder: (context, index) =>
+                  const Divider(height: 1, color: AppColors.divider),
               itemBuilder: (context, index) {
                 final item = controller.loadPlansList[index];
                 return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
                   child: Row(
                     children: [
                       SizedBox(
                         width: 28,
                         child: Checkbox(
                           value: item.isSelected,
-                          onChanged: (val) => controller.toggleSelectLoadPlan(index, val),
+                          onChanged: (val) =>
+                              controller.toggleSelectLoadPlan(index, val),
                           activeColor: const Color(0xFF6366F1),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(4),
+                          ),
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -333,14 +486,20 @@ class ProjectLoadPlanningView extends GetView<LoadPlanningController> {
                         flex: 2,
                         child: Text(
                           item.loadPlanId,
-                          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textSecondary,
+                          ),
                         ),
                       ),
                       Expanded(
                         flex: 2,
                         child: Text(
                           item.shipperReference,
-                          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textSecondary,
+                          ),
                         ),
                       ),
                       Expanded(
@@ -352,7 +511,11 @@ class ProjectLoadPlanningView extends GetView<LoadPlanningController> {
                               backgroundColor: const Color(0xFFE2E8F0),
                               child: Text(
                                 item.vendorName[0],
-                                style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.textPrimary,
+                                ),
                               ),
                             ),
                             const SizedBox(width: 8),
@@ -361,7 +524,11 @@ class ProjectLoadPlanningView extends GetView<LoadPlanningController> {
                                 item.vendorName,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.textPrimary,
+                                ),
                               ),
                             ),
                           ],
@@ -371,21 +538,30 @@ class ProjectLoadPlanningView extends GetView<LoadPlanningController> {
                         flex: 1,
                         child: Text(
                           '${item.bundles}',
-                          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textSecondary,
+                          ),
                         ),
                       ),
                       Expanded(
                         flex: 1,
                         child: Text(
                           '${item.loads}',
-                          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textSecondary,
+                          ),
                         ),
                       ),
                       Expanded(
                         flex: 2,
                         child: Text(
                           item.weight,
-                          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textSecondary,
+                          ),
                         ),
                       ),
                       Expanded(
@@ -399,7 +575,10 @@ class ProjectLoadPlanningView extends GetView<LoadPlanningController> {
                         flex: 2,
                         child: Text(
                           item.date,
-                          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textSecondary,
+                          ),
                         ),
                       ),
                       SizedBox(
@@ -409,12 +588,21 @@ class ProjectLoadPlanningView extends GetView<LoadPlanningController> {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF2563EB),
                             elevation: 0,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 8,
+                            ),
                           ),
                           child: const Text(
                             'View Load',
-                            style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white),
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
                           ),
                         ),
                       ),
@@ -440,9 +628,20 @@ class ProjectLoadPlanningView extends GetView<LoadPlanningController> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: const [
-            Text('Completed', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF16A34A))),
+            Text(
+              'Completed',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF16A34A),
+              ),
+            ),
             SizedBox(width: 4),
-            Icon(Icons.check_circle_outline, size: 12, color: Color(0xFF16A34A)),
+            Icon(
+              Icons.check_circle_outline,
+              size: 12,
+              color: Color(0xFF16A34A),
+            ),
           ],
         ),
       );
@@ -456,7 +655,14 @@ class ProjectLoadPlanningView extends GetView<LoadPlanningController> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: const [
-            Text('Planning', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFFD97706))),
+            Text(
+              'Planning',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFFD97706),
+              ),
+            ),
             SizedBox(width: 4),
             Icon(Icons.hourglass_empty, size: 12, color: Color(0xFFD97706)),
           ],
@@ -472,7 +678,14 @@ class ProjectLoadPlanningView extends GetView<LoadPlanningController> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: const [
-            Text('Ready', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF2563EB))),
+            Text(
+              'Ready',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF2563EB),
+              ),
+            ),
             SizedBox(width: 4),
             Icon(Icons.check_circle, size: 12, color: Color(0xFF2563EB)),
           ],
@@ -494,7 +707,10 @@ class ProjectLoadPlanningView extends GetView<LoadPlanningController> {
         children: [
           Row(
             children: [
-              const Text('Showing', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+              const Text(
+                'Showing',
+                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+              ),
               const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -504,30 +720,53 @@ class ProjectLoadPlanningView extends GetView<LoadPlanningController> {
                 ),
                 child: Row(
                   children: const [
-                    Text('10', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                    Text(
+                      '10',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     SizedBox(width: 4),
                     Icon(Icons.keyboard_arrow_down, size: 14),
                   ],
                 ),
               ),
               const SizedBox(width: 8),
-              const Text('Results', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+              const Text(
+                'Results',
+                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+              ),
             ],
           ),
           Row(
             children: [
-              const Icon(Icons.chevron_left, size: 18, color: AppColors.textSecondary),
+              const Icon(
+                Icons.chevron_left,
+                size: 18,
+                color: AppColors.textSecondary,
+              ),
               const SizedBox(width: 8),
               _buildPageNumber('1', true),
               _buildPageNumber('2', false),
               _buildPageNumber('3', false),
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 4),
-                child: Text('...', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                child: Text(
+                  '...',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
               ),
               _buildPageNumber('15', false),
               const SizedBox(width: 8),
-              const Icon(Icons.chevron_right, size: 18, color: AppColors.textSecondary),
+              const Icon(
+                Icons.chevron_right,
+                size: 18,
+                color: AppColors.textSecondary,
+              ),
             ],
           ),
         ],

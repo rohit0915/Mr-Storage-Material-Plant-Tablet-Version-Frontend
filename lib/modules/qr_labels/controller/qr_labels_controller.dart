@@ -1,201 +1,146 @@
 import 'package:get/get.dart';
 import '../../../app/routes/app_routes.dart';
 import '../model/qr_labels_model.dart';
+import '../repository/qr_labels_repository.dart';
 import '../widgets/qr_code_dialog.dart';
 
 class QrLabelsController extends GetxController {
-  final RxBool isLoading = false.obs;
+  final QrLabelsRepository repository;
+  QrLabelsController({required this.repository});
 
-  final RxList<ProjectQrLabelsSummaryModel> projectsList = <ProjectQrLabelsSummaryModel>[].obs;
-  final RxList<BundleQrLabelItemModel> bundleLabelsList = <BundleQrLabelItemModel>[].obs;
-
-  final RxString selectedProjectName = 'Project 1'.obs;
+  final RxBool isLoading = true.obs;
+  final RxString errorMessage = ''.obs;
+  final RxList<ProjectQrLabelsSummaryModel> projectsList =
+      <ProjectQrLabelsSummaryModel>[].obs;
+  final RxList<BundleQrLabelItemModel> bundleLabelsList =
+      <BundleQrLabelItemModel>[].obs;
+  final RxString selectedProjectId = ''.obs;
+  final RxString selectedProjectName = ''.obs;
   final RxString selectedProjectFilter = 'Select Project'.obs;
   final RxString selectedSort = 'Latest'.obs;
   final RxString searchQuery = ''.obs;
-
-  final List<String> availableProjects = [
-    'ABC Warehouse',
-    'Tech Park Dev',
-    'Downtown Plaza',
-    'Riverside Complex',
-  ];
+  final RxList<String> projectOptions = <String>[].obs;
+  List<String> get availableProjects => projectOptions;
 
   @override
   void onInit() {
     super.onInit();
-    loadProjectsData();
-    loadBundleLabelsData();
+    selectedProjectId.value = Get.parameters['id'] ?? '';
+    selectedProjectName.value = Get.parameters['name'] ?? '';
+    if (selectedProjectId.value.isEmpty) {
+      loadProjectsData();
+    } else {
+      loadBundleLabelsData(selectedProjectId.value);
+    }
   }
 
-  void loadProjectsData() {
+  Future<void> loadProjectsData() async {
     isLoading.value = true;
-    projectsList.assignAll([
-      ProjectQrLabelsSummaryModel(
-        id: 'PRJ-001',
-        projectName: 'ABC Warehouse',
-        qrGeneratedDate: '22 Feb 2025',
-        totalQrLabels: 5,
-      ),
-      ProjectQrLabelsSummaryModel(
-        id: 'PRJ-002',
-        projectName: 'Tech Park Dev',
-        qrGeneratedDate: '07 Feb 2025',
-        totalQrLabels: 3,
-      ),
-      ProjectQrLabelsSummaryModel(
-        id: 'PRJ-003',
-        projectName: 'Downtown Plaza',
-        qrGeneratedDate: '30 Jan 2025',
-        totalQrLabels: 2,
-      ),
-      ProjectQrLabelsSummaryModel(
-        id: 'PRJ-004',
-        projectName: 'Riverside Complex',
-        qrGeneratedDate: '17 Jan 2025',
-        totalQrLabels: 6,
-      ),
-      ProjectQrLabelsSummaryModel(
-        id: 'PRJ-005',
-        projectName: 'Tech Park Dev',
-        qrGeneratedDate: '04 Jan 2025',
-        totalQrLabels: 4,
-      ),
-      ProjectQrLabelsSummaryModel(
-        id: 'PRJ-006',
-        projectName: 'Downtown Plaza',
-        qrGeneratedDate: '09 Dec 2024',
-        totalQrLabels: 8,
-      ),
-    ]);
-    isLoading.value = false;
+    errorMessage.value = '';
+    try {
+      final data = await repository.fetchProjects();
+      final projects = data['projects'] is List
+          ? data['projects'] as List
+          : const [];
+      projectsList.assignAll(
+        projects.whereType<Map>().map((raw) {
+          final item = Map<String, dynamic>.from(raw);
+          final lead = _map(item['lead']);
+          return ProjectQrLabelsSummaryModel(
+            id:
+                (item['packingListId'] ??
+                        item['packingListPlanId'] ??
+                        item['leadId'] ??
+                        item['_id'] ??
+                        lead['_id'] ??
+                        '')
+                    .toString(),
+            projectName:
+                (item['projectName'] ?? lead['projectName'] ?? 'Project')
+                    .toString(),
+            qrGeneratedDate: _date(
+              item['generatedAt'] ?? item['updatedAt'] ?? item['createdAt'],
+            ),
+            totalQrLabels: _int(
+              item['totalQrLabels'] ??
+                  item['bundleCount'] ??
+                  item['totalBundles'],
+            ),
+          );
+        }),
+      );
+      projectOptions.assignAll(
+        projectsList.map((item) => item.projectName).toSet(),
+      );
+    } catch (e) {
+      errorMessage.value = e.toString();
+      projectsList.clear();
+    } finally {
+      isLoading.value = false;
+    }
   }
 
-  void loadBundleLabelsData() {
-    bundleLabelsList.assignAll([
-      BundleQrLabelItemModel(
-        bundleId: 'BND-101',
-        loadId: 'LOAD-101',
-        parts: 'STL-4135',
-        weight: '18,500 IBS',
-        length: '20 ft',
-        status: 'Printed',
-        shipper: 'SHP-1044',
-      ),
-      BundleQrLabelItemModel(
-        bundleId: 'BND-102',
-        loadId: 'LOAD-102',
-        parts: 'STL-4135',
-        weight: '37,700 IBS',
-        length: '20 ft',
-        status: 'Generated',
-        shipper: 'SHP-1044',
-      ),
-      BundleQrLabelItemModel(
-        bundleId: 'BND-103',
-        loadId: 'LOAD-103',
-        parts: 'STL-4135',
-        weight: '21,400 IBS',
-        length: '17 ft',
-        status: 'Printed',
-        shipper: 'SHP-1044',
-      ),
-      BundleQrLabelItemModel(
-        bundleId: 'BND-104',
-        loadId: 'LOAD-104',
-        parts: 'STL-4135',
-        weight: '18,500 IBS',
-        length: '20 ft',
-        status: 'Generated',
-        shipper: 'SHP-1044',
-      ),
-      BundleQrLabelItemModel(
-        bundleId: 'BND-105',
-        loadId: 'LOAD-105',
-        parts: 'STL-4135',
-        weight: '37,700 IBS',
-        length: '20 ft',
-        status: 'Printed',
-        shipper: 'SHP-1044',
-      ),
-      BundleQrLabelItemModel(
-        bundleId: 'BND-106',
-        loadId: 'LOAD-106',
-        parts: 'STL-4135',
-        weight: '21,400 IBS',
-        length: '17 ft',
-        status: 'Generated',
-        shipper: 'SHP-1044',
-      ),
-      BundleQrLabelItemModel(
-        bundleId: 'BND-107',
-        loadId: 'LOAD-107',
-        parts: 'STL-4135',
-        weight: '18,500 IBS',
-        length: '20 ft',
-        status: 'Printed',
-        shipper: 'SHP-1044',
-      ),
-      BundleQrLabelItemModel(
-        bundleId: 'BND-108',
-        loadId: 'LOAD-108',
-        parts: 'STL-4135',
-        weight: '37,700 IBS',
-        length: '20 ft',
-        status: 'Generated',
-        shipper: 'SHP-1044',
-      ),
-      BundleQrLabelItemModel(
-        bundleId: 'BND-109',
-        loadId: 'LOAD-109',
-        parts: 'STL-4135',
-        weight: '18,500 IBS',
-        length: '20 ft',
-        status: 'Generated',
-        shipper: 'SHP-1044',
-      ),
-      BundleQrLabelItemModel(
-        bundleId: 'BND-110',
-        loadId: 'LOAD-110',
-        parts: 'STL-4135',
-        weight: '37,700 IBS',
-        length: '20 ft',
-        status: 'Printed',
-        shipper: 'SHP-1044',
-      ),
-      BundleQrLabelItemModel(
-        bundleId: 'BND-111',
-        loadId: 'LOAD-111',
-        parts: 'STL-4135',
-        weight: '21,400 IBS',
-        length: '17 ft',
-        status: 'Generated',
-        shipper: 'SHP-1044',
-      ),
-      BundleQrLabelItemModel(
-        bundleId: 'BND-112',
-        loadId: 'LOAD-112',
-        parts: 'STL-4135',
-        weight: '18,500 IBS',
-        length: '20 ft',
-        status: 'Printed',
-        shipper: 'SHP-1044',
-      ),
-      BundleQrLabelItemModel(
-        bundleId: 'BND-113',
-        loadId: 'LOAD-113',
-        parts: 'STL-4135',
-        weight: '37,700 IBS',
-        length: '20 ft',
-        status: 'Printed',
-        shipper: 'SHP-1044',
-      ),
-    ]);
+  Future<void> loadBundleLabelsData(String id) async {
+    isLoading.value = true;
+    errorMessage.value = '';
+    try {
+      final data = await repository.fetchPackingList(id);
+      final directBundles = data['bundles'] is List
+          ? data['bundles'] as List
+          : const [];
+      final trucks = data['trucks'] is List ? data['trucks'] as List : const [];
+      final truckBundles = <dynamic>[];
+      for (final rawTruck in trucks.whereType<Map>()) {
+        final truck = Map<String, dynamic>.from(rawTruck);
+        if (truck['bundles'] is List) {
+          for (final bundle in truck['bundles'] as List) {
+            if (bundle is Map) truckBundles.add({...bundle, '_truck': truck});
+          }
+        }
+      }
+      final bundles = directBundles.isNotEmpty ? directBundles : truckBundles;
+      bundleLabelsList.assignAll(
+        bundles.whereType<Map>().map((raw) {
+          final item = Map<String, dynamic>.from(raw);
+          final truck = _map(item['_truck'] ?? item['truck']);
+          final parts = item['items'] is List
+              ? item['items'] as List
+              : const [];
+          return BundleQrLabelItemModel(
+            bundleId: (item['bundleId'] ?? item['_id'] ?? 'N/A').toString(),
+            loadId:
+                (item['loadId'] ?? truck['loadId'] ?? truck['truckId'] ?? 'N/A')
+                    .toString(),
+            parts:
+                (item['partNumber'] ??
+                        item['parts'] ??
+                        (parts.isNotEmpty ? parts.length : 0))
+                    .toString(),
+            weight: _weight(item['totalWeight'] ?? item['weight']),
+            length: (item['length'] ?? item['maxLength'] ?? 'N/A').toString(),
+            status: _status(item['qrStatus'] ?? item['status'] ?? 'Generated'),
+            shipper:
+                (item['shipperReference'] ??
+                        item['shipper'] ??
+                        data['shipperReference'] ??
+                        'N/A')
+                    .toString(),
+          );
+        }),
+      );
+    } catch (e) {
+      errorMessage.value = e.toString();
+      bundleLabelsList.clear();
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   void openProjectQrLabels(ProjectQrLabelsSummaryModel item) {
-    selectedProjectName.value = item.projectName;
-    Get.toNamed(AppRoutes.projectQrLabels);
+    Get.toNamed(
+      AppRoutes.projectQrLabels,
+      parameters: {'id': item.id, 'name': item.projectName},
+    );
   }
 
   void showQrCodeDialog(BundleQrLabelItemModel item) {
@@ -208,18 +153,50 @@ class QrLabelsController extends GetxController {
     );
   }
 
-  void selectProjectFilter(String project) {
-    selectedProjectFilter.value = project;
+  Map<String, dynamic> _map(dynamic value) =>
+      value is Map ? Map<String, dynamic>.from(value) : {};
+  int _int(dynamic value) =>
+      value is num ? value.toInt() : int.tryParse('$value') ?? 0;
+  String _weight(dynamic value) =>
+      value == null ? '0 lbs' : '${value.toString()} lbs';
+  String _status(dynamic value) {
+    final text = (value ?? 'Generated').toString().replaceAll('_', ' ');
+    return text
+        .split(' ')
+        .map(
+          (word) => word.isEmpty
+              ? word
+              : '${word[0].toUpperCase()}${word.substring(1).toLowerCase()}',
+        )
+        .join(' ');
   }
 
-  void selectSort(String sort) {
-    selectedSort.value = sort;
+  String _date(dynamic value) {
+    final date = DateTime.tryParse((value ?? '').toString())?.toLocal();
+    if (date == null) return 'N/A';
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    return '${date.day.toString().padLeft(2, '0')} ${months[date.month - 1]} ${date.year}';
   }
 
+  void selectProjectFilter(String project) =>
+      selectedProjectFilter.value = project;
+  void selectSort(String sort) => selectedSort.value = sort;
   void toggleSelectAllProjects(bool? val) {
-    final value = val ?? false;
-    for (var item in projectsList) {
-      item.isSelected = value;
+    for (final item in projectsList) {
+      item.isSelected = val ?? false;
     }
     projectsList.refresh();
   }
@@ -230,9 +207,8 @@ class QrLabelsController extends GetxController {
   }
 
   void toggleSelectAllBundles(bool? val) {
-    final value = val ?? false;
-    for (var item in bundleLabelsList) {
-      item.isSelected = value;
+    for (final item in bundleLabelsList) {
+      item.isSelected = val ?? false;
     }
     bundleLabelsList.refresh();
   }

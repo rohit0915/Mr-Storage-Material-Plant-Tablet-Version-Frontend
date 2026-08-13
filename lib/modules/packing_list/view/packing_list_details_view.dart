@@ -27,7 +27,10 @@ class PackingListDetailsView extends GetView<PackingListController> {
 
                 return SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 16,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -53,11 +56,20 @@ class PackingListDetailsView extends GetView<PackingListController> {
         ElevatedButton.icon(
           onPressed: () => Get.back(),
           icon: const Icon(Icons.arrow_back, size: 16, color: Colors.white),
-          label: const Text('Packing List', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white)),
+          label: const Text(
+            'Packing List',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFF2563EB),
             elevation: 0,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           ),
         ),
@@ -86,11 +98,25 @@ class PackingListDetailsView extends GetView<PackingListController> {
           const SizedBox(height: 24),
           _buildOptimizationSummaryCard(),
           const SizedBox(height: 28),
-          const Text('Packing List', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+          const Text(
+            'Packing List',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+            ),
+          ),
           const SizedBox(height: 12),
           _buildPackingListTable(),
           const SizedBox(height: 28),
-          const Text('Bundle List', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+          const Text(
+            'Bundle List',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+            ),
+          ),
           const SizedBox(height: 12),
           _buildBundleListTable(),
           const SizedBox(height: 16),
@@ -114,16 +140,36 @@ class PackingListDetailsView extends GetView<PackingListController> {
         children: const [
           Text(
             'Project: Riverside Complex | Truckloads: 2',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+            ),
           ),
           SizedBox(height: 12),
-          Text('Project: Riverside Complex', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+          Text(
+            'Project: Riverside Complex',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
+          ),
           SizedBox(height: 4),
-          Text('Upload ID: UPL-001', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+          Text(
+            'Upload ID: UPL-001',
+            style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+          ),
           SizedBox(height: 4),
-          Text('Bundles Created: 5', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+          Text(
+            'Bundles Created: 5',
+            style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+          ),
           SizedBox(height: 4),
-          Text('Total Weight: 18500 IBS', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+          Text(
+            'Total Weight: 18500 IBS',
+            style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+          ),
         ],
       ),
     );
@@ -147,7 +193,11 @@ class PackingListDetailsView extends GetView<PackingListController> {
               children: [
                 const Text(
                   'Optimization Summary Card',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
                 ),
                 const SizedBox(height: 16),
                 _buildSummaryMetaRow('Truck Loads', '2'),
@@ -189,20 +239,60 @@ class PackingListDetailsView extends GetView<PackingListController> {
               children: const [
                 Text(
                   'project=RiversideComplex',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
                 ),
                 SizedBox(height: 8),
-                Text('Shipper : shipper=SHP-1044', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                Text(
+                  'Shipper : shipper=SHP-1044',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
                 SizedBox(height: 4),
-                Text('Load : load_id=LOAD-001', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                Text(
+                  'Load : load_id=LOAD-001',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
                 SizedBox(height: 4),
-                Text('Bundle : bundle_id=BND-001', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                Text(
+                  'Bundle : bundle_id=BND-001',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
                 SizedBox(height: 4),
-                Text('Parts : parts=STL-B12', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                Text(
+                  'Parts : parts=STL-B12',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
                 SizedBox(height: 4),
-                Text('Weight : weight=3600', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                Text(
+                  'Weight : weight=3600',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
                 SizedBox(height: 4),
-                Text('Length : Length=20', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                Text(
+                  'Length : Length=20',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
               ],
             ),
           ),
@@ -211,12 +301,22 @@ class PackingListDetailsView extends GetView<PackingListController> {
     );
   }
 
-  Widget _buildSummaryMetaRow(String label, String value, {bool isBold = false}) {
+  Widget _buildSummaryMetaRow(
+    String label,
+    String value, {
+    bool isBold = false,
+  }) {
     return Row(
       children: [
         SizedBox(
           width: 160,
-          child: Text(label, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+          child: Text(
+            label,
+            style: const TextStyle(
+              fontSize: 12,
+              color: AppColors.textSecondary,
+            ),
+          ),
         ),
         Text(
           value,
@@ -243,13 +343,83 @@ class PackingListDetailsView extends GetView<PackingListController> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             child: Row(
               children: const [
-                SizedBox(width: 30, child: Text('#', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white))),
-                Expanded(flex: 2, child: Text('Load ID', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white))),
-                Expanded(flex: 2, child: Text('Truck', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white))),
-                Expanded(flex: 2, child: Text('Bundles', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white))),
-                Expanded(flex: 2, child: Text('Weight', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white))),
-                Expanded(flex: 3, child: Text('Destination', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white))),
-                Expanded(flex: 2, child: Text('Status', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white))),
+                SizedBox(
+                  width: 30,
+                  child: Text(
+                    '#',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    'Load ID',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    'Truck',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    'Bundles',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    'Weight',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 3,
+                  child: Text(
+                    'Destination',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    'Status',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
                 SizedBox(width: 44),
               ],
             ),
@@ -259,20 +429,88 @@ class PackingListDetailsView extends GetView<PackingListController> {
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: controller.packingListTableItems.length,
-              separatorBuilder: (c, i) => const Divider(height: 1, color: AppColors.divider),
+              separatorBuilder: (c, i) =>
+                  const Divider(height: 1, color: AppColors.divider),
               itemBuilder: (context, index) {
                 final item = controller.packingListTableItems[index];
                 return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
                   child: Row(
                     children: [
-                      SizedBox(width: 30, child: Text('${item.id}', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary))),
-                      Expanded(flex: 2, child: Text(item.loadId, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textPrimary))),
-                      Expanded(flex: 2, child: Text(item.truck, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary))),
-                      Expanded(flex: 2, child: Text('${item.bundles}', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary))),
-                      Expanded(flex: 2, child: Text(item.weight, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary))),
-                      Expanded(flex: 3, child: Text(item.destination, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary))),
-                      Expanded(flex: 2, child: Text(item.status, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary))),
+                      SizedBox(
+                        width: 30,
+                        child: Text(
+                          '${item.id}',
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 2,
+                        child: Text(
+                          item.loadId,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 2,
+                        child: Text(
+                          item.truck,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 2,
+                        child: Text(
+                          '${item.bundles}',
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 2,
+                        child: Text(
+                          item.weight,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 3,
+                        child: Text(
+                          item.destination,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 2,
+                        child: Text(
+                          item.status,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ),
                       IconButton(
                         onPressed: () {},
                         icon: Container(
@@ -281,7 +519,11 @@ class PackingListDetailsView extends GetView<PackingListController> {
                             color: const Color(0xFF64748B),
                             borderRadius: BorderRadius.circular(6),
                           ),
-                          child: const Icon(Icons.download, size: 14, color: Colors.white),
+                          child: const Icon(
+                            Icons.download,
+                            size: 14,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                     ],
@@ -308,12 +550,72 @@ class PackingListDetailsView extends GetView<PackingListController> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             child: Row(
               children: const [
-                SizedBox(width: 30, child: Text('#', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white))),
-                Expanded(flex: 2, child: Text('Bundle ID', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white))),
-                Expanded(flex: 2, child: Text('Profile', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white))),
-                Expanded(flex: 3, child: Text('Items', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white))),
-                Expanded(flex: 2, child: Text('Length', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white))),
-                Expanded(flex: 2, child: Text('Unit Weight', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white))),
+                SizedBox(
+                  width: 30,
+                  child: Text(
+                    '#',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    'Bundle ID',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    'Profile',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 3,
+                  child: Text(
+                    'Items',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    'Length',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    'Unit Weight',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -322,19 +624,78 @@ class PackingListDetailsView extends GetView<PackingListController> {
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: controller.bundleListItems.length,
-              separatorBuilder: (c, i) => const Divider(height: 1, color: AppColors.divider),
+              separatorBuilder: (c, i) =>
+                  const Divider(height: 1, color: AppColors.divider),
               itemBuilder: (context, index) {
                 final item = controller.bundleListItems[index];
                 return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
                   child: Row(
                     children: [
-                      SizedBox(width: 30, child: Text('${item.id}', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary))),
-                      Expanded(flex: 2, child: Text(item.bundleId, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textPrimary))),
-                      Expanded(flex: 2, child: Text(item.profile, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary))),
-                      Expanded(flex: 3, child: Text(item.items, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary))),
-                      Expanded(flex: 2, child: Text(item.length, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary))),
-                      Expanded(flex: 2, child: Text(item.unitWeight, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary))),
+                      SizedBox(
+                        width: 30,
+                        child: Text(
+                          '${item.id}',
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 2,
+                        child: Text(
+                          item.bundleId,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 2,
+                        child: Text(
+                          item.profile,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 3,
+                        child: Text(
+                          item.items,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 2,
+                        child: Text(
+                          item.length,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 2,
+                        child: Text(
+                          item.unitWeight,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 );
@@ -352,21 +713,43 @@ class PackingListDetailsView extends GetView<PackingListController> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
-          const Text('Summary', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white)),
+          const Text(
+            'Summary',
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
           const SizedBox(width: 24),
-          const Text('Total Bundles: 3', style: TextStyle(fontSize: 11, color: Colors.white70)),
+          const Text(
+            'Total Bundles: 3',
+            style: TextStyle(fontSize: 11, color: Colors.white70),
+          ),
           const SizedBox(width: 24),
-          const Text('Total Weight: 36,000 lbs', style: TextStyle(fontSize: 11, color: Colors.white70)),
+          const Text(
+            'Total Weight: 36,000 lbs',
+            style: TextStyle(fontSize: 11, color: Colors.white70),
+          ),
           const Spacer(),
           ElevatedButton(
             onPressed: () {},
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFE2E8F0),
               elevation: 0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(6),
+              ),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             ),
-            child: const Text('Download PDF', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+            child: const Text(
+              'Download PDF',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
+            ),
           ),
           const SizedBox(width: 8),
           ElevatedButton(
@@ -374,10 +757,19 @@ class PackingListDetailsView extends GetView<PackingListController> {
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFCBD5E1),
               elevation: 0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(6),
+              ),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             ),
-            child: const Text('Export Excel', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+            child: const Text(
+              'Export Excel',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
+            ),
           ),
         ],
       ),

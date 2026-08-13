@@ -1,68 +1,184 @@
 import 'package:get/get.dart';
 import '../../../app/routes/app_routes.dart';
 import '../model/load_planning_model.dart';
+import '../repository/load_planning_repository.dart';
 
 class LoadPlanningController extends GetxController {
-  final RxBool isLoading = false.obs;
-  final RxList<ProjectLoadPlanningSummaryModel> projectsList = <ProjectLoadPlanningSummaryModel>[].obs;
+  final LoadPlanningRepository repository;
+  LoadPlanningController({required this.repository});
+
+  final RxBool isLoading = true.obs;
+  final RxString errorMessage = ''.obs;
+  final RxList<ProjectLoadPlanningSummaryModel> projectsList =
+      <ProjectLoadPlanningSummaryModel>[].obs;
   final RxList<LoadPlanItemModel> loadPlansList = <LoadPlanItemModel>[].obs;
   final RxString selectedProjectFilter = 'Select Project'.obs;
-  final RxString selectedProjectName = 'Project 1'.obs;
-
-  final List<String> availableProjects = [
-    'ABC Construction',
-    'XYZ Construction',
-    'PQR Construction',
-  ];
+  final RxString selectedProjectId = ''.obs;
+  final RxString selectedProjectName = ''.obs;
+  final RxList<String> projectOptions = <String>[].obs;
+  List<String> get availableProjects => projectOptions;
 
   @override
   void onInit() {
     super.onInit();
-    loadProjectsData();
-    loadProjectLoadPlans();
+    selectedProjectId.value = Get.parameters['id'] ?? '';
+    selectedProjectName.value = Get.parameters['name'] ?? '';
+    if (selectedProjectId.value.isEmpty) {
+      loadProjectsData();
+    } else {
+      loadProjectLoadPlans(selectedProjectId.value);
+    }
   }
 
-  void loadProjectsData() {
+  Future<void> loadProjectsData() async {
     isLoading.value = true;
-    projectsList.assignAll([
-      ProjectLoadPlanningSummaryModel(id: 'PRJ-001', projectName: 'ABC Warehouse', fileReceived: '22 Feb 2025', totalLoadPlanning: 5),
-      ProjectLoadPlanningSummaryModel(id: 'PRJ-002', projectName: 'Tech Park Dev', fileReceived: '07 Feb 2025', totalLoadPlanning: 3),
-      ProjectLoadPlanningSummaryModel(id: 'PRJ-003', projectName: 'Downtown Plaza', fileReceived: '30 Jan 2025', totalLoadPlanning: 2),
-      ProjectLoadPlanningSummaryModel(id: 'PRJ-004', projectName: 'Riverside Complex', fileReceived: '17 Jan 2025', totalLoadPlanning: 6),
-      ProjectLoadPlanningSummaryModel(id: 'PRJ-005', projectName: 'Tech Park Dev', fileReceived: '04 Jan 2025', totalLoadPlanning: 4),
-      ProjectLoadPlanningSummaryModel(id: 'PRJ-006', projectName: 'Downtown Plaza', fileReceived: '09 Dec 2024', totalLoadPlanning: 8),
-    ]);
-    isLoading.value = false;
+    errorMessage.value = '';
+    try {
+      final data = await repository.fetchProjects();
+      final projects = data['projects'] is List
+          ? data['projects'] as List
+          : const [];
+      projectsList.assignAll(
+        projects.whereType<Map>().map((raw) {
+          final item = Map<String, dynamic>.from(raw);
+          final lead = _map(item['lead']);
+          return ProjectLoadPlanningSummaryModel(
+            id:
+                (item['leadId'] ??
+                        item['_id'] ??
+                        lead['_id'] ??
+                        item['projectId'] ??
+                        '')
+                    .toString(),
+            projectName:
+                (item['projectName'] ?? lead['projectName'] ?? 'Project')
+                    .toString(),
+            fileReceived: _date(
+              item['fileReceivedAt'] ?? item['updatedAt'] ?? item['createdAt'],
+            ),
+            totalLoadPlanning: _int(
+              item['totalLoadPlanning'] ??
+                  item['planCount'] ??
+                  item['loadPlanCount'],
+            ),
+          );
+        }),
+      );
+      projectOptions.assignAll(
+        projectsList.map((item) => item.projectName).toSet(),
+      );
+    } catch (e) {
+      errorMessage.value = e.toString();
+      projectsList.clear();
+    } finally {
+      isLoading.value = false;
+    }
   }
 
-  void loadProjectLoadPlans() {
-    loadPlansList.assignAll([
-      LoadPlanItemModel(loadPlanId: 'LP-2026-001', shipperReference: 'SHP-1044', vendorName: 'ABC Steel', vendorAvatar: '', bundles: 5, loads: 2, weight: '18,500 IBS', status: 'Completed', date: '22 Feb 2025'),
-      LoadPlanItemModel(loadPlanId: 'LP-2026-002', shipperReference: 'SHP-1045', vendorName: 'Steel Works LTD', vendorAvatar: '', bundles: 8, loads: 3, weight: '37,700 IBS', status: 'Planning', date: '07 Feb 2025'),
-      LoadPlanItemModel(loadPlanId: 'LP-2026-003', shipperReference: 'SHP-1046', vendorName: 'Metro Steel', vendorAvatar: '', bundles: 6, loads: 2, weight: '21,400 IBS', status: 'Ready', date: '30 Jan 2025'),
-      LoadPlanItemModel(loadPlanId: 'LP-2026-004', shipperReference: 'SHP-1047', vendorName: 'ABC Steel', vendorAvatar: '', bundles: 5, loads: 2, weight: '18,500 IBS', status: 'Completed', date: '17 Jan 2025'),
-      LoadPlanItemModel(loadPlanId: 'LP-2026-005', shipperReference: 'SHP-1048', vendorName: 'Steel Works LTD', vendorAvatar: '', bundles: 8, loads: 2, weight: '37,700 IBS', status: 'Planning', date: '04 Jan 2025'),
-      LoadPlanItemModel(loadPlanId: 'LP-2026-006', shipperReference: 'SHP-1049', vendorName: 'Metro Steel', vendorAvatar: '', bundles: 6, loads: 3, weight: '21,400 IBS', status: 'Ready', date: '09 Dec 2024'),
-      LoadPlanItemModel(loadPlanId: 'LP-2026-007', shipperReference: 'SHP-1050', vendorName: 'ABC Steel', vendorAvatar: '', bundles: 3, loads: 3, weight: '18,500 IBS', status: 'Completed', date: '02 Dec 2024'),
-      LoadPlanItemModel(loadPlanId: 'LP-2026-008', shipperReference: 'SHP-1051', vendorName: 'Steel Works LTD', vendorAvatar: '', bundles: 4, loads: 3, weight: '37,700 IBS', status: 'Planning', date: '15 Nov 2024'),
-      LoadPlanItemModel(loadPlanId: 'LP-2026-009', shipperReference: 'SHP-1052', vendorName: 'Metro Steel', vendorAvatar: '', bundles: 2, loads: 2, weight: '21,400 IBS', status: 'Ready', date: '30 Nov 2024'),
-      LoadPlanItemModel(loadPlanId: 'LP-2026-010', shipperReference: 'SHP-1053', vendorName: 'ABC Steel', vendorAvatar: '', bundles: 4, loads: 3, weight: '18,500 IBS', status: 'Completed', date: '12 Oct 2024'),
-    ]);
+  Future<void> loadProjectLoadPlans(String leadId) async {
+    isLoading.value = true;
+    errorMessage.value = '';
+    try {
+      final data = await repository.fetchProjectPlanning(leadId);
+      final bundlePlan = _map(data['bundlePlan']);
+      final packingPlan = _map(data['packingListPlan']);
+      final candidates =
+          data['loadPlans'] ??
+          data['plans'] ??
+          packingPlan['trucks'] ??
+          data['trucks'];
+      final rows = candidates is List ? candidates : const [];
+      loadPlansList.assignAll(
+        rows.whereType<Map>().map((raw) {
+          final item = Map<String, dynamic>.from(raw);
+          final vendor = _map(item['vendor'] ?? bundlePlan['vendor']);
+          final bundles = item['bundles'] is List
+              ? item['bundles'] as List
+              : const [];
+          return LoadPlanItemModel(
+            loadPlanId:
+                (item['loadPlanId'] ?? item['_id'] ?? item['truckId'] ?? 'N/A')
+                    .toString(),
+            shipperReference:
+                (item['shipperReference'] ??
+                        item['reference'] ??
+                        bundlePlan['reference'] ??
+                        'N/A')
+                    .toString(),
+            vendorName: (item['vendorName'] ?? vendor['name'] ?? 'Vendor')
+                .toString(),
+            vendorAvatar: (vendor['photo'] ?? vendor['logo'] ?? '').toString(),
+            bundles: _int(
+              item['bundleCount'] ??
+                  (bundles.isNotEmpty ? bundles.length : null),
+            ),
+            loads: _int(item['loadCount'] ?? item['loads'] ?? 1),
+            weight: _weight(item['totalWeight'] ?? item['weight']),
+            status: _status(
+              item['status'] ?? packingPlan['status'] ?? bundlePlan['status'],
+            ),
+            date: _date(item['updatedAt'] ?? item['createdAt']),
+          );
+        }),
+      );
+    } catch (e) {
+      errorMessage.value = e.toString();
+      loadPlansList.clear();
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   void openProjectLoadPlanning(ProjectLoadPlanningSummaryModel item) {
-    selectedProjectName.value = item.projectName;
-    Get.toNamed(AppRoutes.projectLoadPlanning);
+    Get.toNamed(
+      AppRoutes.projectLoadPlanning,
+      parameters: {'id': item.id, 'name': item.projectName},
+    );
   }
 
-  void selectProjectFilter(String project) {
-    selectedProjectFilter.value = project;
+  Map<String, dynamic> _map(dynamic value) =>
+      value is Map ? Map<String, dynamic>.from(value) : {};
+  int _int(dynamic value) =>
+      value is num ? value.toInt() : int.tryParse('$value') ?? 0;
+  String _weight(dynamic value) =>
+      value == null ? '0 lbs' : '${value.toString()} lbs';
+  String _status(dynamic value) {
+    final text = (value ?? 'Planning').toString().replaceAll('_', ' ');
+    return text
+        .split(' ')
+        .map(
+          (word) => word.isEmpty
+              ? word
+              : '${word[0].toUpperCase()}${word.substring(1).toLowerCase()}',
+        )
+        .join(' ');
   }
 
+  String _date(dynamic value) {
+    final date = DateTime.tryParse((value ?? '').toString())?.toLocal();
+    if (date == null) return 'N/A';
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    return '${date.day.toString().padLeft(2, '0')} ${months[date.month - 1]} ${date.year}';
+  }
+
+  void selectProjectFilter(String project) =>
+      selectedProjectFilter.value = project;
   void toggleSelectAllProjects(bool? val) {
-    final value = val ?? false;
-    for (var item in projectsList) {
-      item.isSelected = value;
+    for (final item in projectsList) {
+      item.isSelected = val ?? false;
     }
     projectsList.refresh();
   }
@@ -73,9 +189,8 @@ class LoadPlanningController extends GetxController {
   }
 
   void toggleSelectAllLoadPlans(bool? val) {
-    final value = val ?? false;
-    for (var item in loadPlansList) {
-      item.isSelected = value;
+    for (final item in loadPlansList) {
+      item.isSelected = val ?? false;
     }
     loadPlansList.refresh();
   }

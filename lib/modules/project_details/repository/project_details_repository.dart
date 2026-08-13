@@ -58,6 +58,35 @@ class ProjectDetailsRepository {
     return null;
   }
 
+  Future<void> updateLifecycle({
+    required String leadId,
+    required String lifecycleStatus,
+    String? note,
+  }) async {
+    final response = await apiClient.put(
+      ApiEndpoints.plantProjectLifecycle(leadId),
+      data: {
+        'lifecycleStatus': lifecycleStatus,
+        if (note != null && note.trim().isNotEmpty) 'note': note.trim(),
+      },
+    );
+    if (response.data == null || response.data['success'] != true) {
+      throw Exception(
+        response.data?['message'] ?? 'Unable to update lifecycle.',
+      );
+    }
+  }
+
+  Future<void> addNote({required String leadId, required String note}) async {
+    final response = await apiClient.post(
+      ApiEndpoints.plantProjectNotes(leadId),
+      data: {'note': note.trim()},
+    );
+    if (response.data == null || response.data['success'] != true) {
+      throw Exception(response.data?['message'] ?? 'Unable to add note.');
+    }
+  }
+
   List<dynamic>? _extractList(dynamic data, List<String> wrapperKeys) {
     if (data is List) return data;
     if (data is Map) {

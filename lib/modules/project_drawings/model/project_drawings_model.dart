@@ -8,6 +8,7 @@ class DrawingItemModel {
   final String location;
   final String date;
   final String pebCode;
+  final String fileUrl;
 
   DrawingItemModel({
     required this.id,
@@ -19,5 +20,6 @@ class DrawingItemModel {
     this.location = 'Pune, Maharashtra',
     this.date = '25-April-2025',
     this.pebCode = 'PEB-1021',
+    this.fileUrl = '',
   });
 }

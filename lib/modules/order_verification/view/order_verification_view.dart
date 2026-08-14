@@ -26,7 +26,10 @@ class OrderVerificationView extends GetView<OrderVerificationController> {
 
                 return SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 16,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -54,11 +57,20 @@ class OrderVerificationView extends GetView<OrderVerificationController> {
         ElevatedButton.icon(
           onPressed: () => Get.back(),
           icon: const Icon(Icons.arrow_back, size: 16, color: Colors.white),
-          label: const Text('Back', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white)),
+          label: const Text(
+            'Back',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFF2563EB),
             elevation: 0,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           ),
         ),
@@ -68,7 +80,11 @@ class OrderVerificationView extends GetView<OrderVerificationController> {
           children: const [
             Text(
               'Order Verification',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
             ),
             SizedBox(height: 2),
             Text(
@@ -126,12 +142,18 @@ class OrderVerificationView extends GetView<OrderVerificationController> {
             icon: const Icon(Icons.balance, size: 18, color: Colors.white),
             label: const Text(
               'Compare Files',
-              style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
             ),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF7C3AED),
               elevation: 0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
               padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
             ),
           ),
@@ -152,7 +174,10 @@ class OrderVerificationView extends GetView<OrderVerificationController> {
       decoration: BoxDecoration(
         color: const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFF93C5FD), style: BorderStyle.solid),
+        border: Border.all(
+          color: const Color(0xFF93C5FD),
+          style: BorderStyle.solid,
+        ),
       ),
       child: Column(
         children: [
@@ -162,12 +187,20 @@ class OrderVerificationView extends GetView<OrderVerificationController> {
               color: const Color(0xFF2563EB),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: const Icon(Icons.cloud_upload_outlined, color: Colors.white, size: 24),
+            child: const Icon(
+              Icons.cloud_upload_outlined,
+              color: Colors.white,
+              size: 24,
+            ),
           ),
           const SizedBox(height: 12),
           Text(
             title,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+            ),
           ),
           const SizedBox(height: 16),
           // Attached File Box
@@ -181,14 +214,21 @@ class OrderVerificationView extends GetView<OrderVerificationController> {
             child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: badgeColor,
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
                     fileType,
-                    style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white),
+                    style: const TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -198,18 +238,29 @@ class OrderVerificationView extends GetView<OrderVerificationController> {
                     children: [
                       Text(
                         fileName,
-                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 2),
                       Text(
                         fileSize,
-                        style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
+                        style: const TextStyle(
+                          fontSize: 10,
+                          color: AppColors.textSecondary,
+                        ),
                       ),
                     ],
                   ),
                 ),
-                const Icon(Icons.cancel_outlined, size: 18, color: AppColors.textHint),
+                const Icon(
+                  Icons.cancel_outlined,
+                  size: 18,
+                  color: AppColors.textHint,
+                ),
               ],
             ),
           ),

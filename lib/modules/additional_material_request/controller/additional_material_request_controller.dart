@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../app/widgets/common_snackbar.dart';
 import '../model/additional_material_request_model.dart';
 
 class AdditionalMaterialRequestController extends GetxController {
@@ -79,25 +79,16 @@ class AdditionalMaterialRequestController extends GetxController {
     inventoryList[index].isApproved = !inventoryList[index].isApproved;
     inventoryList.refresh();
 
-    Get.snackbar(
-      inventoryList[index].isApproved ? 'Approved' : 'Status Reset',
-      '${inventoryList[index].material.replaceAll('\n', ' ')} ${inventoryList[index].isApproved ? 'has been approved' : 'status changed'}.',
-      backgroundColor: inventoryList[index].isApproved ? const Color(0xFF2563EB) : Colors.grey[800],
-      colorText: Colors.white,
-      snackPosition: SnackPosition.BOTTOM,
-      duration: const Duration(seconds: 2),
-      margin: const EdgeInsets.all(16),
+    CommonSnackbar.showSuccess(
+      title: inventoryList[index].isApproved ? 'Approved' : 'Status Reset',
+      message: '${inventoryList[index].material.replaceAll('\n', ' ')} ${inventoryList[index].isApproved ? 'has been approved' : 'status changed'}.',
     );
   }
 
   void exportPdf() {
-    Get.snackbar(
-      'Export PDF',
-      'Material inventory list PDF downloaded successfully.',
-      backgroundColor: const Color(0xFF2563EB),
-      colorText: Colors.white,
-      snackPosition: SnackPosition.BOTTOM,
-      margin: const EdgeInsets.all(16),
+    CommonSnackbar.showSuccess(
+      title: 'Export PDF',
+      message: 'Material inventory list PDF downloaded successfully.',
     );
   }
 }

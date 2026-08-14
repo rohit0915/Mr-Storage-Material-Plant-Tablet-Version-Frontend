@@ -30,16 +30,24 @@ class _AddEditPartCostDialogState extends State<AddEditPartCostDialog> {
   void initState() {
     super.initState();
     final item = widget.itemToEdit;
-    _partNameController = TextEditingController(text: item?.partName ?? "'30_VRR48'");
-    _partColorController = TextEditingController(text: item?.partColor ?? "'-'");
+    _partNameController = TextEditingController(
+      text: item?.partName ?? "'30_VRR48'",
+    );
+    _partColorController = TextEditingController(
+      text: item?.partColor ?? "'-'",
+    );
     _costUnitController = TextEditingController(text: item?.costUnit ?? "'FT'");
     _mbsCostController = TextEditingController(
       text: item?.mbsCost != null ? item!.mbsCost.toString() : '2.9',
     );
     _marketCostController = TextEditingController(
-      text: item?.currentMarketCost != null ? item!.currentMarketCost.toString() : '-',
+      text: item?.currentMarketCost != null
+          ? item!.currentMarketCost.toString()
+          : '-',
     );
-    _descriptionController = TextEditingController(text: item?.description ?? "'VRR+ Insul R10'");
+    _descriptionController = TextEditingController(
+      text: item?.description ?? "'VRR+ Insul R10'",
+    );
   }
 
   @override
@@ -144,9 +152,14 @@ class _AddEditPartCostDialogState extends State<AddEditPartCostDialog> {
                   OutlinedButton(
                     onPressed: () => Navigator.of(context).pop(),
                     style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 12,
+                      ),
                       side: const BorderSide(color: Color(0xFFCBD5E1)),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(6),
+                      ),
                     ),
                     child: const Text(
                       'Cancel',
@@ -161,9 +174,14 @@ class _AddEditPartCostDialogState extends State<AddEditPartCostDialog> {
                     onPressed: _handleSave,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF6366F1),
-                      padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 28,
+                        vertical: 12,
+                      ),
                       elevation: 0,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(6),
+                      ),
                     ),
                     child: const Text(
                       'Save',
@@ -219,7 +237,9 @@ class _AddEditPartCostDialogState extends State<AddEditPartCostDialog> {
     double? market = double.tryParse(_marketCostController.text);
 
     final item = ItemCostModel(
-      id: widget.itemToEdit?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
+      id:
+          widget.itemToEdit?.id ??
+          DateTime.now().millisecondsSinceEpoch.toString(),
       partName: _partNameController.text.trim(),
       partColor: _partColorController.text.trim(),
       costUnit: _costUnitController.text.trim(),

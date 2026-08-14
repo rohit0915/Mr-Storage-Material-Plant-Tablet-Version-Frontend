@@ -15,6 +15,7 @@ class FreightLoadSummaryStatModel {
 }
 
 class FreightLoadItemModel {
+  final String id;
   final String requestId;
   final String requestedDate;
   final String project;
@@ -28,6 +29,7 @@ class FreightLoadItemModel {
   bool isSelected;
 
   FreightLoadItemModel({
+    this.id = '',
     required this.requestId,
     required this.requestedDate,
     required this.project,
@@ -43,6 +45,7 @@ class FreightLoadItemModel {
 }
 
 class CarrierBidModel {
+  final String id;
   final String carrierName;
   final double rating;
   final String bidAmount;
@@ -50,6 +53,7 @@ class CarrierBidModel {
   final String deliveryDays;
 
   CarrierBidModel({
+    this.id = '',
     required this.carrierName,
     required this.rating,
     required this.bidAmount,

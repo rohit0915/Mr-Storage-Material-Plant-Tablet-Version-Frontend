@@ -14,8 +14,12 @@ class ApiClient {
     _dio = Dio(
       BaseOptions(
         baseUrl: AppConstants.baseUrl,
-        connectTimeout: const Duration(milliseconds: AppConstants.connectionTimeout),
-        receiveTimeout: const Duration(milliseconds: AppConstants.receiveTimeout),
+        connectTimeout: const Duration(
+          milliseconds: AppConstants.connectionTimeout,
+        ),
+        receiveTimeout: const Duration(
+          milliseconds: AppConstants.receiveTimeout,
+        ),
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -24,15 +28,17 @@ class ApiClient {
     );
 
     // Logging Interceptor
-    _dio.interceptors.add(LogInterceptor(
-      request: true,
-      requestHeader: true,
-      requestBody: true,
-      responseHeader: true,
-      responseBody: true,
-      error: true,
-      logPrint: (obj) => AppLogger.debug(obj.toString()),
-    ));
+    _dio.interceptors.add(
+      LogInterceptor(
+        request: true,
+        requestHeader: true,
+        requestBody: true,
+        responseHeader: true,
+        responseBody: true,
+        error: true,
+        logPrint: (obj) => AppLogger.debug(obj.toString()),
+      ),
+    );
 
     // Auth & Refresh Token Interceptor
     _dio.interceptors.add(
@@ -51,8 +57,11 @@ class ApiClient {
 
           if (error.response?.statusCode == 401) {
             // Avoid infinite retry loops on auth endpoints
-            if (requestPath.contains(ApiEndpoints.refreshToken) || requestPath.contains(ApiEndpoints.login)) {
-              AppLogger.error('Auth endpoint returned 401. Clearing session...');
+            if (requestPath.contains(ApiEndpoints.refreshToken) ||
+                requestPath.contains(ApiEndpoints.login)) {
+              AppLogger.error(
+                'Auth endpoint returned 401. Clearing session...',
+              );
               await _logoutAndRedirect();
               return handler.next(error);
             }
@@ -62,13 +71,19 @@ class ApiClient {
               final savedRefreshToken = prefService.getRefreshToken();
 
               if (savedRefreshToken != null && savedRefreshToken.isNotEmpty) {
-                AppLogger.debug('Token expired (401). Attempting automatic refresh using refreshToken...');
+                AppLogger.debug(
+                  'Token expired (401). Attempting automatic refresh using refreshToken...',
+                );
                 try {
                   final refreshDio = Dio(
                     BaseOptions(
                       baseUrl: AppConstants.baseUrl,
-                      connectTimeout: const Duration(milliseconds: AppConstants.connectionTimeout),
-                      receiveTimeout: const Duration(milliseconds: AppConstants.receiveTimeout),
+                      connectTimeout: const Duration(
+                        milliseconds: AppConstants.connectionTimeout,
+                      ),
+                      receiveTimeout: const Duration(
+                        milliseconds: AppConstants.receiveTimeout,
+                      ),
                       headers: {'Content-Type': 'application/json'},
                     ),
                   );
@@ -78,14 +93,22 @@ class ApiClient {
                     data: {'refreshToken': savedRefreshToken},
                   );
 
-                  if (refreshResponse.data != null && refreshResponse.data['success'] == true) {
-                    final newAccessToken = (refreshResponse.data['data']?['accessToken'] ?? '').toString();
+                  if (refreshResponse.data != null &&
+                      refreshResponse.data['success'] == true) {
+                    final newAccessToken =
+                        (refreshResponse.data['data']?['accessToken'] ?? '')
+                            .toString();
                     if (newAccessToken.isNotEmpty) {
-                      AppLogger.debug('Token refreshed successfully! Updating session and retrying request...');
+                      AppLogger.debug(
+                        'Token refreshed successfully! Updating session and retrying request...',
+                      );
                       await prefService.setToken(newAccessToken);
 
-                      final newRefreshToken = refreshResponse.data['data']?['refreshToken']?.toString();
-                      if (newRefreshToken != null && newRefreshToken.isNotEmpty) {
+                      final newRefreshToken = refreshResponse
+                          .data['data']?['refreshToken']
+                          ?.toString();
+                      if (newRefreshToken != null &&
+                          newRefreshToken.isNotEmpty) {
                         await prefService.setRefreshToken(newRefreshToken);
                       }
 
@@ -102,7 +125,9 @@ class ApiClient {
               }
             }
 
-            AppLogger.error('Unauthorized request (401) and refresh token failed. Clearing session...');
+            AppLogger.error(
+              'Unauthorized request (401) and refresh token failed. Clearing session...',
+            );
             await _logoutAndRedirect();
           }
 
@@ -127,7 +152,11 @@ class ApiClient {
     Options? options,
   }) async {
     try {
-      return await _dio.get(url, queryParameters: queryParameters, options: options);
+      return await _dio.get(
+        url,
+        queryParameters: queryParameters,
+        options: options,
+      );
     } on DioException catch (e) {
       throw AppException.fromDioError(e);
     } catch (e) {
@@ -142,7 +171,12 @@ class ApiClient {
     Options? options,
   }) async {
     try {
-      return await _dio.post(url, data: data, queryParameters: queryParameters, options: options);
+      return await _dio.post(
+        url,
+        data: data,
+        queryParameters: queryParameters,
+        options: options,
+      );
     } on DioException catch (e) {
       throw AppException.fromDioError(e);
     } catch (e) {
@@ -179,7 +213,55 @@ class ApiClient {
     Options? options,
   }) async {
     try {
-      return await _dio.put(url, data: data, queryParameters: queryParameters, options: options);
+      return await _dio.put(
+        url,
+        data: data,
+        queryParameters: queryParameters,
+        options: options,
+      );
+    } on DioException catch (e) {
+      throw AppException.fromDioError(e);
+    } catch (e) {
+      throw UnknownException(e.toString());
+    }
+  }
+
+  Future<Response> putExternal(
+    String url, {
+    required dynamic data,
+    required String contentType,
+    void Function(int, int)? onSendProgress,
+  }) async {
+    try {
+      return await Dio().put(
+        url,
+        data: data,
+        options: Options(
+          contentType: contentType,
+          headers: {'Content-Type': contentType},
+        ),
+        onSendProgress: onSendProgress,
+      );
+    } on DioException catch (e) {
+      throw AppException.fromDioError(e);
+    } catch (e) {
+      throw UnknownException(e.toString());
+    }
+  }
+
+  Future<Response> patch(
+    String url, {
+    dynamic data,
+    Map<String, dynamic>? queryParameters,
+    Options? options,
+  }) async {
+    try {
+      return await _dio.patch(
+        url,
+        data: data,
+        queryParameters: queryParameters,
+        options: options,
+      );
     } on DioException catch (e) {
       throw AppException.fromDioError(e);
     } catch (e) {
@@ -194,7 +276,12 @@ class ApiClient {
     Options? options,
   }) async {
     try {
-      return await _dio.delete(url, data: data, queryParameters: queryParameters, options: options);
+      return await _dio.delete(
+        url,
+        data: data,
+        queryParameters: queryParameters,
+        options: options,
+      );
     } on DioException catch (e) {
       throw AppException.fromDioError(e);
     } catch (e) {

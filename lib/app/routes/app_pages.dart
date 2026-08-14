@@ -53,6 +53,8 @@ import '../../modules/awarded_loads/binding/awarded_loads_binding.dart';
 import '../../modules/awarded_loads/view/awarded_loads_view.dart';
 import '../../modules/delivery_calendar/binding/delivery_calendar_binding.dart';
 import '../../modules/delivery_calendar/view/delivery_calendar_view.dart';
+import '../../modules/all_deliveries/binding/all_deliveries_binding.dart';
+import '../../modules/all_deliveries/view/all_deliveries_view.dart';
 import '../../modules/notification_history/binding/notification_history_binding.dart';
 import '../../modules/notification_history/view/notification_history_view.dart';
 import '../../modules/item_cost_list/binding/item_cost_binding.dart';
@@ -228,6 +230,11 @@ class AppPages {
       name: AppRoutes.deliveryCalendar,
       page: () => const DeliveryCalendarView(),
       binding: DeliveryCalendarBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.allDeliveries,
+      page: () => const AllDeliveriesView(),
+      binding: AllDeliveriesBinding(),
     ),
     GetPage(
       name: AppRoutes.notificationHistory,

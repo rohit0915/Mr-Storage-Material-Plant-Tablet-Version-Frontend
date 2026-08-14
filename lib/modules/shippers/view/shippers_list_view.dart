@@ -25,7 +25,10 @@ class ShippersListView extends GetView<ShippersController> {
 
                 return SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 16,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -94,7 +97,11 @@ class ShippersListView extends GetView<ShippersController> {
                 decoration: const InputDecoration(
                   hintText: 'Search by vendor, contact, email, or material...',
                   hintStyle: TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
-                  prefixIcon: Icon(Icons.search, size: 18, color: Color(0xFF94A3B8)),
+                  prefixIcon: Icon(
+                    Icons.search,
+                    size: 18,
+                    color: Color(0xFF94A3B8),
+                  ),
                   border: InputBorder.none,
                   contentPadding: EdgeInsets.symmetric(vertical: 11),
                 ),
@@ -104,17 +111,27 @@ class ShippersListView extends GetView<ShippersController> {
           const SizedBox(width: 16),
 
           // Filter button
-          ElevatedButton(
-            onPressed: () {},
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF94A3B8),
-              elevation: 0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          PopupMenuButton<String>(
+            onSelected: controller.setStatusFilter,
+            itemBuilder: (_) => const [
+              PopupMenuItem(value: '', child: Text('All statuses')),
+              PopupMenuItem(value: 'active', child: Text('Active')),
+              PopupMenuItem(value: 'inactive', child: Text('Inactive')),
+            ],
+            child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            ),
-            child: const Text(
-              'Filter',
-              style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
+              decoration: BoxDecoration(
+                color: const Color(0xFF94A3B8),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Text(
+                'Filter',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
             ),
           ),
           const SizedBox(width: 12),
@@ -125,12 +142,18 @@ class ShippersListView extends GetView<ShippersController> {
             icon: const Icon(Icons.add, size: 18, color: Colors.white),
             label: const Text(
               'Add Shipper',
-              style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
             ),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF2563EB),
               elevation: 0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             ),
           ),
@@ -171,13 +194,17 @@ class ShippersListView extends GetView<ShippersController> {
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: controller.filteredShippers.length,
-              separatorBuilder: (ctx, idx) => const Divider(height: 1, color: Color(0xFFF1F5F9)),
+              separatorBuilder: (ctx, idx) =>
+                  const Divider(height: 1, color: Color(0xFFF1F5F9)),
               itemBuilder: (ctx, index) {
                 final shipper = controller.filteredShippers[index];
                 return InkWell(
                   onTap: () => controller.openVendorDetails(shipper),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 16,
+                    ),
                     child: Row(
                       children: [
                         // Shippers column (Icon + Name + Code)
@@ -192,7 +219,11 @@ class ShippersListView extends GetView<ShippersController> {
                                   color: Color(0xFFDBEAFE),
                                   shape: BoxShape.circle,
                                 ),
-                                child: const Icon(Icons.storefront_outlined, color: Color(0xFF2563EB), size: 20),
+                                child: const Icon(
+                                  Icons.storefront_outlined,
+                                  color: Color(0xFF2563EB),
+                                  size: 20,
+                                ),
                               ),
                               const SizedBox(width: 12),
                               Expanded(
@@ -210,7 +241,10 @@ class ShippersListView extends GetView<ShippersController> {
                                     const SizedBox(height: 2),
                                     Text(
                                       shipper.vendorCode,
-                                      style: const TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
+                                      style: const TextStyle(
+                                        fontSize: 11,
+                                        color: Color(0xFF94A3B8),
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -227,12 +261,19 @@ class ShippersListView extends GetView<ShippersController> {
                           flex: 3,
                           child: Row(
                             children: [
-                              const Icon(Icons.email_outlined, size: 14, color: Color(0xFF2563EB)),
+                              const Icon(
+                                Icons.email_outlined,
+                                size: 14,
+                                color: Color(0xFF2563EB),
+                              ),
                               const SizedBox(width: 6),
                               Expanded(
                                 child: Text(
                                   shipper.email,
-                                  style: const TextStyle(fontSize: 12, color: Color(0xFF2563EB)),
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: Color(0xFF2563EB),
+                                  ),
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
@@ -245,11 +286,18 @@ class ShippersListView extends GetView<ShippersController> {
                           flex: 2,
                           child: Row(
                             children: [
-                              const Icon(Icons.phone_outlined, size: 14, color: Color(0xFF2563EB)),
+                              const Icon(
+                                Icons.phone_outlined,
+                                size: 14,
+                                color: Color(0xFF2563EB),
+                              ),
                               const SizedBox(width: 6),
                               Text(
                                 shipper.phone,
-                                style: const TextStyle(fontSize: 12, color: Color(0xFF2563EB)),
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Color(0xFF2563EB),
+                                ),
                               ),
                             ],
                           ),
@@ -263,7 +311,10 @@ class ShippersListView extends GetView<ShippersController> {
                             runSpacing: 4,
                             children: shipper.materialTypes.map((type) {
                               return Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 4,
+                                ),
                                 decoration: BoxDecoration(
                                   color: const Color(0xFFF3E8FF),
                                   borderRadius: BorderRadius.circular(6),
@@ -292,18 +343,29 @@ class ShippersListView extends GetView<ShippersController> {
                                   children: [
                                     TextSpan(
                                       text: '${shipper.activeOrders} ',
-                                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF1E293B),
+                                      ),
                                     ),
                                     const TextSpan(
                                       text: 'active',
-                                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF1E293B),
+                                      ),
                                     ),
                                   ],
                                 ),
                               ),
                               Text(
                                 '${shipper.totalOrders} total',
-                                style: const TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  color: Color(0xFF94A3B8),
+                                ),
                               ),
                             ],
                           ),

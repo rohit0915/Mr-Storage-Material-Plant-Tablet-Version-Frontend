@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../app/widgets/common_loader.dart';
+import '../../../app/widgets/common_pagination.dart';
 import '../../home/widgets/app_drawer.dart';
 import '../../home/widgets/dashboard_app_bar.dart';
 import '../controller/savings_controller.dart';
@@ -372,63 +373,12 @@ class SavingsView extends GetView<SavingsController> {
           const Divider(height: 1, color: Color(0xFFE2E8F0)),
 
           // Footer Pagination
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-            child: Row(
-              children: [
-                const Text(
-                  'Row Per Page  ',
-                  style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
-                ),
-                Container(
-                  height: 32,
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(color: const Color(0xFFCBD5E1)),
-                  ),
-                  child: DropdownButtonHideUnderline(
-                    child: Obx(
-                      () => DropdownButton<int>(
-                        value: controller.rowsPerPage.value,
-                        icon: const Icon(Icons.keyboard_arrow_down, size: 16, color: Color(0xFF64748B)),
-                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
-                        onChanged: (val) {
-                          if (val != null) controller.rowsPerPage.value = val;
-                        },
-                        items: [10, 20, 50].map((e) => DropdownMenuItem(value: e, child: Text('$e'))).toList(),
-                      ),
-                    ),
-                  ),
-                ),
-                const Text(
-                  '  Entries',
-                  style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
-                ),
-
-                const Spacer(),
-
-                // Page numbers pagination
-                Row(
-                  children: [
-                    _buildPageArrow(Icons.chevron_left, onPressed: () {}),
-                    const SizedBox(width: 6),
-                    _buildPageNum(1),
-                    _buildPageNum(2),
-                    _buildPageNum(3),
-                    _buildPageNum(4, isSelected: true),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 4),
-                      child: Text('...', style: TextStyle(fontSize: 12, color: Color(0xFF94A3B8))),
-                    ),
-                    _buildPageNum(15),
-                    const SizedBox(width: 6),
-                    _buildPageArrow(Icons.chevron_right, onPressed: () {}),
-                  ],
-                ),
-              ],
-            ),
+          CommonPaginationFooter(
+            currentPage: controller.currentPage.value,
+            totalPages: controller.totalPages.value,
+            rowsPerPage: controller.rowsPerPage.value,
+            onPageChanged: (page) => controller.currentPage.value = page,
+            onRowsPerPageChanged: (rows) => controller.rowsPerPage.value = rows,
           ),
         ],
       ),
@@ -437,44 +387,6 @@ class SavingsView extends GetView<SavingsController> {
 
   String _formatAmount(double amt) {
     return amt.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},');
-  }
-
-  Widget _buildPageNum(int num, {bool isSelected = false}) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 3),
-      width: 28,
-      height: 28,
-      decoration: BoxDecoration(
-        color: isSelected ? const Color(0xFFF97316) : Colors.white,
-        shape: BoxShape.circle,
-        border: isSelected ? null : Border.all(color: const Color(0xFFE2E8F0)),
-      ),
-      alignment: Alignment.center,
-      child: Text(
-        '$num',
-        style: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.bold,
-          color: isSelected ? Colors.white : const Color(0xFF64748B),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPageArrow(IconData icon, {required VoidCallback onPressed}) {
-    return Container(
-      width: 28,
-      height: 28,
-      decoration: const BoxDecoration(
-        color: Colors.transparent,
-      ),
-      child: IconButton(
-        icon: Icon(icon, size: 18, color: const Color(0xFF94A3B8)),
-        onPressed: onPressed,
-        padding: EdgeInsets.zero,
-        constraints: const BoxConstraints(),
-      ),
-    );
   }
 
   Widget _buildTh(String title, {int flex = 1, bool sortable = false}) {

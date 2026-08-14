@@ -6,6 +6,7 @@ import '../../../app/network/api_endpoints.dart';
 import '../../../app/network/exceptions.dart';
 import '../../../app/routes/app_routes.dart';
 import '../../../app/services/shared_pref_service.dart';
+import '../../../app/widgets/common_snackbar.dart';
 
 class LoginController extends GetxController {
   final emailController = TextEditingController();
@@ -23,8 +24,10 @@ class LoginController extends GetxController {
   }
 
   void _validateForm() {
-    final emailValid = emailController.text.trim().isNotEmpty && emailController.text.contains('@');
-    final passwordValid = passwordController.text.trim().isNotEmpty && passwordController.text.trim().length >= 5;
+    final emailValid = emailController.text.trim().isNotEmpty &&
+        emailController.text.contains('@');
+    final passwordValid = passwordController.text.trim().isNotEmpty &&
+        passwordController.text.trim().length >= 5;
     isFormValid.value = emailValid && passwordValid;
   }
 
@@ -67,40 +70,28 @@ class LoginController extends GetxController {
           }
         }
 
-        Get.snackbar(
-          'Success',
-          responseData['message'] ?? 'Logged in successfully!',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: const Color(0xFF22C55E),
-          colorText: Colors.white,
+        CommonSnackbar.showSuccess(
+          title: 'Success',
+          message: responseData['message'] ?? 'Logged in successfully!',
         );
 
         Get.offAllNamed(AppRoutes.home);
       } else {
         final msg = responseData?['message'] ?? 'Login failed';
-        Get.snackbar(
-          'Login Error',
-          msg.toString(),
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: const Color(0xFFEF4444),
-          colorText: Colors.white,
+        CommonSnackbar.showError(
+          title: 'Login Error',
+          message: msg.toString(),
         );
       }
     } on AppException catch (e) {
-      Get.snackbar(
-        'Login Error',
-        e.message,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: const Color(0xFFEF4444),
-        colorText: Colors.white,
+      CommonSnackbar.showError(
+        title: 'Login Error',
+        message: e.message,
       );
     } catch (e) {
-      Get.snackbar(
-        'Login Error',
-        e.toString(),
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: const Color(0xFFEF4444),
-        colorText: Colors.white,
+      CommonSnackbar.showError(
+        title: 'Login Error',
+        message: e.toString(),
       );
     } finally {
       isLoading.value = false;

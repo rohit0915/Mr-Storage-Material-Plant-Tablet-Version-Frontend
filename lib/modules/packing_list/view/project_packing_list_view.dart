@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../app/utils/app_colors.dart';
 import '../../../app/widgets/common_loader.dart';
+import '../../../app/widgets/common_pagination.dart';
 import '../../home/widgets/app_drawer.dart';
 import '../../home/widgets/dashboard_app_bar.dart';
 import '../controller/packing_list_controller.dart';
@@ -649,103 +650,10 @@ class ProjectPackingListView extends GetView<PackingListController> {
   }
 
   Widget _buildPaginationFooter() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.inputBorder),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              const Text(
-                'Showing',
-                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
-              ),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  border: Border.all(color: AppColors.inputBorder),
-                  borderRadius: const BorderRadius.all(Radius.circular(6)),
-                ),
-                child: Row(
-                  children: const [
-                    Text(
-                      '10',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    SizedBox(width: 4),
-                    Icon(Icons.keyboard_arrow_down, size: 14),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              const Text(
-                'Results',
-                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
-              ),
-            ],
-          ),
-          Row(
-            children: [
-              const Icon(
-                Icons.chevron_left,
-                size: 18,
-                color: AppColors.textSecondary,
-              ),
-              const SizedBox(width: 8),
-              _buildPageNumber('1', true),
-              _buildPageNumber('2', false),
-              _buildPageNumber('3', false),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 4),
-                child: Text(
-                  '...',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-              ),
-              _buildPageNumber('15', false),
-              const SizedBox(width: 8),
-              const Icon(
-                Icons.chevron_right,
-                size: 18,
-                color: AppColors.textSecondary,
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPageNumber(String page, bool isSelected) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 3),
-      width: 26,
-      height: 26,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: isSelected ? const Color(0xFF818CF8) : Colors.transparent,
-        shape: BoxShape.circle,
-      ),
-      child: Text(
-        page,
-        style: TextStyle(
-          fontSize: 11,
-          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-          color: isSelected ? Colors.white : AppColors.textSecondary,
-        ),
-      ),
+    return CommonPaginationFooter(
+      currentPage: 1,
+      totalPages: 15,
+      rowsPerPage: 10,
     );
   }
 }

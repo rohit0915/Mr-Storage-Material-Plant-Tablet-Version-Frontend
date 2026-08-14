@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../../../app/routes/app_routes.dart';
 import '../../../app/utils/app_colors.dart';
 import '../../../app/widgets/common_loader.dart';
+import '../../../app/widgets/common_pagination.dart';
 import '../../home/widgets/app_drawer.dart';
 import '../../home/widgets/dashboard_app_bar.dart';
 import '../controller/all_projects_controller.dart';
@@ -616,101 +617,13 @@ class AllProjectsView extends GetView<AllProjectsController> {
   Widget _buildPaginationBar() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20.0),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: AppColors.inputBorder),
-        ),
-        child: Row(
-          children: [
-            const Text(
-              'Row Per Page ',
-              style: TextStyle(
-                fontSize: 12,
-                color: AppColors.textSecondary,
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(color: AppColors.inputBorder),
-              ),
-              child: Row(
-                children: [
-                  Obx(() => Text(
-                        '${controller.rowsPerPage.value}',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
-                        ),
-                      )),
-                  const SizedBox(width: 4),
-                  const Icon(Icons.keyboard_arrow_down, size: 14, color: AppColors.textSecondary),
-                ],
-              ),
-            ),
-            const SizedBox(width: 6),
-            const Text(
-              'Entries',
-              style: TextStyle(
-                fontSize: 12,
-                color: AppColors.textSecondary,
-              ),
-            ),
-            const Spacer(),
-            // Pagination controls: < 1 2 3 4 ... 15 >
-            Row(
-              children: [
-                _buildPageButton(icon: Icons.chevron_left, isEnabled: true),
-                const SizedBox(width: 4),
-                _buildPageButton(text: '1'),
-                const SizedBox(width: 4),
-                _buildPageButton(text: '2'),
-                const SizedBox(width: 4),
-                _buildPageButton(text: '3'),
-                const SizedBox(width: 4),
-                _buildPageButton(text: '4', isActive: true),
-                const SizedBox(width: 4),
-                const Text('...', style: TextStyle(color: AppColors.textSecondary)),
-                const SizedBox(width: 4),
-                _buildPageButton(text: '15'),
-                const SizedBox(width: 4),
-                _buildPageButton(icon: Icons.chevron_right, isEnabled: true),
-              ],
-            ),
-          ],
-        ),
+      child: CommonPaginationFooter(
+        currentPage: controller.currentPage.value,
+        totalPages: controller.totalPages.value,
+        rowsPerPage: controller.rowsPerPage.value,
+        onPageChanged: (page) => controller.currentPage.value = page,
+        onRowsPerPageChanged: (rows) => controller.rowsPerPage.value = rows,
       ),
-    );
-  }
-
-  Widget _buildPageButton({String? text, IconData? icon, bool isActive = false, bool isEnabled = true}) {
-    return Container(
-      width: 28,
-      height: 28,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: isActive ? const Color(0xFFF97316) : Colors.transparent,
-        shape: BoxShape.circle,
-      ),
-      child: text != null
-          ? Text(
-              text,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
-                color: isActive ? Colors.white : AppColors.textSecondary,
-              ),
-            )
-          : Icon(
-              icon,
-              size: 16,
-              color: AppColors.textSecondary,
-            ),
     );
   }
 }

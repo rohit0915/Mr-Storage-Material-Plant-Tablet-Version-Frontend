@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:file_picker/file_picker.dart';
 import '../model/project_details_model.dart';
 import '../repository/project_details_repository.dart';
 
@@ -54,6 +55,16 @@ class ProjectDetailsController extends GetxController {
 
   final RxString selectedUploadedFile = ''.obs;
   final RxString uploadedFileSize = ''.obs;
+  final RxList<PlatformFile> selectedUploadFiles = <PlatformFile>[].obs;
+  final RxList<Map<String, dynamic>> buildings = <Map<String, dynamic>>[].obs;
+  final RxMap<String, Map<String, dynamic>> existingDrawings =
+      <String, Map<String, dynamic>>{}.obs;
+  final RxMap<String, Map<String, dynamic>> existingBomFiles =
+      <String, Map<String, dynamic>>{}.obs;
+  final RxString selectedBuildingId = ''.obs;
+  final RxBool isUploading = false.obs;
+  final RxDouble uploadProgress = 0.0.obs;
+  final RxString uploadError = ''.obs;
 
   String projectId = '';
 
@@ -191,20 +202,28 @@ class ProjectDetailsController extends GetxController {
       final actList = detailData['activityLog'] ?? leadObj['activityLog'];
       if (actList is List && actList.isNotEmpty) {
         final mappedActivities = actList.map((a) {
-          final rawMsg = (a['displayMessage'] ?? a['message'] ?? a['title'] ?? '').toString();
+          final rawMsg =
+              (a['displayMessage'] ?? a['message'] ?? a['title'] ?? '')
+                  .toString();
           final rawAction = (a['action'] ?? '').toString();
-          final titleStr = rawMsg.isNotEmpty ? rawMsg : _formatActionName(rawAction);
+          final titleStr = rawMsg.isNotEmpty
+              ? rawMsg
+              : _formatActionName(rawAction);
 
           String performer = '';
           if (a['performedBy'] != null) {
             if (a['performedBy'] is Map) {
-              performer = (a['performedBy']['name'] ?? a['performedBy']['email'] ?? '').toString();
+              performer =
+                  (a['performedBy']['name'] ?? a['performedBy']['email'] ?? '')
+                      .toString();
             } else if (a['performedBy'] is String) {
               performer = a['performedBy'].toString();
             }
           }
 
-          final subtitleStr = performer.isNotEmpty ? 'by $performer' : _formatActionName(rawAction);
+          final subtitleStr = performer.isNotEmpty
+              ? 'by $performer'
+              : _formatActionName(rawAction);
 
           return ActivityTimelineItemModel(
             title: titleStr,
@@ -223,10 +242,29 @@ class ProjectDetailsController extends GetxController {
         _withoutFailure(repository!.fetchLifecycle(projectId)),
         _withoutFailure(repository!.fetchInvoices(projectId)),
         _withoutFailure(repository!.fetchNotes(projectId)),
+        _withoutFailure(repository!.fetchBuildings(projectId)),
+        _withoutFailure(repository!.fetchExistingDrawings(projectId)),
+        _withoutFailure(repository!.fetchExistingBomFiles(projectId)),
       ]);
       final lifecycleData = optionalResults[0] as Map<String, dynamic>?;
       final invoicesData = optionalResults[1] as List<dynamic>?;
       final notesData = optionalResults[2] as List<dynamic>?;
+      final buildingData = optionalResults[3] as List<Map<String, dynamic>>?;
+      buildings.assignAll(buildingData ?? const []);
+      _mapExistingFiles(
+        optionalResults[4] as Map<String, dynamic>?,
+        target: existingDrawings,
+        keys: const ['drawings', 'files', 'versions'],
+      );
+      _mapExistingFiles(
+        optionalResults[5] as Map<String, dynamic>?,
+        target: existingBomFiles,
+        keys: const ['bomFiles', 'files', 'versions', 'bom'],
+      );
+      if (buildings.isNotEmpty && selectedBuildingId.value.isEmpty) {
+        selectedBuildingId.value =
+            (buildings.first['_id'] ?? buildings.first['id'] ?? '').toString();
+      }
 
       final historyList =
           detailData['lifecycleHistory'] ??
@@ -277,6 +315,220 @@ class ProjectDetailsController extends GetxController {
     } finally {
       isLoading.value = false;
     }
+  }
+
+  Future<void> pickUploadFiles({required bool isBom}) async {
+    uploadError.value = '';
+    final result = await FilePicker.pickFiles(
+      allowedExtensions: isBom
+          ? const ['out', 'csv', 'xlsx', 'xls', 'pdf', 'zip']
+          : const ['pdf', 'jpg', 'jpeg', 'png', 'svg', 'zip'],
+      type: FileType.custom,
+    );
+    if (result.isEmpty) return;
+    if (result.length > 5) {
+      uploadError.value = 'You can upload a maximum of 5 files.';
+      return;
+    }
+    selectedUploadFiles.assignAll(result);
+  }
+
+  void removeUploadFile(int index) {
+    if (index >= 0 && index < selectedUploadFiles.length) {
+      selectedUploadFiles.removeAt(index);
+    }
+  }
+
+  void resetUpload() {
+    selectedUploadFiles.clear();
+    uploadError.value = '';
+    uploadProgress.value = 0;
+  }
+
+  void selectBuildingForUpload(String buildingId) {
+    selectedBuildingId.value = buildingId;
+    selectedUploadFiles.clear();
+    uploadError.value = '';
+  }
+
+  Map<String, dynamic>? existingFileForBuilding(
+    String buildingId, {
+    required bool isBom,
+  }) => isBom ? existingBomFiles[buildingId] : existingDrawings[buildingId];
+
+  String buildingId(Map<String, dynamic> building) =>
+      _nestedId(building['_id'] ?? building['id'] ?? building['buildingId']);
+
+  String buildingName(Map<String, dynamic> building) =>
+      (building['name'] ?? building['buildingName'] ?? 'Building').toString();
+
+  Future<bool> uploadSelectedFiles({required bool isBom}) async {
+    if (repository == null || projectId.isEmpty) {
+      uploadError.value = 'Project id is missing.';
+      return false;
+    }
+    if (selectedBuildingId.value.isEmpty) {
+      uploadError.value = 'Please select a building.';
+      return false;
+    }
+    if (selectedUploadFiles.isEmpty) {
+      uploadError.value = 'Please select at least one file.';
+      return false;
+    }
+
+    isUploading.value = true;
+    uploadError.value = '';
+    uploadProgress.value = 0;
+    try {
+      final registeredFiles = <Map<String, dynamic>>[];
+      for (var i = 0; i < selectedUploadFiles.length; i++) {
+        final file = selectedUploadFiles[i];
+        final extension = _extension(file.name);
+        final contentType = _contentType(extension);
+        final presigned = await repository!.createPresignedUpload(
+          fileName: file.name,
+          fileType: contentType,
+          folder: isBom ? 'bom' : 'drawings',
+        );
+        final uploadUrl = (presigned['uploadUrl'] ?? '').toString();
+        final fileUrl = (presigned['fileUrl'] ?? '').toString();
+        if (uploadUrl.isEmpty || fileUrl.isEmpty) {
+          throw Exception('Upload URL was not returned for ${file.name}.');
+        }
+        await repository!.uploadToPresignedUrl(
+          uploadUrl: uploadUrl,
+          bytes: await file.readAsBytes(),
+          contentType: contentType,
+          onProgress: (sent, total) {
+            final fileProgress = total > 0 ? sent / total : 0.0;
+            uploadProgress.value =
+                (i + fileProgress) / selectedUploadFiles.length;
+          },
+        );
+        registeredFiles.add({
+          'buildingId': selectedBuildingId.value,
+          'fileUrl': fileUrl,
+          'fileName': file.name,
+          if (isBom) 'fileFormat': _bomFormat(extension),
+        });
+      }
+
+      if (isBom) {
+        await repository!.registerBomFiles(
+          leadId: projectId,
+          bomFiles: registeredFiles,
+        );
+      } else {
+        await repository!.registerDrawings(
+          leadId: projectId,
+          drawings: registeredFiles,
+        );
+      }
+      await _reloadExistingUploads();
+      uploadProgress.value = 1;
+      selectedUploadFiles.clear();
+      return true;
+    } catch (error) {
+      uploadError.value = error.toString().replaceFirst('Exception: ', '');
+      return false;
+    } finally {
+      isUploading.value = false;
+    }
+  }
+
+  String _contentType(String? extension) {
+    switch ((extension ?? '').toLowerCase()) {
+      case 'pdf':
+        return 'application/pdf';
+      case 'jpg':
+      case 'jpeg':
+        return 'image/jpeg';
+      case 'png':
+        return 'image/png';
+      case 'svg':
+        return 'image/svg+xml';
+      case 'zip':
+        return 'application/zip';
+      case 'csv':
+        return 'text/csv';
+      case 'xlsx':
+        return 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+      case 'xls':
+        return 'application/vnd.ms-excel';
+      case 'out':
+        return 'text/plain';
+      default:
+        return 'application/octet-stream';
+    }
+  }
+
+  String _bomFormat(String? extension) =>
+      (extension ?? '').toLowerCase() == 'out'
+      ? 'mbs_out'
+      : (extension ?? 'unknown').toLowerCase();
+
+  String _extension(String fileName) {
+    final dot = fileName.lastIndexOf('.');
+    return dot < 0 ? '' : fileName.substring(dot + 1).toLowerCase();
+  }
+
+  String _nestedId(dynamic value) {
+    if (value is Map) {
+      return (value['_id'] ?? value['id'] ?? '').toString();
+    }
+    return (value ?? '').toString();
+  }
+
+  Future<void> _reloadExistingUploads() async {
+    if (repository == null || projectId.isEmpty) return;
+    final results = await Future.wait([
+      _withoutFailure(repository!.fetchExistingDrawings(projectId)),
+      _withoutFailure(repository!.fetchExistingBomFiles(projectId)),
+    ]);
+    _mapExistingFiles(
+      results[0],
+      target: existingDrawings,
+      keys: const ['drawings', 'files', 'versions'],
+    );
+    _mapExistingFiles(
+      results[1],
+      target: existingBomFiles,
+      keys: const ['bomFiles', 'files', 'versions', 'bom'],
+    );
+  }
+
+  void _mapExistingFiles(
+    Map<String, dynamic>? data, {
+    required RxMap<String, Map<String, dynamic>> target,
+    required List<String> keys,
+  }) {
+    final mapped = <String, Map<String, dynamic>>{};
+    final rawBuildings = data?['buildings'];
+    if (rawBuildings is List) {
+      for (final raw in rawBuildings.whereType<Map>()) {
+        final building = Map<String, dynamic>.from(raw);
+        final id = buildingId(building);
+        if (id.isEmpty) continue;
+        Map<String, dynamic>? latest;
+        for (final key in keys) {
+          final value = building[key];
+          if (value is List && value.isNotEmpty && value.last is Map) {
+            latest = Map<String, dynamic>.from(value.last as Map);
+            break;
+          }
+          if (value is Map) {
+            latest = Map<String, dynamic>.from(value);
+            break;
+          }
+        }
+        if (latest == null &&
+            (building['fileName'] != null || building['fileUrl'] != null)) {
+          latest = building;
+        }
+        if (latest != null) mapped[id] = {...building, ...latest};
+      }
+    }
+    target.assignAll(mapped);
   }
 
   Map<String, dynamic> _asStringMap(dynamic value) {

@@ -1,13 +1,22 @@
 import 'package:get/get.dart';
+import '../../freight_carriers/repository/freight_carriers_repository.dart';
 import '../model/delivery_details_model.dart';
 import '../repository/delivery_details_repository.dart';
 
 class DeliveryDetailsController extends GetxController {
   final DeliveryDetailsRepository repository;
-  DeliveryDetailsController({required this.repository});
+  final FreightCarriersRepository carriersRepository;
+  DeliveryDetailsController({
+    required this.repository,
+    required this.carriersRepository,
+  });
   final RxBool isLoading = true.obs;
   final RxBool hasNoDeliveries = false.obs;
   final RxString errorMessage = ''.obs;
+  final RxString rawDeliveryId = ''.obs;
+  final RxList<Map<String, dynamic>> carrierOptions =
+      <Map<String, dynamic>>[].obs;
+  final RxSet<String> selectedCarrierIds = <String>{}.obs;
 
   late final DeliveryDetailsModel delivery;
   final RxList<StatusHistoryItem> statusHistory = <StatusHistoryItem>[].obs;
@@ -28,11 +37,13 @@ class DeliveryDetailsController extends GetxController {
       final routeId = Get.parameters['id'] ?? '';
       if (routeId.isEmpty) throw Exception('Project id is missing.');
       final projectData = await repository.fetchProjectDeliveries(routeId);
-      
+
       final deliveries = projectData['requests'] is List
           ? projectData['requests'] as List
-          : (projectData['deliveries'] is List ? projectData['deliveries'] as List : const []);
-      
+          : (projectData['deliveries'] is List
+                ? projectData['deliveries'] as List
+                : const []);
+
       if (deliveries.isEmpty) {
         hasNoDeliveries.value = true;
         return;
@@ -41,6 +52,7 @@ class DeliveryDetailsController extends GetxController {
         deliveries.whereType<Map>().first,
       );
       final deliveryId = (first['_id'] ?? first['deliveryId'] ?? '').toString();
+      rawDeliveryId.value = deliveryId;
       final detailData = deliveryId.isEmpty
           ? <String, dynamic>{'delivery': first}
           : await repository.fetchDetail(deliveryId);
@@ -180,4 +192,38 @@ class DeliveryDetailsController extends GetxController {
   }
 
   String _text(dynamic value) => value == null ? 'N/A' : value.toString();
+
+  Future<void> loadCarrierOptions() async {
+    final data = await carriersRepository.list(status: 'active');
+    final raw = data['carriers'];
+    carrierOptions.assignAll(
+      raw is List
+          ? raw.whereType<Map>().map((e) => Map<String, dynamic>.from(e))
+          : <Map<String, dynamic>>[],
+    );
+  }
+
+  Future<void> sendBids() async {
+    if (rawDeliveryId.value.isEmpty || selectedCarrierIds.isEmpty) {
+      Get.snackbar('Select carriers', 'Choose at least one freight carrier.');
+      return;
+    }
+    isLoading.value = true;
+    try {
+      final data = await repository.sendBids(
+        rawDeliveryId.value,
+        carrierIds: selectedCarrierIds.toList(),
+        bidDeadline: DateTime.now().add(const Duration(days: 3)),
+      );
+      Get.back();
+      Get.snackbar(
+        'Bids sent',
+        'Sent to ${data['sentTo'] ?? selectedCarrierIds.length} carriers.',
+      );
+    } catch (error) {
+      Get.snackbar('Unable to send bids', error.toString());
+    } finally {
+      isLoading.value = false;
+    }
+  }
 }

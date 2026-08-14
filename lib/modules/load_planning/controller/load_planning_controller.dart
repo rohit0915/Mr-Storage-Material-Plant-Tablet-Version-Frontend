@@ -1,11 +1,19 @@
 import 'package:get/get.dart';
 import '../../../app/routes/app_routes.dart';
+import '../../../app/repositories/workflow_repository.dart';
 import '../model/load_planning_model.dart';
+import '../repository/bundle_plan_repository.dart';
 import '../repository/load_planning_repository.dart';
 
 class LoadPlanningController extends GetxController {
   final LoadPlanningRepository repository;
-  LoadPlanningController({required this.repository});
+  final WorkflowRepository workflowRepository;
+  final BundlePlanRepository bundlePlanRepository;
+  LoadPlanningController({
+    required this.repository,
+    required this.workflowRepository,
+    required this.bundlePlanRepository,
+  });
 
   final RxBool isLoading = true.obs;
   final RxString errorMessage = ''.obs;
@@ -16,6 +24,10 @@ class LoadPlanningController extends GetxController {
   final RxString selectedProjectId = ''.obs;
   final RxString selectedProjectName = ''.obs;
   final RxList<String> projectOptions = <String>[].obs;
+  final RxString bundlePlanId = ''.obs;
+  final RxMap<String, dynamic> bundlePlan = <String, dynamic>{}.obs;
+  final RxMap<String, dynamic> bundleCoverage = <String, dynamic>{}.obs;
+  final RxMap<String, dynamic> freightAutofill = <String, dynamic>{}.obs;
   List<String> get availableProjects => projectOptions;
 
   @override
@@ -79,8 +91,29 @@ class LoadPlanningController extends GetxController {
     isLoading.value = true;
     errorMessage.value = '';
     try {
-      final data = await repository.fetchProjectPlanning(leadId);
-      final bundlePlan = _map(data['bundlePlan']);
+      final results = await Future.wait([
+        repository.fetchProjectPlanning(leadId),
+        workflowRepository.projectBundlePlan(leadId),
+        workflowRepository.projectFreightAutofill(leadId),
+      ]);
+      final data = results[0];
+      final legacy = _map(results[1]['bundlePlan'] ?? results[1]);
+      freightAutofill.assignAll(results[2]);
+      final bundlePlan = _map(data['bundlePlan'] ?? legacy);
+      bundlePlanId.value =
+          (bundlePlan['_id'] ?? bundlePlan['bundlePlanId'] ?? '').toString();
+      if (bundlePlanId.value.isNotEmpty) {
+        final planResults = await Future.wait([
+          bundlePlanRepository.detail(bundlePlanId.value),
+          bundlePlanRepository.coverage(bundlePlanId.value),
+          bundlePlanRepository.freightAutofill(bundlePlanId.value),
+        ]);
+        this.bundlePlan.assignAll(planResults[0]);
+        bundleCoverage.assignAll(planResults[1]);
+        freightAutofill.addAll(planResults[2]);
+      } else {
+        this.bundlePlan.assignAll(bundlePlan);
+      }
       final packingPlan = _map(data['packingListPlan']);
       final candidates =
           data['loadPlans'] ??
@@ -133,6 +166,46 @@ class LoadPlanningController extends GetxController {
     Get.toNamed(
       AppRoutes.projectLoadPlanning,
       parameters: {'id': item.id, 'name': item.projectName},
+    );
+  }
+
+  Future<void> updateBundlePlanNotes(String notes) async {
+    if (bundlePlanId.value.isEmpty) return;
+    final data = await bundlePlanRepository.update(bundlePlanId.value, {
+      'notes': notes,
+    });
+    bundlePlan.addAll(data);
+  }
+
+  Future<void> createBundle({
+    required String bundleType,
+    required String title,
+    String notes = '',
+  }) async {
+    if (bundlePlanId.value.isEmpty) return;
+    await bundlePlanRepository.createBundle(bundlePlanId.value, {
+      'bundleType': bundleType,
+      'title': title,
+      'notes': notes,
+    });
+    await loadProjectLoadPlans(selectedProjectId.value);
+  }
+
+  Future<void> confirmBundlePlan() async {
+    if (bundlePlanId.value.isEmpty) return;
+    await bundlePlanRepository.confirm(bundlePlanId.value);
+    await loadProjectLoadPlans(selectedProjectId.value);
+    Get.snackbar('Bundle plan confirmed', 'Load planning is ready.');
+  }
+
+  void showLoadDetails(LoadPlanItemModel item) {
+    final weight = freightAutofill['weight'] ?? item.weight;
+    final packages = freightAutofill['packageCount'] ?? item.bundles;
+    Get.defaultDialog(
+      title: item.loadPlanId,
+      middleText: 'Weight: $weight\nPackages: $packages',
+      textConfirm: 'Close',
+      onConfirm: Get.back,
     );
   }
 

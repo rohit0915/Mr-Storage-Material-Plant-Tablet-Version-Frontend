@@ -29,6 +29,7 @@ abstract class AppRoutes {
   static const freightRequestDetails = '/freight-request-details';
   static const awardedLoads = '/awarded-loads';
   static const deliveryCalendar = '/delivery-calendar';
+  static const allDeliveries = '/all-deliveries';
   static const notificationHistory = '/notification-history';
   static const itemCostList = '/item-cost-list';
   static const missingItemCostList = '/missing-item-cost-list';
@@ -42,6 +43,3 @@ abstract class AppRoutes {
   static const editFreightCarrier = '/edit-freight-carrier';
   static const chat = '/chat';
 }
-
-
-

@@ -1,26 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../app/routes/app_routes.dart';
+import '../../../app/widgets/common_snackbar.dart';
 import '../../item_cost_list/widgets/success_dialog.dart';
 import '../model/shipper_model.dart';
+import '../repository/shippers_repository.dart';
 
 class ShippersController extends GetxController {
+  final ShippersRepository repository;
+  ShippersController({required this.repository});
+
   final RxBool isLoading = false.obs;
   final RxString searchQuery = ''.obs;
-
+  final RxString statusFilter = ''.obs;
   final RxList<ShipperModel> shippers = <ShipperModel>[].obs;
   final RxList<ShipperModel> filteredShippers = <ShipperModel>[].obs;
-
   final Rx<ShipperModel?> selectedShipper = Rx<ShipperModel?>(null);
 
-  // Vendor details state
   late Rx<VendorDetailsModel> vendorDetails;
-  final RxList<VendorContactRoleModel> contactRoles = <VendorContactRoleModel>[].obs;
-  final RxList<VendorOrderHistoryModel> orderHistory = <VendorOrderHistoryModel>[].obs;
-  final RxList<ComplianceCertificateModel> certificates = <ComplianceCertificateModel>[].obs;
+  final RxList<VendorContactRoleModel> contactRoles =
+      <VendorContactRoleModel>[].obs;
+  final RxList<VendorOrderHistoryModel> orderHistory =
+      <VendorOrderHistoryModel>[].obs;
+  final RxList<ComplianceCertificateModel> certificates =
+      <ComplianceCertificateModel>[].obs;
   final RxBool isComplianceExpanded = true.obs;
 
-  // Add / Edit Shipper Controllers
   final TextEditingController nameController = TextEditingController();
   final TextEditingController idController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
@@ -28,128 +33,69 @@ class ShippersController extends GetxController {
   final TextEditingController yearsController = TextEditingController();
   final RxString serviceCategory = 'Construction Material'.obs;
   final RxString vendorType = 'Material Shipper'.obs;
-
   final RxString country = 'India'.obs;
   final RxString state = 'Maharashtra'.obs;
   final RxString city = 'Pune'.obs;
   final TextEditingController streetController = TextEditingController();
   final TextEditingController placeController = TextEditingController();
   final TextEditingController postalController = TextEditingController();
-
   final TextEditingController notesController = TextEditingController();
 
   @override
   void onInit() {
     super.onInit();
+    vendorDetails = _emptyDetails().obs;
     loadShippersData();
-    loadVendorDetailsData();
   }
 
-  void loadShippersData() {
+  Future<void> loadShippersData() async {
     isLoading.value = true;
-    final initialList = [
-      ShipperModel(
-        id: '1',
-        vendorCode: 'VEN-001',
-        name: 'Steel Shippers Inc.',
-        contactName: 'Robert Anderson',
-        email: 'robert@steelShippers.com',
-        phone: '(555) 111-2222',
-        materialTypes: ['Steel & Metal', 'Structural Steel', '+1'],
-        activeOrders: 8,
-        totalOrders: 156,
-      ),
-      ShipperModel(
-        id: '2',
-        vendorCode: 'VEN-002',
-        name: 'Concrete Works Ltd.',
-        contactName: 'Maria Garcia',
-        email: 'maria@concreteworks.com',
-        phone: '(555) 222-3333',
-        materialTypes: ['Concrete', 'Ready Mix', '+1'],
-        activeOrders: 5,
-        totalOrders: 98,
-      ),
-      ShipperModel(
-        id: '3',
-        vendorCode: 'VEN-003',
-        name: 'Lumber & Building Materials Co.',
-        contactName: 'David Chen',
-        email: 'david@lumberbuild.com',
-        phone: '(555) 333-4444',
-        materialTypes: ['Lumber', 'Wood Products', '+2'],
-        activeOrders: 6,
-        totalOrders: 124,
-      ),
-      ShipperModel(
-        id: '4',
-        vendorCode: 'VEN-004',
-        name: 'Electrical Supply Warehouse',
-        contactName: 'Jennifer Thompson',
-        email: 'jen@electricalsupply.com',
-        phone: '(555) 444-5555',
-        materialTypes: ['Electrical', 'Wiring', '+2'],
-        activeOrders: 4,
-        totalOrders: 67,
-      ),
-      ShipperModel(
-        id: '5',
-        vendorCode: 'VEN-005',
-        name: 'ABC Plumbing Supplies',
-        contactName: 'Michael Brown',
-        email: 'mike@abcplumbing.com',
-        phone: '(555) 555-6666',
-        materialTypes: ['Plumbing', 'Pipes', '+2'],
-        activeOrders: 0,
-        totalOrders: 23,
-      ),
-    ];
-
-    shippers.assignAll(initialList);
-    applyFilter();
-    isLoading.value = false;
+    try {
+      final data = await repository.list(
+        status: statusFilter.value.isEmpty
+            ? null
+            : statusFilter.value.toLowerCase(),
+      );
+      final raw = data['vendors'];
+      shippers.assignAll(
+        raw is List
+            ? raw.whereType<Map>().map((item) => _mapShipper(item)).toList()
+            : <ShipperModel>[],
+      );
+      applyFilter();
+    } catch (error) {
+      shippers.clear();
+      filteredShippers.clear();
+      CommonSnackbar.showError(title: 'Unable to load shippers', message: error.toString());
+    } finally {
+      isLoading.value = false;
+    }
   }
 
-  void loadVendorDetailsData() {
-    vendorDetails = VendorDetailsModel(
-      vendorCode: 'CI-12345',
-      rating: 4.7,
-      companyName: 'Steel Shippers Inc.',
-      status: 'Active',
-      address: '4712 Cherry Ridge Drive Rochester, NY 14620.',
-      email: 'john@example.com',
-      phone: '+1 58578 54840',
-      vendorType: 'Material Shipper',
-      serviceCategory: 'Construction Materials',
-      yearsWorking: '3 Years',
-      totalOrders: 142,
-      completedDeliveries: 138,
-      activeOrders: 4,
-      avgDeliveryTime: '2.4 Days',
-      onTimeRate: '95%',
-    ).obs;
-
-    contactRoles.assignAll([
-      VendorContactRoleModel(roleName: 'Sales Rep', name: 'John Doe', phone: '+1 58578 54840'),
-      VendorContactRoleModel(roleName: 'Dispatch', name: 'Riyaz Khan', phone: '+1 58578 54840'),
-      VendorContactRoleModel(roleName: 'Accounts', name: 'Sir John Peds', phone: '+1 58578 54840'),
-      VendorContactRoleModel(roleName: 'Warehouse Manager', name: 'John Doe', phone: '+1 58578 54840'),
-    ]);
-
-    orderHistory.assignAll([
-      VendorOrderHistoryModel(orderId: 'ORD00025', material: 'Steel Beams', quantity: '20 Tons', orderValue: '\$5,000', status: 'Delivered'),
-      VendorOrderHistoryModel(orderId: 'ORD00024', material: 'Cement Bags', quantity: '500 Units', orderValue: '\$10,750', status: 'In Transit'),
-      VendorOrderHistoryModel(orderId: 'ORD00023', material: 'Iron Rods', quantity: '12 Tons', orderValue: '\$20,000', status: 'Delivered'),
-      VendorOrderHistoryModel(orderId: 'ORD00022', material: 'Cement Bags', quantity: '500 Units', orderValue: '\$50,000', status: 'Delivered'),
-      VendorOrderHistoryModel(orderId: 'ORD00019', material: 'Iron Rods', quantity: '20 Tons', orderValue: '\$1,25,000', status: 'Delivered'),
-    ]);
-
-    certificates.assignAll([
-      ComplianceCertificateModel(name: 'Insurance certificate', size: '6.1 MB', type: 'PDF', expiryDate: 'Mar 15, 2025'),
-      ComplianceCertificateModel(name: 'Material certifications', size: '5.2 MB', type: 'PDF', expiryDate: 'Jan 8, 2025'),
-      ComplianceCertificateModel(name: 'Contracts', size: '6.1 MB', type: 'PDF', expiryDate: 'Mar 15, 2025'),
-      ComplianceCertificateModel(name: 'Pricing sheets', size: '6.1 MB', type: 'PDF', expiryDate: 'Mar 15, 2025'),
-    ]);
+  ShipperModel _mapShipper(Map item) {
+    final stats = _map(item['stats']);
+    final materials = item['materialTypes'];
+    return ShipperModel(
+      id: (item['_id'] ?? item['id'] ?? '').toString(),
+      vendorCode:
+          (item['vendorCode'] ?? item['shipperCode'] ?? item['code'] ?? '')
+              .toString(),
+      name:
+          (item['vendorName'] ??
+                  item['companyName'] ??
+                  item['name'] ??
+                  'Shipper')
+              .toString(),
+      contactName: (item['contactName'] ?? item['primaryContact'] ?? '')
+          .toString(),
+      email: (item['email'] ?? '').toString(),
+      phone: (item['phone'] ?? item['phoneNumber'] ?? '').toString(),
+      materialTypes: materials is List
+          ? materials.map((e) => e.toString()).toList()
+          : <String>[],
+      activeOrders: _int(item['activeOrders'] ?? stats['activeOrders']),
+      totalOrders: _int(item['totalOrders'] ?? stats['totalOrders']),
+    );
   }
 
   void filterSearchResults(String query) {
@@ -157,63 +103,214 @@ class ShippersController extends GetxController {
     applyFilter();
   }
 
+  void setStatusFilter(String value) {
+    statusFilter.value = value;
+    loadShippersData();
+  }
+
   void applyFilter() {
-    if (searchQuery.isEmpty) {
-      filteredShippers.assignAll(shippers);
-    } else {
-      final q = searchQuery.value.toLowerCase();
-      filteredShippers.assignAll(
-        shippers.where((s) =>
-            s.name.toLowerCase().contains(q) ||
-            s.contactName.toLowerCase().contains(q) ||
-            s.email.toLowerCase().contains(q) ||
-            s.vendorCode.toLowerCase().contains(q)),
+    final q = searchQuery.value.trim().toLowerCase();
+    filteredShippers.assignAll(
+      q.isEmpty
+          ? shippers
+          : shippers.where(
+              (s) =>
+                  s.name.toLowerCase().contains(q) ||
+                  s.contactName.toLowerCase().contains(q) ||
+                  s.email.toLowerCase().contains(q) ||
+                  s.vendorCode.toLowerCase().contains(q) ||
+                  s.phone.toLowerCase().contains(q) ||
+                  s.materialTypes.any((type) => type.toLowerCase().contains(q)),
+            ),
+    );
+  }
+
+  Future<void> openVendorDetails(ShipperModel shipper) async {
+    selectedShipper.value = shipper;
+    Get.toNamed(AppRoutes.vendorDetails);
+    try {
+      final data = await repository.detail(shipper.id);
+      final stats = _map(data['stats']);
+      vendorDetails.value = VendorDetailsModel(
+        vendorCode: (data['vendorCode'] ?? shipper.vendorCode).toString(),
+        rating: _double(data['rating'] ?? stats['rating']),
+        companyName: (data['vendorName'] ?? data['companyName'] ?? shipper.name)
+            .toString(),
+        status: _title(data['status'] ?? 'active'),
+        address: _address(data['address'] ?? data['pickupLocation']),
+        email: (data['email'] ?? shipper.email).toString(),
+        phone: (data['phone'] ?? shipper.phone).toString(),
+        vendorType: (data['vendorType'] ?? 'Material Shipper').toString(),
+        serviceCategory: (data['serviceCategory'] ?? '').toString(),
+        yearsWorking: (data['yearsWorking'] ?? data['yearsOfWorking'] ?? '')
+            .toString(),
+        totalOrders: _int(stats['totalOrders'] ?? shipper.totalOrders),
+        completedDeliveries: _int(stats['completedDeliveries']),
+        activeOrders: _int(stats['activeOrders'] ?? shipper.activeOrders),
+        avgDeliveryTime: (stats['avgDeliveryTime'] ?? '-').toString(),
+        onTimeRate: (stats['onTimeRate'] ?? '-').toString(),
       );
+      _mapVendorCollections(data);
+    } catch (error) {
+      CommonSnackbar.showError(title: 'Unable to load shipper details', message: error.toString());
     }
   }
 
-  void openVendorDetails(ShipperModel shipper) {
-    selectedShipper.value = shipper;
-    Get.toNamed(AppRoutes.vendorDetails);
+  void _mapVendorCollections(Map<String, dynamic> data) {
+    final history = data['orderHistory'];
+    orderHistory.assignAll(
+      history is List
+          ? history.whereType<Map>().map(
+              (item) => VendorOrderHistoryModel(
+                orderId: (item['orderId'] ?? item['projectId'] ?? '')
+                    .toString(),
+                material: (item['material'] ?? item['materialType'] ?? '')
+                    .toString(),
+                quantity: (item['quantity'] ?? '').toString(),
+                orderValue: (item['orderValue'] ?? item['amount'] ?? '')
+                    .toString(),
+                status: _title(item['status']),
+              ),
+            )
+          : <VendorOrderHistoryModel>[],
+    );
+    contactRoles.clear();
+    certificates.clear();
   }
 
   void openAddShipper() {
-    nameController.text = 'Steel Shippers Inc.';
-    idController.text = 'SHP-2026-10482';
-    phoneController.text = '000-000-0000';
-    emailController.text = 'emmawatson@email.com';
-    yearsController.text = '3 years';
-    streetController.text = 'Palm Residency, MG Road';
-    placeController.text = 'Flat 402';
-    postalController.text = '411001';
-    notesController.text = 'Client requested work completion before Friday inspection. Ensure safety compliance checklist is completed before closure.';
+    _clearForm();
     Get.toNamed(AppRoutes.addShipper);
   }
 
   void openEditShipper() {
-    nameController.text = 'Steel Shippers Inc.';
-    idController.text = 'SHP-2026-10482';
-    phoneController.text = '000-000-0000';
-    emailController.text = 'emmawatson@email.com';
-    yearsController.text = '3 years';
-    streetController.text = 'Palm Residency, MG Road';
-    placeController.text = 'Flat 402';
-    postalController.text = '411001';
-    notesController.text = 'Client requested work completion before Friday inspection. Ensure safety compliance checklist is completed before closure.';
+    final shipper = selectedShipper.value;
+    if (shipper == null) return;
+    nameController.text = shipper.name;
+    idController.text = shipper.vendorCode;
+    phoneController.text = shipper.phone;
+    emailController.text = shipper.email;
+    streetController.text = vendorDetails.value.address;
     Get.toNamed(AppRoutes.editShipper);
   }
 
-  void saveShipper(BuildContext context, {required bool isEdit}) {
-    showDialog(
-      context: context,
-      builder: (ctx) => SuccessDialog(
-        title: isEdit ? 'Shipper Updated Successfully' : 'New Shipper Added Successfully',
-        buttonText: 'Ok',
-        onPressed: () {
-          Navigator.of(ctx).pop();
-          Get.offNamed(AppRoutes.shippersList);
+  Future<void> saveShipper(BuildContext context, {required bool isEdit}) async {
+    if (nameController.text.trim().isEmpty ||
+        emailController.text.trim().isEmpty) {
+      CommonSnackbar.showError(title: 'Required fields', message: 'Shipper name and email are required.');
+      return;
+    }
+    isLoading.value = true;
+    try {
+      final payload = <String, dynamic>{
+        'vendorName': nameController.text.trim(),
+        'vendorCode': idController.text.trim(),
+        'email': emailController.text.trim(),
+        'phone': phoneController.text.trim(),
+        'vendorType': vendorType.value,
+        'serviceCategory': serviceCategory.value,
+        'yearsWorking': yearsController.text.trim(),
+        'address': {
+          'country': country.value,
+          'state': state.value,
+          'city': city.value,
+          'streetAddress': streetController.text.trim(),
+          'placeNumber': placeController.text.trim(),
+          'postalCode': postalController.text.trim(),
         },
-      ),
-    );
+        'notes': notesController.text.trim(),
+      };
+      if (isEdit && selectedShipper.value != null) {
+        await repository.update(selectedShipper.value!.id, payload);
+      } else {
+        await repository.create(payload);
+      }
+      await loadShippersData();
+      if (!context.mounted) return;
+      showDialog(
+        context: context,
+        builder: (ctx) => SuccessDialog(
+          title: isEdit
+              ? 'Shipper Updated Successfully'
+              : 'New Shipper Added Successfully',
+          buttonText: 'Ok',
+          onPressed: () {
+            Navigator.of(ctx).pop();
+            Get.offNamed(AppRoutes.shippersList);
+          },
+        ),
+      );
+    } catch (error) {
+      CommonSnackbar.showError(title: 'Unable to save shipper', message: error.toString());
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> toggleStatus(ShipperModel shipper) async {
+    try {
+      await repository.toggleStatus(shipper.id);
+      await loadShippersData();
+    } catch (error) {
+      CommonSnackbar.showError(title: 'Unable to update status', message: error.toString());
+    }
+  }
+
+  void _clearForm() {
+    for (final controller in [
+      nameController,
+      idController,
+      phoneController,
+      emailController,
+      yearsController,
+      streetController,
+      placeController,
+      postalController,
+      notesController,
+    ]) {
+      controller.clear();
+    }
+  }
+
+  VendorDetailsModel _emptyDetails() => VendorDetailsModel(
+    vendorCode: '',
+    rating: 0,
+    companyName: '',
+    status: '',
+    address: '',
+    email: '',
+    phone: '',
+    vendorType: '',
+    serviceCategory: '',
+    yearsWorking: '',
+    totalOrders: 0,
+    completedDeliveries: 0,
+    activeOrders: 0,
+    avgDeliveryTime: '-',
+    onTimeRate: '-',
+  );
+
+  Map<String, dynamic> _map(dynamic value) =>
+      value is Map ? Map<String, dynamic>.from(value) : <String, dynamic>{};
+  int _int(dynamic value) => int.tryParse((value ?? 0).toString()) ?? 0;
+  double _double(dynamic value) =>
+      double.tryParse((value ?? 0).toString()) ?? 0;
+  String _title(dynamic value) => (value ?? '')
+      .toString()
+      .replaceAll('_', ' ')
+      .split(' ')
+      .where((e) => e.isNotEmpty)
+      .map((e) => '${e[0].toUpperCase()}${e.substring(1)}')
+      .join(' ');
+  String _address(dynamic value) {
+    if (value is Map) {
+      return [
+        value['streetAddress'],
+        value['city'],
+        value['state'],
+        value['postalCode'],
+      ].where((e) => e != null && e.toString().isNotEmpty).join(', ');
+    }
+    return (value ?? '').toString();
   }
 }

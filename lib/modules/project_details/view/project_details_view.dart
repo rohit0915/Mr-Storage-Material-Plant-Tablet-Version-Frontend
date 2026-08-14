@@ -8,6 +8,7 @@ import '../controller/project_details_controller.dart';
 import '../widgets/add_notes_dialog.dart';
 import '../widgets/update_step_status_dialog.dart';
 import '../widgets/upload_drawings_dialog.dart';
+import '../widgets/upload_bom_dialog.dart';
 
 class ProjectDetailsView extends GetView<ProjectDetailsController> {
   const ProjectDetailsView({super.key});
@@ -84,8 +85,43 @@ class ProjectDetailsView extends GetView<ProjectDetailsController> {
                             ),
                             const Spacer(),
                             ElevatedButton.icon(
-                              onPressed: () =>
-                                  Get.dialog(const UploadDrawingsDialog()),
+                              onPressed: () => Get.dialog(
+                                UploadBomDialog(
+                                  onUploaded: controller.loadProjectDetails,
+                                ),
+                              ),
+                              icon: const Icon(
+                                Icons.upload_outlined,
+                                size: 18,
+                                color: Colors.white,
+                              ),
+                              label: const Text(
+                                'Upload BOM File',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF2563EB),
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 18,
+                                  vertical: 12,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            ElevatedButton.icon(
+                              onPressed: () => Get.dialog(
+                                UploadDrawingsDialog(
+                                  onUploaded: controller.loadProjectDetails,
+                                ),
+                              ),
                               icon: const Icon(
                                 Icons.upload_outlined,
                                 size: 18,

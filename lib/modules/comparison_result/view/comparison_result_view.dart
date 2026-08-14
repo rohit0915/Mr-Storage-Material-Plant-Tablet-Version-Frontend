@@ -26,7 +26,10 @@ class ComparisonResultView extends GetView<ComparisonResultController> {
 
                 return SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 16,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -62,11 +65,20 @@ class ComparisonResultView extends GetView<ComparisonResultController> {
         ElevatedButton.icon(
           onPressed: () => Get.back(),
           icon: const Icon(Icons.arrow_back, size: 16, color: Colors.white),
-          label: const Text('Back', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white)),
+          label: const Text(
+            'Back',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFF2563EB),
             elevation: 0,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           ),
         ),
@@ -85,12 +97,18 @@ class ComparisonResultView extends GetView<ComparisonResultController> {
           icon: const Icon(Icons.arrow_forward, size: 16, color: Colors.white),
           label: const Text(
             'Send Report to the Shippers',
-            style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
           ),
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFF2563EB),
             elevation: 0,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           ),
         ),
@@ -144,11 +162,19 @@ class ComparisonResultView extends GetView<ComparisonResultController> {
         children: [
           Text(
             title,
-            style: const TextStyle(fontSize: 13, color: Colors.white, fontWeight: FontWeight.w500),
+            style: const TextStyle(
+              fontSize: 13,
+              color: Colors.white,
+              fontWeight: FontWeight.w500,
+            ),
           ),
           Text(
             value,
-            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
           ),
         ],
       ),
@@ -175,7 +201,10 @@ class ComparisonResultView extends GetView<ComparisonResultController> {
                 child: TextField(
                   decoration: InputDecoration(
                     hintText: 'Search',
-                    hintStyle: TextStyle(fontSize: 12, color: AppColors.textHint),
+                    hintStyle: TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textHint,
+                    ),
                     border: InputBorder.none,
                     isDense: true,
                     contentPadding: EdgeInsets.symmetric(vertical: 10),
@@ -190,15 +219,25 @@ class ComparisonResultView extends GetView<ComparisonResultController> {
         // Download Excel Report Button
         ElevatedButton.icon(
           onPressed: () => controller.downloadExcelReport(),
-          icon: const Icon(Icons.file_download_outlined, size: 16, color: Colors.white),
+          icon: const Icon(
+            Icons.file_download_outlined,
+            size: 16,
+            color: Colors.white,
+          ),
           label: const Text(
             'Download Excel Report',
-            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
           ),
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFF475569),
             elevation: 0,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
             padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
           ),
         ),
@@ -223,15 +262,33 @@ class ComparisonResultView extends GetView<ComparisonResultController> {
               children: const [
                 Expanded(
                   flex: 2,
-                  child: Text('Part Number', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                  child: Text(
+                    'Part Number',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
                 ),
                 Expanded(
                   flex: 5,
                   child: Row(
                     children: [
-                      Text('Description', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                      Text(
+                        'Description',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
                       SizedBox(width: 4),
-                      Icon(Icons.swap_vert, size: 14, color: AppColors.textSecondary),
+                      Icon(
+                        Icons.swap_vert,
+                        size: 14,
+                        color: AppColors.textSecondary,
+                      ),
                     ],
                   ),
                 ),
@@ -239,9 +296,20 @@ class ComparisonResultView extends GetView<ComparisonResultController> {
                   flex: 2,
                   child: Row(
                     children: [
-                      Text('Ordered QTY', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                      Text(
+                        'Ordered QTY',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
                       SizedBox(width: 4),
-                      Icon(Icons.swap_vert, size: 14, color: AppColors.textSecondary),
+                      Icon(
+                        Icons.swap_vert,
+                        size: 14,
+                        color: AppColors.textSecondary,
+                      ),
                     ],
                   ),
                 ),
@@ -249,9 +317,20 @@ class ComparisonResultView extends GetView<ComparisonResultController> {
                   flex: 2,
                   child: Row(
                     children: [
-                      Text('Shipped QTY', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                      Text(
+                        'Shipped QTY',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
                       SizedBox(width: 4),
-                      Icon(Icons.swap_vert, size: 14, color: AppColors.textSecondary),
+                      Icon(
+                        Icons.swap_vert,
+                        size: 14,
+                        color: AppColors.textSecondary,
+                      ),
                     ],
                   ),
                 ),
@@ -259,9 +338,20 @@ class ComparisonResultView extends GetView<ComparisonResultController> {
                   flex: 2,
                   child: Row(
                     children: [
-                      Text('Difference', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                      Text(
+                        'Difference',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
                       SizedBox(width: 4),
-                      Icon(Icons.swap_vert, size: 14, color: AppColors.textSecondary),
+                      Icon(
+                        Icons.swap_vert,
+                        size: 14,
+                        color: AppColors.textSecondary,
+                      ),
                     ],
                   ),
                 ),
@@ -269,9 +359,20 @@ class ComparisonResultView extends GetView<ComparisonResultController> {
                   flex: 2,
                   child: Row(
                     children: [
-                      Text('Reason', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                      Text(
+                        'Reason',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
                       SizedBox(width: 4),
-                      Icon(Icons.swap_vert, size: 14, color: AppColors.textSecondary),
+                      Icon(
+                        Icons.swap_vert,
+                        size: 14,
+                        color: AppColors.textSecondary,
+                      ),
                     ],
                   ),
                 ),
@@ -286,53 +387,76 @@ class ComparisonResultView extends GetView<ComparisonResultController> {
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: controller.comparisonItems.length,
-              separatorBuilder: (context, index) => const Divider(height: 1, color: AppColors.divider),
+              separatorBuilder: (context, index) =>
+                  const Divider(height: 1, color: AppColors.divider),
               itemBuilder: (context, index) {
                 final item = controller.comparisonItems[index];
                 return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                   child: Row(
                     children: [
                       Expanded(
                         flex: 2,
                         child: Text(
                           item.partNumber,
-                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary,
+                          ),
                         ),
                       ),
                       Expanded(
                         flex: 5,
                         child: Text(
                           item.description,
-                          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textSecondary,
+                          ),
                         ),
                       ),
                       Expanded(
                         flex: 2,
                         child: Text(
                           item.orderedQty,
-                          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textSecondary,
+                          ),
                         ),
                       ),
                       Expanded(
                         flex: 2,
                         child: Text(
                           item.shippedQty,
-                          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textSecondary,
+                          ),
                         ),
                       ),
                       Expanded(
                         flex: 2,
                         child: Text(
                           item.difference,
-                          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textSecondary,
+                          ),
                         ),
                       ),
                       Expanded(
                         flex: 2,
                         child: Text(
                           item.reason,
-                          style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: AppColors.textSecondary,
+                          ),
                         ),
                       ),
                     ],

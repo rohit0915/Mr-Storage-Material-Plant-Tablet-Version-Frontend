@@ -26,7 +26,10 @@ class AwardedLoadsView extends GetView<AwardedLoadsController> {
 
                 return SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 16,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -68,10 +71,7 @@ class AwardedLoadsView extends GetView<AwardedLoadsController> {
             SizedBox(height: 4),
             Text(
               'Track all awarded freight loads',
-              style: TextStyle(
-                fontSize: 13,
-                color: AppColors.textSecondary,
-              ),
+              style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
             ),
           ],
         ),
@@ -79,33 +79,63 @@ class AwardedLoadsView extends GetView<AwardedLoadsController> {
           children: [
             OutlinedButton.icon(
               onPressed: () => controller.showFilterDialog(),
-              icon: const Icon(Icons.filter_list, size: 14, color: AppColors.textPrimary),
+              icon: const Icon(
+                Icons.filter_list,
+                size: 14,
+                color: AppColors.textPrimary,
+              ),
               label: const Text(
                 'Filter',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
               ),
               style: OutlinedButton.styleFrom(
                 backgroundColor: Colors.white,
                 side: const BorderSide(color: AppColors.inputBorder),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 10,
+                ),
               ),
             ),
             const SizedBox(width: 10),
             OutlinedButton.icon(
               onPressed: () {
-                Get.snackbar('Export', 'Exporting awarded loads', snackPosition: SnackPosition.BOTTOM);
+                Get.snackbar(
+                  'Export',
+                  'Exporting awarded loads',
+                  snackPosition: SnackPosition.BOTTOM,
+                );
               },
-              icon: const Icon(Icons.download, size: 14, color: AppColors.textPrimary),
+              icon: const Icon(
+                Icons.download,
+                size: 14,
+                color: AppColors.textPrimary,
+              ),
               label: const Text(
                 'Export',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
               ),
               style: OutlinedButton.styleFrom(
                 backgroundColor: Colors.white,
                 side: const BorderSide(color: AppColors.inputBorder),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 10,
+                ),
               ),
             ),
           ],
@@ -188,14 +218,21 @@ class AwardedLoadsView extends GetView<AwardedLoadsController> {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.search, size: 16, color: AppColors.textSecondary),
+                  const Icon(
+                    Icons.search,
+                    size: 16,
+                    color: AppColors.textSecondary,
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: TextField(
                       onChanged: (val) => controller.searchQuery.value = val,
                       decoration: const InputDecoration(
                         hintText: 'Search notifications...',
-                        hintStyle: TextStyle(fontSize: 12, color: AppColors.textHint),
+                        hintStyle: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textHint,
+                        ),
                         border: InputBorder.none,
                         isDense: true,
                         contentPadding: EdgeInsets.symmetric(vertical: 10),
@@ -213,11 +250,17 @@ class AwardedLoadsView extends GetView<AwardedLoadsController> {
               backgroundColor: const Color(0xFF3B82F6),
               elevation: 0,
               padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
             ),
             child: const Text(
               'Filter',
-              style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
             ),
           ),
         ],
@@ -242,39 +285,102 @@ class AwardedLoadsView extends GetView<AwardedLoadsController> {
               children: const [
                 Expanded(
                   flex: 2,
-                  child: Text('REQUEST ID', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+                  child: Text(
+                    'REQUEST ID',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
                 ),
                 Expanded(
                   flex: 2,
-                  child: Text('PROJECT', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+                  child: Text(
+                    'PROJECT',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
                 ),
                 Expanded(
                   flex: 3,
-                  child: Text('DESCRIPTION', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+                  child: Text(
+                    'DESCRIPTION',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
                 ),
                 Expanded(
                   flex: 2,
-                  child: Text('PICKUP LOCATION', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+                  child: Text(
+                    'PICKUP LOCATION',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
                 ),
                 Expanded(
                   flex: 2,
-                  child: Text('DELIVERY LOCATION', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+                  child: Text(
+                    'DELIVERY LOCATION',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
                 ),
                 Expanded(
                   flex: 2,
-                  child: Text('DATES', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+                  child: Text(
+                    'DATES',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
                 ),
                 Expanded(
                   flex: 3,
-                  child: Text('CARRIER', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+                  child: Text(
+                    'CARRIER',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
                 ),
                 Expanded(
                   flex: 2,
-                  child: Text('BUDGET & BIDS', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+                  child: Text(
+                    'BUDGET & BIDS',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
                 ),
                 Expanded(
                   flex: 2,
-                  child: Text('STATUS', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+                  child: Text(
+                    'STATUS',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -286,12 +392,16 @@ class AwardedLoadsView extends GetView<AwardedLoadsController> {
             return ListView.separated(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              itemCount: controller.awardedLoadsList.length,
-              separatorBuilder: (context, index) => const Divider(height: 1, color: AppColors.divider),
+              itemCount: controller.filteredAwardedLoads.length,
+              separatorBuilder: (context, index) =>
+                  const Divider(height: 1, color: AppColors.divider),
               itemBuilder: (context, index) {
-                final item = controller.awardedLoadsList[index];
+                final item = controller.filteredAwardedLoads[index];
                 return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
                   child: Row(
                     children: [
                       // Request ID & Requested Date & SubStatus pill
@@ -302,24 +412,40 @@ class AwardedLoadsView extends GetView<AwardedLoadsController> {
                           children: [
                             Text(
                               item.requestId,
-                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.textPrimary,
+                              ),
                             ),
                             const SizedBox(height: 2),
                             Text(
                               'Requested: ${item.requestedDate}',
-                              style: const TextStyle(fontSize: 10, color: AppColors.textHint),
+                              style: const TextStyle(
+                                fontSize: 10,
+                                color: AppColors.textHint,
+                              ),
                             ),
                             const SizedBox(height: 4),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 2,
+                              ),
                               decoration: BoxDecoration(
                                 color: const Color(0xFFEFF6FF),
                                 borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: const Color(0xFF93C5FD)),
+                                border: Border.all(
+                                  color: const Color(0xFF93C5FD),
+                                ),
                               ),
                               child: Text(
                                 item.subStatus,
-                                style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF2563EB)),
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF2563EB),
+                                ),
                               ),
                             ),
                           ],
@@ -331,7 +457,11 @@ class AwardedLoadsView extends GetView<AwardedLoadsController> {
                         flex: 2,
                         child: Text(
                           item.project,
-                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textPrimary,
+                          ),
                         ),
                       ),
 
@@ -340,7 +470,10 @@ class AwardedLoadsView extends GetView<AwardedLoadsController> {
                         flex: 3,
                         child: Text(
                           item.description,
-                          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textSecondary,
+                          ),
                         ),
                       ),
 
@@ -349,7 +482,10 @@ class AwardedLoadsView extends GetView<AwardedLoadsController> {
                         flex: 2,
                         child: Text(
                           item.pickupLocation,
-                          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textSecondary,
+                          ),
                         ),
                       ),
 
@@ -358,7 +494,10 @@ class AwardedLoadsView extends GetView<AwardedLoadsController> {
                         flex: 2,
                         child: Text(
                           item.deliveryLocation,
-                          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textSecondary,
+                          ),
                         ),
                       ),
 
@@ -368,8 +507,20 @@ class AwardedLoadsView extends GetView<AwardedLoadsController> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Pickup: ${item.pickupDate}', style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
-                            Text('Delivery: ${item.deliveryDate}', style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+                            Text(
+                              'Pickup: ${item.pickupDate}',
+                              style: const TextStyle(
+                                fontSize: 10,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                            Text(
+                              'Delivery: ${item.deliveryDate}',
+                              style: const TextStyle(
+                                fontSize: 10,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -382,16 +533,27 @@ class AwardedLoadsView extends GetView<AwardedLoadsController> {
                           children: [
                             Text(
                               item.carrierName,
-                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.textPrimary,
+                              ),
                             ),
                             const SizedBox(height: 2),
                             Row(
                               children: [
-                                const Icon(Icons.phone, size: 10, color: Color(0xFF2563EB)),
+                                const Icon(
+                                  Icons.phone,
+                                  size: 10,
+                                  color: Color(0xFF2563EB),
+                                ),
                                 const SizedBox(width: 4),
                                 Text(
                                   item.carrierPhone,
-                                  style: const TextStyle(fontSize: 11, color: Color(0xFF2563EB)),
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    color: Color(0xFF2563EB),
+                                  ),
                                 ),
                               ],
                             ),
@@ -407,15 +569,26 @@ class AwardedLoadsView extends GetView<AwardedLoadsController> {
                           children: [
                             Text(
                               item.budget,
-                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.textPrimary,
+                              ),
                             ),
                             Text(
                               'Awarded: ${item.awardedAmount}',
-                              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                              style: const TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.textPrimary,
+                              ),
                             ),
                             Text(
                               '${item.bidsCount} bids',
-                              style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                              style: const TextStyle(
+                                fontSize: 11,
+                                color: AppColors.textSecondary,
+                              ),
                             ),
                           ],
                         ),
@@ -427,14 +600,21 @@ class AwardedLoadsView extends GetView<AwardedLoadsController> {
                         child: Align(
                           alignment: Alignment.centerLeft,
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
                             decoration: BoxDecoration(
                               color: const Color(0xFFDCFCE7),
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: const Text(
                               'Awarded',
-                              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF166534)),
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF166534),
+                              ),
                             ),
                           ),
                         ),

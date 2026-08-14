@@ -28,7 +28,10 @@ class ShipperFileDetailsView extends GetView<ShipperFileDetailsController> {
 
                 return SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 16,
+                  ),
                   child: Column(
                     children: [
                       // Header Actions Toolbar
@@ -55,11 +58,20 @@ class ShipperFileDetailsView extends GetView<ShipperFileDetailsController> {
         ElevatedButton.icon(
           onPressed: () => Get.back(),
           icon: const Icon(Icons.arrow_back, size: 16, color: Colors.white),
-          label: const Text('Shipper File', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white)),
+          label: const Text(
+            'Shipper File',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFF2563EB),
             elevation: 0,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           ),
         ),
@@ -68,12 +80,25 @@ class ShipperFileDetailsView extends GetView<ShipperFileDetailsController> {
         // Download PDF Button
         OutlinedButton.icon(
           onPressed: () => Get.toNamed(AppRoutes.pdfView),
-          icon: const Icon(Icons.picture_as_pdf_outlined, size: 16, color: AppColors.textPrimary),
-          label: const Text('Download PDF', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+          icon: const Icon(
+            Icons.picture_as_pdf_outlined,
+            size: 16,
+            color: AppColors.textPrimary,
+          ),
+          label: const Text(
+            'Download PDF',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+            ),
+          ),
           style: OutlinedButton.styleFrom(
             backgroundColor: Colors.white,
             side: const BorderSide(color: AppColors.inputBorder),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           ),
         ),
@@ -85,14 +110,21 @@ class ShipperFileDetailsView extends GetView<ShipperFileDetailsController> {
             return Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 8,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFDCFCE7),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Text(
                     'Approved',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF16A34A)),
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF16A34A),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -101,12 +133,21 @@ class ShipperFileDetailsView extends GetView<ShipperFileDetailsController> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF7C3AED),
                     elevation: 0,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 10,
+                    ),
                   ),
                   child: const Text(
                     'Start Load Planning',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ],
@@ -117,13 +158,22 @@ class ShipperFileDetailsView extends GetView<ShipperFileDetailsController> {
               icon: const Icon(Icons.balance, size: 16, color: Colors.white),
               label: const Text(
                 'Order Verification',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
               ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF7C3AED),
                 elevation: 0,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 10,
+                ),
               ),
             );
           }
@@ -176,7 +226,11 @@ class ShipperFileDetailsView extends GetView<ShipperFileDetailsController> {
         children: [
           const Text(
             'Project: ABC Warehouse Project',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+            ),
           ),
           const SizedBox(height: 12),
           Row(
@@ -185,37 +239,75 @@ class ShipperFileDetailsView extends GetView<ShipperFileDetailsController> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: const [
-                    Text('Project ID: PRJ-1025', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                    Text(
+                      'Project ID: PRJ-1025',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
                     SizedBox(height: 4),
-                    Text('Shipper: SteelCorp', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                    Text(
+                      'Shipper: SteelCorp',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
                   ],
                 ),
               ),
               Container(width: 1, height: 32, color: AppColors.divider),
               const SizedBox(width: 20),
               Expanded(
-                child: Obx(() => Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('Shipper File: steel_v1.xlsx', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            const Text('Upload Date: Apr 22, 2026', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-                            const SizedBox(width: 16),
-                            Text('Status: ', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-                            Text(
-                              controller.status.value == 'Approved' ? '🟢 Approved' : '🟡 Under Review',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                                color: controller.status.value == 'Approved' ? const Color(0xFF16A34A) : const Color(0xFFD97706),
-                              ),
-                            ),
-                          ],
+                child: Obx(
+                  () => Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Shipper File: steel_v1.xlsx',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textPrimary,
                         ),
-                      ],
-                    )),
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          const Text(
+                            'Upload Date: Apr 22, 2026',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Text(
+                            'Status: ',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                          Text(
+                            controller.status.value == 'Approved'
+                                ? '🟢 Approved'
+                                : '🟡 Under Review',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: controller.status.value == 'Approved'
+                                  ? const Color(0xFF16A34A)
+                                  : const Color(0xFFD97706),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ],
           ),
@@ -226,9 +318,7 @@ class ShipperFileDetailsView extends GetView<ShipperFileDetailsController> {
 
   Widget _buildSalesOrderHeaderBox() {
     return Container(
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.black12),
-      ),
+      decoration: BoxDecoration(border: Border.all(color: Colors.black12)),
       child: Row(
         children: [
           Expanded(
@@ -238,10 +328,25 @@ class ShipperFileDetailsView extends GetView<ShipperFileDetailsController> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Image.asset(AppImages.quickenSteelLogo, height: 42, errorBuilder: (c, o, s) => const Icon(Icons.business, size: 40, color: Color(0xFFF97316))),
+                  Image.asset(
+                    AppImages.quickenSteelLogo,
+                    height: 42,
+                    errorBuilder: (c, o, s) => const Icon(
+                      Icons.business,
+                      size: 40,
+                      color: Color(0xFFF97316),
+                    ),
+                  ),
                   const SizedBox(height: 8),
-                  const Text('QUICKEN STEEL, LLC', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-                  const Text('188 Georgia Pacific Dr\nClaxton, GA 30417\nPhone: (912) 549-4050', textAlign: TextAlign.center, style: TextStyle(fontSize: 10, color: Colors.black87)),
+                  const Text(
+                    'QUICKEN STEEL, LLC',
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                  ),
+                  const Text(
+                    '188 Georgia Pacific Dr\nClaxton, GA 30417\nPhone: (912) 549-4050',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 10, color: Colors.black87),
+                  ),
                 ],
               ),
             ),
@@ -255,7 +360,11 @@ class ShipperFileDetailsView extends GetView<ShipperFileDetailsController> {
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   color: const Color(0xFFE2E8F0),
-                  child: const Text('SALES ORDER', textAlign: TextAlign.center, style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                  child: const Text(
+                    'SALES ORDER',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                  ),
                 ),
                 _buildSalesOrderBoxRow('ORDER NO.', 'S-19459'),
                 _buildSalesOrderBoxRow('ORDER DATE', '1/14/2026'),
@@ -270,20 +379,34 @@ class ShipperFileDetailsView extends GetView<ShipperFileDetailsController> {
 
   Widget _buildSalesOrderBoxRow(String label, String value) {
     return Container(
-      decoration: const BoxDecoration(border: Border(top: BorderSide(color: Colors.black12))),
+      decoration: const BoxDecoration(
+        border: Border(top: BorderSide(color: Colors.black12)),
+      ),
       child: Row(
         children: [
           Expanded(
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               color: const Color(0xFFF1F5F9),
-              child: Text(label, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+              child: Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
           ),
           Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              child: Text(value, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600)),
+              child: Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
           ),
         ],
@@ -301,11 +424,36 @@ class ShipperFileDetailsView extends GetView<ShipperFileDetailsController> {
             padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
             child: Row(
               children: const [
-                Expanded(child: Text('Customer PO#', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
-                Expanded(child: Text('Sales Person', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
-                Expanded(child: Text('Warehouse', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
-                Expanded(child: Text('Terms', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
-                Expanded(child: Text('Ship Via', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
+                Expanded(
+                  child: Text(
+                    'Customer PO#',
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    'Sales Person',
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    'Warehouse',
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    'Terms',
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    'Ship Via',
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                  ),
+                ),
               ],
             ),
           ),
@@ -313,11 +461,36 @@ class ShipperFileDetailsView extends GetView<ShipperFileDetailsController> {
             padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
             child: Row(
               children: const [
-                Expanded(child: Text('USB Shipper', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600))),
-                Expanded(child: Text('Hunter Jeffcoat', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600))),
-                Expanded(child: Text('CLX', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600))),
-                Expanded(child: Text('Cash in Advance', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600))),
-                Expanded(child: Text('3rd Party', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600))),
+                Expanded(
+                  child: Text(
+                    'USB Shipper',
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    'Hunter Jeffcoat',
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    'CLX',
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    'Cash in Advance',
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    '3rd Party',
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                  ),
+                ),
               ],
             ),
           ),
@@ -334,13 +507,55 @@ class ShipperFileDetailsView extends GetView<ShipperFileDetailsController> {
           color: const Color(0xFFF1F5F9),
           child: Row(
             children: const [
-              Expanded(flex: 1, child: Text('QTY ↑↓', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
-              Expanded(flex: 2, child: Text('Item ↑↓', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
-              Expanded(flex: 4, child: Text('Description', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
-              Expanded(flex: 2, child: Text('Length ↑↓', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
-              Expanded(flex: 2, child: Text('Weight', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
-              Expanded(flex: 2, child: Text('Unit Price ↑↓', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
-              Expanded(flex: 2, child: Text('Amount ↑↓', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
+              Expanded(
+                flex: 1,
+                child: Text(
+                  'QTY ↑↓',
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                ),
+              ),
+              Expanded(
+                flex: 2,
+                child: Text(
+                  'Item ↑↓',
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                ),
+              ),
+              Expanded(
+                flex: 4,
+                child: Text(
+                  'Description',
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                ),
+              ),
+              Expanded(
+                flex: 2,
+                child: Text(
+                  'Length ↑↓',
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                ),
+              ),
+              Expanded(
+                flex: 2,
+                child: Text(
+                  'Weight',
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                ),
+              ),
+              Expanded(
+                flex: 2,
+                child: Text(
+                  'Unit Price ↑↓',
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                ),
+              ),
+              Expanded(
+                flex: 2,
+                child: Text(
+                  'Amount ↑↓',
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                ),
+              ),
             ],
           ),
         ),
@@ -349,20 +564,69 @@ class ShipperFileDetailsView extends GetView<ShipperFileDetailsController> {
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: controller.salesOrderItems.length,
-          separatorBuilder: (c, i) => const Divider(height: 1, color: Colors.black12),
+          separatorBuilder: (c, i) =>
+              const Divider(height: 1, color: Colors.black12),
           itemBuilder: (context, index) {
             final item = controller.salesOrderItems[index];
             return Padding(
               padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
               child: Row(
                 children: [
-                  Expanded(flex: 1, child: Text('${item.qty}', style: const TextStyle(fontSize: 11))),
-                  Expanded(flex: 2, child: Text(item.itemCode, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
-                  Expanded(flex: 4, child: Text(item.description, style: const TextStyle(fontSize: 10, color: AppColors.textSecondary))),
-                  Expanded(flex: 2, child: Text(item.length, style: const TextStyle(fontSize: 11))),
-                  Expanded(flex: 2, child: Text('${item.weight}', style: const TextStyle(fontSize: 11))),
-                  Expanded(flex: 2, child: Text(item.unitPrice, style: const TextStyle(fontSize: 11))),
-                  Expanded(flex: 2, child: Text(item.amount, style: const TextStyle(fontSize: 11))),
+                  Expanded(
+                    flex: 1,
+                    child: Text(
+                      '${item.qty}',
+                      style: const TextStyle(fontSize: 11),
+                    ),
+                  ),
+                  Expanded(
+                    flex: 2,
+                    child: Text(
+                      item.itemCode,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    flex: 4,
+                    child: Text(
+                      item.description,
+                      style: const TextStyle(
+                        fontSize: 10,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    flex: 2,
+                    child: Text(
+                      item.length,
+                      style: const TextStyle(fontSize: 11),
+                    ),
+                  ),
+                  Expanded(
+                    flex: 2,
+                    child: Text(
+                      '${item.weight}',
+                      style: const TextStyle(fontSize: 11),
+                    ),
+                  ),
+                  Expanded(
+                    flex: 2,
+                    child: Text(
+                      item.unitPrice,
+                      style: const TextStyle(fontSize: 11),
+                    ),
+                  ),
+                  Expanded(
+                    flex: 2,
+                    child: Text(
+                      item.amount,
+                      style: const TextStyle(fontSize: 11),
+                    ),
+                  ),
                 ],
               ),
             );

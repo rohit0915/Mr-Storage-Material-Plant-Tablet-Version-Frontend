@@ -54,7 +54,10 @@ class _FreightFilterDialogState extends State<FreightFilterDialog> {
               children: [
                 // Month Selector (< March 2024 >)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 8,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(8),
@@ -65,17 +68,29 @@ class _FreightFilterDialogState extends State<FreightFilterDialog> {
                     children: [
                       InkWell(
                         onTap: () {},
-                        child: const Icon(Icons.chevron_left, size: 18, color: AppColors.textSecondary),
+                        child: const Icon(
+                          Icons.chevron_left,
+                          size: 18,
+                          color: AppColors.textSecondary,
+                        ),
                       ),
                       const SizedBox(width: 6),
                       Text(
                         selectedMonth,
-                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
                       ),
                       const SizedBox(width: 6),
                       InkWell(
                         onTap: () {},
-                        child: const Icon(Icons.chevron_right, size: 18, color: AppColors.textSecondary),
+                        child: const Icon(
+                          Icons.chevron_right,
+                          size: 18,
+                          color: AppColors.textSecondary,
+                        ),
                       ),
                     ],
                   ),
@@ -94,7 +109,12 @@ class _FreightFilterDialogState extends State<FreightFilterDialog> {
                   child: _buildFilterDropdown(
                     'Project',
                     selectedProject,
-                    ['Storage Facility B', 'Industrial Complex A', 'Warehouse Complex', 'Storage Project C'],
+                    [
+                      'Storage Facility B',
+                      'Industrial Complex A',
+                      'Warehouse Complex',
+                      'Storage Project C',
+                    ],
                     (val) => setState(() => selectedProject = val),
                   ),
                 ),
@@ -103,7 +123,12 @@ class _FreightFilterDialogState extends State<FreightFilterDialog> {
                   child: _buildFilterDropdown(
                     'Delivery Type',
                     selectedDeliveryType,
-                    ['Primary Steel', 'Roll-up panels', 'Fasteners & hardware', 'Secondary steel'],
+                    [
+                      'Primary Steel',
+                      'Roll-up panels',
+                      'Fasteners & hardware',
+                      'Secondary steel',
+                    ],
                     (val) => setState(() => selectedDeliveryType = val),
                   ),
                 ),
@@ -127,7 +152,11 @@ class _FreightFilterDialogState extends State<FreightFilterDialog> {
                   child: _buildFilterDropdown(
                     'Vendor',
                     selectedVendor,
-                    ['Steel Supply Co', 'Apex Manufacturing', 'National Metals'],
+                    [
+                      'Steel Supply Co',
+                      'Apex Manufacturing',
+                      'National Metals',
+                    ],
                     (val) => setState(() => selectedVendor = val),
                   ),
                 ),
@@ -136,7 +165,12 @@ class _FreightFilterDialogState extends State<FreightFilterDialog> {
                   child: _buildFilterDropdown(
                     'Carrier',
                     selectedCarrier,
-                    ['QuickFreight Solutions', 'National Haulers', 'Fast Freight LLC', 'RoadKing Logistics'],
+                    [
+                      'QuickFreight Solutions',
+                      'National Haulers',
+                      'Fast Freight LLC',
+                      'RoadKing Logistics',
+                    ],
                     (val) => setState(() => selectedCarrier = val),
                   ),
                 ),
@@ -145,7 +179,12 @@ class _FreightFilterDialogState extends State<FreightFilterDialog> {
                   child: _buildFilterDropdown(
                     'Site Location',
                     selectedSiteLocation,
-                    ['Austin, TX', 'San Antonio, TX', 'Houston, TX', 'Dallas, TX'],
+                    [
+                      'Austin, TX',
+                      'San Antonio, TX',
+                      'Houston, TX',
+                      'Dallas, TX',
+                    ],
                     (val) => setState(() => selectedSiteLocation = val),
                   ),
                 ),
@@ -178,7 +217,13 @@ class _FreightFilterDialogState extends State<FreightFilterDialog> {
                   child: _buildFilterDropdown(
                     'Status',
                     selectedStatus,
-                    ['Scheduled', 'In Transit', 'Delivered', 'Awarded', 'Requested'],
+                    [
+                      'Scheduled',
+                      'In Transit',
+                      'Delivered',
+                      'Awarded',
+                      'Requested',
+                    ],
                     (val) => setState(() => selectedStatus = val),
                   ),
                 ),
@@ -214,11 +259,17 @@ class _FreightFilterDialogState extends State<FreightFilterDialog> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF2563EB),
                   elevation: 0,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(24),
+                  ),
                 ),
                 child: const Text(
                   'Apply',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ),
@@ -244,22 +295,34 @@ class _FreightFilterDialogState extends State<FreightFilterDialog> {
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           isExpanded: true,
-          icon: const Icon(Icons.keyboard_arrow_down, size: 16, color: AppColors.textSecondary),
+          icon: const Icon(
+            Icons.keyboard_arrow_down,
+            size: 16,
+            color: AppColors.textSecondary,
+          ),
           value: value,
           hint: Text(
             label,
-            style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+            style: const TextStyle(
+              fontSize: 11,
+              color: AppColors.textSecondary,
+            ),
             overflow: TextOverflow.ellipsis,
           ),
           items: options
-              .map((opt) => DropdownMenuItem<String>(
-                    value: opt,
-                    child: Text(
-                      opt,
-                      style: const TextStyle(fontSize: 11, color: AppColors.textPrimary),
-                      overflow: TextOverflow.ellipsis,
+              .map(
+                (opt) => DropdownMenuItem<String>(
+                  value: opt,
+                  child: Text(
+                    opt,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppColors.textPrimary,
                     ),
-                  ))
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              )
               .toList(),
           onChanged: onChanged,
         ),

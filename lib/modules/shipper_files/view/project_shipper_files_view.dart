@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../../../app/routes/app_routes.dart';
 import '../../../app/utils/app_colors.dart';
 import '../../../app/widgets/common_loader.dart';
+import '../../../app/widgets/common_pagination.dart';
 import '../../home/widgets/app_drawer.dart';
 import '../../home/widgets/dashboard_app_bar.dart';
 import '../controller/shipper_files_controller.dart';
@@ -422,12 +423,12 @@ class ProjectShipperFilesView extends GetView<ShipperFilesController> {
                           ),
                         ),
                       ),
-                      // File Status Column (Interactive Status Dropdown)
+                      // File Status Column (Read-only Status Badge)
                       Expanded(
                         flex: 3,
                         child: Align(
                           alignment: Alignment.centerLeft,
-                          child: _buildStatusDropdown(index, item.status),
+                          child: _buildStatusBadge(item.status),
                         ),
                       ),
                       // Action Column
@@ -453,7 +454,7 @@ class ProjectShipperFilesView extends GetView<ShipperFilesController> {
     );
   }
 
-  Widget _buildStatusDropdown(int index, String status) {
+  Widget _buildStatusBadge(String status) {
     Color bg;
     Color textColor;
 
@@ -471,151 +472,30 @@ class ProjectShipperFilesView extends GetView<ShipperFilesController> {
       textColor = const Color(0xFF16A34A);
     }
 
-    return PopupMenuButton<String>(
-      onSelected: (newStatus) => controller.updateFileStatus(index, newStatus),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      itemBuilder: (context) => const [
-        PopupMenuItem(
-          value: 'File Received',
-          child: Text('File Received', style: TextStyle(fontSize: 12)),
-        ),
-        PopupMenuItem(
-          value: 'Compared',
-          child: Text('Compared', style: TextStyle(fontSize: 12)),
-        ),
-        PopupMenuItem(
-          value: 'Revision Sent',
-          child: Text('Revision Sent', style: TextStyle(fontSize: 12)),
-        ),
-        PopupMenuItem(
-          value: 'Order Sent',
-          child: Text('Order Sent', style: TextStyle(fontSize: 12)),
-        ),
-      ],
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-        decoration: BoxDecoration(
-          color: bg,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              status,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.bold,
-                color: textColor,
-              ),
-            ),
-            const SizedBox(width: 4),
-            Icon(Icons.keyboard_arrow_down, size: 14, color: textColor),
-          ],
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        status,
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.bold,
+          color: textColor,
         ),
       ),
     );
   }
 
   Widget _buildPaginationFooter() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.inputBorder),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              const Text(
-                'Row Per Page',
-                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
-              ),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  border: Border.all(color: AppColors.inputBorder),
-                  borderRadius: const BorderRadius.all(Radius.circular(6)),
-                ),
-                child: Row(
-                  children: const [
-                    Text(
-                      '10',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    SizedBox(width: 4),
-                    Icon(Icons.keyboard_arrow_down, size: 14),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              const Text(
-                'Entries',
-                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
-              ),
-            ],
-          ),
-          Row(
-            children: [
-              const Icon(
-                Icons.chevron_left,
-                size: 18,
-                color: AppColors.textSecondary,
-              ),
-              const SizedBox(width: 8),
-              _buildPageNumber('1', false),
-              _buildPageNumber('2', false),
-              _buildPageNumber('3', false),
-              _buildPageNumber('4', true),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 4),
-                child: Text(
-                  '...',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-              ),
-              _buildPageNumber('15', false),
-              const SizedBox(width: 8),
-              const Icon(
-                Icons.chevron_right,
-                size: 18,
-                color: AppColors.textSecondary,
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPageNumber(String page, bool isSelected) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 3),
-      width: 26,
-      height: 26,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: isSelected ? const Color(0xFFF97316) : Colors.transparent,
-        shape: BoxShape.circle,
-      ),
-      child: Text(
-        page,
-        style: TextStyle(
-          fontSize: 11,
-          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-          color: isSelected ? Colors.white : AppColors.textSecondary,
-        ),
-      ),
+    return CommonPaginationFooter(
+      currentPage: controller.currentPage.value,
+      totalPages: 15,
+      rowsPerPage: controller.rowsPerPage.value,
+      onPageChanged: (page) => controller.currentPage.value = page,
+      onRowsPerPageChanged: (rows) => controller.rowsPerPage.value = rows,
     );
   }
 }

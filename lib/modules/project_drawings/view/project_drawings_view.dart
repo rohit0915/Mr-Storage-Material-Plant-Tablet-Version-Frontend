@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../app/routes/app_routes.dart';
 import '../../../app/utils/app_colors.dart';
 import '../../../app/widgets/common_loader.dart';
 import '../../../app/widgets/common_error_widget.dart';
@@ -102,7 +103,9 @@ class ProjectDrawingsView extends GetView<ProjectDrawingsController> {
           ),
           const Spacer(),
           ElevatedButton(
-            onPressed: () => Get.dialog(const UploadDrawingsDialog()),
+            onPressed: () => Get.dialog(
+              UploadDrawingsDialog(onUploaded: controller.loadDrawings),
+            ),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF2563EB),
               elevation: 0,
@@ -346,20 +349,24 @@ class ProjectDrawingsView extends GetView<ProjectDrawingsController> {
           ),
           child: Row(
             children: [
-              // Red PDF Icon container
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFF1F2),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: const Color(0xFFFECDD3)),
-                ),
-                child: const Center(
-                  child: Icon(
-                    Icons.picture_as_pdf_outlined,
-                    color: Color(0xFFE11D48),
-                    size: 22,
+              // Red PDF Icon container (Clickable to view PDF)
+              InkWell(
+                onTap: () => Get.toNamed(AppRoutes.pdfView),
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFF1F2),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: const Color(0xFFFECDD3)),
+                  ),
+                  child: const Center(
+                    child: Icon(
+                      Icons.picture_as_pdf_outlined,
+                      color: Color(0xFFE11D48),
+                      size: 22,
+                    ),
                   ),
                 ),
               ),

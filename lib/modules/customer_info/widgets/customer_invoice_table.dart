@@ -49,7 +49,11 @@ class CustomerInvoiceTable extends StatelessWidget {
                           AppIcons.pdf,
                           fit: BoxFit.contain,
                           errorBuilder: (context, error, stackTrace) =>
-                              const Icon(Icons.picture_as_pdf, size: 16, color: AppColors.badgeRedText),
+                              const Icon(
+                                Icons.picture_as_pdf,
+                                size: 16,
+                                color: AppColors.badgeRedText,
+                              ),
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -66,7 +70,11 @@ class CustomerInvoiceTable extends StatelessWidget {
                           AppIcons.xls,
                           fit: BoxFit.contain,
                           errorBuilder: (context, error, stackTrace) =>
-                              const Icon(Icons.table_chart, size: 16, color: AppColors.badgeGreenText),
+                              const Icon(
+                                Icons.table_chart,
+                                size: 16,
+                                color: AppColors.badgeGreenText,
+                              ),
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -93,9 +101,7 @@ class CustomerInvoiceTable extends StatelessWidget {
             // Table Header
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              decoration: const BoxDecoration(
-                color: AppColors.inputBackground,
-              ),
+              decoration: const BoxDecoration(color: AppColors.inputBackground),
               child: Row(
                 children: const [
                   Expanded(
@@ -174,7 +180,10 @@ class CustomerInvoiceTable extends StatelessWidget {
               return Column(
                 children: [
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
                     child: Row(
                       children: [
                         Expanded(
@@ -265,10 +274,7 @@ class CustomerInvoiceTable extends StatelessWidget {
           Container(
             width: 6,
             height: 6,
-            decoration: BoxDecoration(
-              color: fg,
-              shape: BoxShape.circle,
-            ),
+            decoration: BoxDecoration(color: fg, shape: BoxShape.circle),
           ),
           const SizedBox(width: 4),
           Text(

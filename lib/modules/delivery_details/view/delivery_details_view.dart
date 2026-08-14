@@ -146,6 +146,27 @@ class DeliveryDetailsView extends GetView<DeliveryDetailsController> {
           ],
         ),
         const Spacer(),
+        ElevatedButton.icon(
+          onPressed: _showSendBidsDialog,
+          icon: const Icon(Icons.send_outlined, size: 14, color: Colors.white),
+          label: const Text(
+            'Send Bids',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF0F766E),
+            elevation: 0,
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+        ),
+        const SizedBox(width: 10),
         OutlinedButton.icon(
           onPressed: () => Get.dialog(const RescheduleDeliveryDialog()),
           icon: const Icon(
@@ -192,6 +213,54 @@ class DeliveryDetailsView extends GetView<DeliveryDetailsController> {
           ),
         ),
       ],
+    );
+  }
+
+  Future<void> _showSendBidsDialog() async {
+    await controller.loadCarrierOptions();
+    Get.dialog(
+      AlertDialog(
+        title: const Text('Send Freight Bids'),
+        content: SizedBox(
+          width: 420,
+          child: Obx(
+            () => controller.carrierOptions.isEmpty
+                ? const Text('No active carriers are available.')
+                : Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: controller.carrierOptions.map((carrier) {
+                      final id = (carrier['_id'] ?? carrier['id'] ?? '')
+                          .toString();
+                      final name =
+                          (carrier['carrierName'] ??
+                                  carrier['name'] ??
+                                  'Carrier')
+                              .toString();
+                      return CheckboxListTile(
+                        value: controller.selectedCarrierIds.contains(id),
+                        title: Text(name),
+                        onChanged: id.isEmpty
+                            ? null
+                            : (checked) {
+                                if (checked == true) {
+                                  controller.selectedCarrierIds.add(id);
+                                } else {
+                                  controller.selectedCarrierIds.remove(id);
+                                }
+                              },
+                      );
+                    }).toList(),
+                  ),
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: Get.back, child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: controller.sendBids,
+            child: const Text('Send Bids'),
+          ),
+        ],
+      ),
     );
   }
 
@@ -883,10 +952,7 @@ class DeliveryDetailsView extends GetView<DeliveryDetailsController> {
             const Text(
               "We couldn't find any delivery details for this project.",
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 13,
-                color: AppColors.textSecondary,
-              ),
+              style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
             ),
             const SizedBox(height: 24),
             ElevatedButton(
@@ -897,7 +963,10 @@ class DeliveryDetailsView extends GetView<DeliveryDetailsController> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 28,
+                  vertical: 12,
+                ),
               ),
               child: const Text(
                 'Go Back',

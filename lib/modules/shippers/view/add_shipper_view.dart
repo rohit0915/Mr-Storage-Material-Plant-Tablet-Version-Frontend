@@ -25,7 +25,10 @@ class AddShipperView extends GetView<ShippersController> {
 
                 return SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 16,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -72,7 +75,11 @@ class AddShipperView extends GetView<ShippersController> {
           children: [
             IconButton(
               onPressed: () => Get.back(),
-              icon: const Icon(Icons.arrow_back, size: 20, color: Color(0xFF1E293B)),
+              icon: const Icon(
+                Icons.arrow_back,
+                size: 20,
+                color: Color(0xFF1E293B),
+              ),
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(),
             ),
@@ -89,15 +96,25 @@ class AddShipperView extends GetView<ShippersController> {
         ),
         ElevatedButton.icon(
           onPressed: () => controller.saveShipper(context, isEdit: false),
-          icon: const Icon(Icons.add_circle_outline, size: 16, color: Colors.white),
+          icon: const Icon(
+            Icons.add_circle_outline,
+            size: 16,
+            color: Colors.white,
+          ),
           label: const Text(
             'Add Shipper',
-            style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
           ),
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFF2563EB),
             elevation: 0,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           ),
         ),
@@ -125,7 +142,11 @@ class AddShipperView extends GetView<ShippersController> {
                   SizedBox(width: 8),
                   Text(
                     'Shipper Information',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1E293B),
+                    ),
                   ),
                 ],
               ),
@@ -152,7 +173,10 @@ class AddShipperView extends GetView<ShippersController> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildFieldLabel('Shippers ID (Auto-generated + Editable)', isRequired: true),
+                    _buildFieldLabel(
+                      'Shippers ID (Auto-generated + Editable)',
+                      isRequired: true,
+                    ),
                     const SizedBox(height: 6),
                     _buildInputField(controller.idController),
                   ],
@@ -212,7 +236,10 @@ class AddShipperView extends GetView<ShippersController> {
                   children: [
                     _buildFieldLabel('Service Category'),
                     const SizedBox(height: 6),
-                    _buildDropdownField(['Construction Material', 'Logistics Services'], controller.serviceCategory),
+                    _buildDropdownField([
+                      'Construction Material',
+                      'Logistics Services',
+                    ], controller.serviceCategory),
                   ],
                 ),
               ),
@@ -223,7 +250,10 @@ class AddShipperView extends GetView<ShippersController> {
                   children: [
                     _buildFieldLabel('Vendor Type'),
                     const SizedBox(height: 6),
-                    _buildDropdownField(['Material Shipper', 'Freight Carrier'], controller.vendorType),
+                    _buildDropdownField([
+                      'Material Shipper',
+                      'Freight Carrier',
+                    ], controller.vendorType),
                   ],
                 ),
               ),
@@ -254,7 +284,11 @@ class AddShipperView extends GetView<ShippersController> {
                   SizedBox(width: 8),
                   Text(
                     'Address Information',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1E293B),
+                    ),
                   ),
                 ],
               ),
@@ -272,7 +306,11 @@ class AddShipperView extends GetView<ShippersController> {
                   children: [
                     _buildFieldLabel('Country', isRequired: true),
                     const SizedBox(height: 6),
-                    _buildDropdownField(['India', 'USA', 'Canada'], controller.country),
+                    _buildDropdownField([
+                      'India',
+                      'USA',
+                      'Canada',
+                    ], controller.country),
                   ],
                 ),
               ),
@@ -283,7 +321,11 @@ class AddShipperView extends GetView<ShippersController> {
                   children: [
                     _buildFieldLabel('State', isRequired: true),
                     const SizedBox(height: 6),
-                    _buildDropdownField(['Maharashtra', 'New York', 'California'], controller.state),
+                    _buildDropdownField([
+                      'Maharashtra',
+                      'New York',
+                      'California',
+                    ], controller.state),
                   ],
                 ),
               ),
@@ -294,7 +336,11 @@ class AddShipperView extends GetView<ShippersController> {
                   children: [
                     _buildFieldLabel('City', isRequired: true),
                     const SizedBox(height: 6),
-                    _buildDropdownField(['Pune', 'Rochester', 'Los Angeles'], controller.city),
+                    _buildDropdownField([
+                      'Pune',
+                      'Rochester',
+                      'Los Angeles',
+                    ], controller.city),
                   ],
                 ),
               ),
@@ -367,7 +413,10 @@ class AddShipperView extends GetView<ShippersController> {
                   errorBuilder: (ctx, err, stack) => Container(
                     color: const Color(0xFFF1F5F9),
                     child: const Center(
-                      child: Text('Map View', style: TextStyle(color: Color(0xFF94A3B8))),
+                      child: Text(
+                        'Map View',
+                        style: TextStyle(color: Color(0xFF94A3B8)),
+                      ),
                     ),
                   ),
                 ),
@@ -377,17 +426,27 @@ class AddShipperView extends GetView<ShippersController> {
                   top: 16,
                   left: 16,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.9),
                       borderRadius: BorderRadius.circular(6),
                       boxShadow: [
-                        BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 4),
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.1),
+                          blurRadius: 4,
+                        ),
                       ],
                     ),
                     child: const Text(
                       'Map Preview',
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1E293B),
+                      ),
                     ),
                   ),
                 ),
@@ -407,7 +466,11 @@ class AddShipperView extends GetView<ShippersController> {
                         ),
                       ],
                     ),
-                    child: const Icon(Icons.storefront_outlined, color: Colors.white, size: 24),
+                    child: const Icon(
+                      Icons.storefront_outlined,
+                      color: Colors.white,
+                      size: 24,
+                    ),
                   ),
                 ),
               ],
@@ -431,7 +494,11 @@ class AddShipperView extends GetView<ShippersController> {
         children: [
           const Text(
             'Upload Documents',
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF1E293B),
+            ),
           ),
           const SizedBox(height: 16),
 
@@ -445,13 +512,20 @@ class AddShipperView extends GetView<ShippersController> {
                 decoration: BoxDecoration(
                   color: const Color(0xFFF8FAFC),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFF93C5FD), width: 1.5),
+                  border: Border.all(
+                    color: const Color(0xFF93C5FD),
+                    width: 1.5,
+                  ),
                 ),
                 child: Column(
                   children: [
                     const Text(
                       'Upload Documents & Files',
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1E293B),
+                      ),
                     ),
                     const SizedBox(height: 2),
                     const Text(
@@ -466,19 +540,32 @@ class AddShipperView extends GetView<ShippersController> {
                         color: const Color(0xFF2563EB),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Icon(Icons.cloud_upload_outlined, color: Colors.white, size: 20),
+                      child: const Icon(
+                        Icons.cloud_upload_outlined,
+                        color: Colors.white,
+                        size: 20,
+                      ),
                     ),
                     const SizedBox(height: 10),
                     OutlinedButton(
                       onPressed: () {},
                       style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 6,
+                        ),
                         side: const BorderSide(color: Color(0xFF2563EB)),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(6),
+                        ),
                       ),
                       child: const Text(
                         'Browse files',
-                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF2563EB)),
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF2563EB),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -510,20 +597,45 @@ class AddShipperView extends GetView<ShippersController> {
                         color: const Color(0xFFEF4444),
                         borderRadius: BorderRadius.circular(6),
                       ),
-                      child: const Text('PDF', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.white)),
+                      child: const Text(
+                        'PDF',
+                        style: TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
                     ),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: const [
-                          Text('MaterialDocument.pdf', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)), overflow: TextOverflow.ellipsis),
+                          Text(
+                            'MaterialDocument.pdf',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF1E293B),
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
                           SizedBox(height: 2),
-                          Text('5.3MB', style: TextStyle(fontSize: 10, color: Color(0xFF94A3B8))),
+                          Text(
+                            '5.3MB',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Color(0xFF94A3B8),
+                            ),
+                          ),
                         ],
                       ),
                     ),
-                    const Icon(Icons.cancel_outlined, size: 16, color: Color(0xFF94A3B8)),
+                    const Icon(
+                      Icons.cancel_outlined,
+                      size: 16,
+                      color: Color(0xFF94A3B8),
+                    ),
                   ],
                 ),
               ),
@@ -554,7 +666,11 @@ class AddShipperView extends GetView<ShippersController> {
                   SizedBox(width: 8),
                   Text(
                     'Internal Notes',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1E293B),
+                    ),
                   ),
                 ],
               ),
@@ -590,9 +706,23 @@ class AddShipperView extends GetView<ShippersController> {
     return RichText(
       text: TextSpan(
         children: [
-          TextSpan(text: label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF334155))),
+          TextSpan(
+            text: label,
+            style: const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF334155),
+            ),
+          ),
           if (isRequired)
-            const TextSpan(text: ' *', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFFEF4444))),
+            const TextSpan(
+              text: ' *',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFFEF4444),
+              ),
+            ),
         ],
       ),
     );
@@ -631,17 +761,36 @@ class AddShipperView extends GetView<ShippersController> {
           const SizedBox(width: 10),
           const Icon(Icons.flag, size: 14, color: Color(0xFFEF4444)),
           const SizedBox(width: 4),
-          const Text('+1', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF334155))),
-          const Icon(Icons.keyboard_arrow_down, size: 14, color: Color(0xFF64748B)),
+          const Text(
+            '+1',
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF334155),
+            ),
+          ),
+          const Icon(
+            Icons.keyboard_arrow_down,
+            size: 14,
+            color: Color(0xFF64748B),
+          ),
           const SizedBox(width: 8),
-          const VerticalDivider(width: 1, indent: 8, endIndent: 8, color: Color(0xFFCBD5E1)),
+          const VerticalDivider(
+            width: 1,
+            indent: 8,
+            endIndent: 8,
+            color: Color(0xFFCBD5E1),
+          ),
           Expanded(
             child: TextField(
               controller: ctrl,
               style: const TextStyle(fontSize: 12, color: Color(0xFF1E293B)),
               decoration: const InputDecoration(
                 isDense: true,
-                contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 10,
+                ),
                 border: InputBorder.none,
               ),
             ),
@@ -665,12 +814,18 @@ class AddShipperView extends GetView<ShippersController> {
           child: DropdownButton<String>(
             value: selectedVal.value,
             isExpanded: true,
-            icon: const Icon(Icons.keyboard_arrow_down, size: 16, color: Color(0xFF64748B)),
+            icon: const Icon(
+              Icons.keyboard_arrow_down,
+              size: 16,
+              color: Color(0xFF64748B),
+            ),
             style: const TextStyle(fontSize: 12, color: Color(0xFF1E293B)),
             onChanged: (val) {
               if (val != null) selectedVal.value = val;
             },
-            items: items.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+            items: items
+                .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                .toList(),
           ),
         ),
       ),

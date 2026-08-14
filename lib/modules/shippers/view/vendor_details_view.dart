@@ -25,7 +25,10 @@ class VendorDetailsView extends GetView<ShippersController> {
 
                 return SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 16,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -92,7 +95,11 @@ class VendorDetailsView extends GetView<ShippersController> {
       children: [
         IconButton(
           onPressed: () => Get.back(),
-          icon: const Icon(Icons.arrow_back, size: 20, color: Color(0xFF1E293B)),
+          icon: const Icon(
+            Icons.arrow_back,
+            size: 20,
+            color: Color(0xFF1E293B),
+          ),
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(),
         ),
@@ -135,14 +142,26 @@ class VendorDetailsView extends GetView<ShippersController> {
                     children: [
                       Text(
                         v.vendorCode,
-                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF6366F1)),
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF6366F1),
+                        ),
                       ),
                       const SizedBox(width: 8),
-                      const Icon(Icons.star, size: 14, color: Color(0xFFEAB308)),
+                      const Icon(
+                        Icons.star,
+                        size: 14,
+                        color: Color(0xFFEAB308),
+                      ),
                       const SizedBox(width: 4),
                       Text(
                         '${v.rating} / 5',
-                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF334155)),
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF334155),
+                        ),
                       ),
                     ],
                   ),
@@ -151,22 +170,37 @@ class VendorDetailsView extends GetView<ShippersController> {
                     children: [
                       Text(
                         companyName,
-                        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1E293B),
+                        ),
                       ),
                       const SizedBox(width: 10),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
                         decoration: BoxDecoration(
                           color: const Color(0xFFDCFCE7),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Row(
                           children: const [
-                            Icon(Icons.check_circle, size: 12, color: Color(0xFF16A34A)),
+                            Icon(
+                              Icons.check_circle,
+                              size: 12,
+                              color: Color(0xFF16A34A),
+                            ),
                             SizedBox(width: 4),
                             Text(
                               'Active',
-                              style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF16A34A)),
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF16A34A),
+                              ),
                             ),
                           ],
                         ),
@@ -177,16 +211,29 @@ class VendorDetailsView extends GetView<ShippersController> {
               ),
               OutlinedButton.icon(
                 onPressed: () => controller.openEditShipper(),
-                icon: const Icon(Icons.edit_outlined, size: 14, color: Color(0xFF334155)),
+                icon: const Icon(
+                  Icons.edit_outlined,
+                  size: 14,
+                  color: Color(0xFF334155),
+                ),
                 label: const Text(
                   'Edit Profile',
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF334155)),
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF334155),
+                  ),
                 ),
                 style: OutlinedButton.styleFrom(
                   backgroundColor: Colors.white,
                   side: const BorderSide(color: Color(0xFFCBD5E1)),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
                 ),
               ),
             ],
@@ -195,9 +242,16 @@ class VendorDetailsView extends GetView<ShippersController> {
           const SizedBox(height: 8),
           Row(
             children: [
-              const Icon(Icons.location_on_outlined, size: 14, color: Color(0xFF64748B)),
+              const Icon(
+                Icons.location_on_outlined,
+                size: 14,
+                color: Color(0xFF64748B),
+              ),
               const SizedBox(width: 4),
-              Text(v.address, style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+              Text(
+                v.address,
+                style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+              ),
             ],
           ),
 
@@ -215,13 +269,30 @@ class VendorDetailsView extends GetView<ShippersController> {
                 Expanded(
                   child: Row(
                     children: [
-                      const Icon(Icons.email_outlined, size: 16, color: Color(0xFF64748B)),
+                      const Icon(
+                        Icons.email_outlined,
+                        size: 16,
+                        color: Color(0xFF64748B),
+                      ),
                       const SizedBox(width: 8),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Email Address', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF334155))),
-                          Text(v.email, style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                          const Text(
+                            'Email Address',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF334155),
+                            ),
+                          ),
+                          Text(
+                            v.email,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Color(0xFF64748B),
+                            ),
+                          ),
                         ],
                       ),
                     ],
@@ -230,13 +301,30 @@ class VendorDetailsView extends GetView<ShippersController> {
                 Expanded(
                   child: Row(
                     children: [
-                      const Icon(Icons.phone_outlined, size: 16, color: Color(0xFF64748B)),
+                      const Icon(
+                        Icons.phone_outlined,
+                        size: 16,
+                        color: Color(0xFF64748B),
+                      ),
                       const SizedBox(width: 8),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Phone', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF334155))),
-                          Text(v.phone, style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                          const Text(
+                            'Phone',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF334155),
+                            ),
+                          ),
+                          Text(
+                            v.phone,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Color(0xFF64748B),
+                            ),
+                          ),
                         ],
                       ),
                     ],
@@ -261,9 +349,22 @@ class VendorDetailsView extends GetView<ShippersController> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('• Vendor Type', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF334155))),
+                      const Text(
+                        '• Vendor Type',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF334155),
+                        ),
+                      ),
                       const SizedBox(height: 2),
-                      Text(v.vendorType, style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                      Text(
+                        v.vendorType,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Color(0xFF64748B),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -271,9 +372,22 @@ class VendorDetailsView extends GetView<ShippersController> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('• Service Category', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF334155))),
+                      const Text(
+                        '• Service Category',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF334155),
+                        ),
+                      ),
                       const SizedBox(height: 2),
-                      Text(v.serviceCategory, style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                      Text(
+                        v.serviceCategory,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Color(0xFF64748B),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -281,9 +395,22 @@ class VendorDetailsView extends GetView<ShippersController> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('• Years Working With Company', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF334155))),
+                      const Text(
+                        '• Years Working With Company',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF334155),
+                        ),
+                      ),
                       const SizedBox(height: 2),
-                      Text(v.yearsWorking, style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                      Text(
+                        v.yearsWorking,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Color(0xFF64748B),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -304,7 +431,10 @@ class VendorDetailsView extends GetView<ShippersController> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 _buildStatCell('Total Orders', '${v.totalOrders}'),
-                _buildStatCell('Completed Deliveries', '${v.completedDeliveries}'),
+                _buildStatCell(
+                  'Completed Deliveries',
+                  '${v.completedDeliveries}',
+                ),
                 _buildStatCell('Active Orders', '${v.activeOrders}'),
                 _buildStatCell('Average Delivery Time', v.avgDeliveryTime),
                 _buildStatCell('On-time Delivery Rate', v.onTimeRate),
@@ -320,9 +450,19 @@ class VendorDetailsView extends GetView<ShippersController> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF334155))),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF334155),
+          ),
+        ),
         const SizedBox(height: 4),
-        Text(value, style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+        Text(
+          value,
+          style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+        ),
       ],
     );
   }
@@ -341,7 +481,11 @@ class VendorDetailsView extends GetView<ShippersController> {
             padding: EdgeInsets.all(18),
             child: Text(
               'Order / Purchase History',
-              style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1E293B),
+              ),
             ),
           ),
           const Divider(height: 1, color: Color(0xFFE2E8F0)),
@@ -368,11 +512,15 @@ class VendorDetailsView extends GetView<ShippersController> {
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: controller.orderHistory.length,
-              separatorBuilder: (ctx, idx) => const Divider(height: 1, color: Color(0xFFF1F5F9)),
+              separatorBuilder: (ctx, idx) =>
+                  const Divider(height: 1, color: Color(0xFFF1F5F9)),
               itemBuilder: (ctx, index) {
                 final item = controller.orderHistory[index];
                 return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
                   child: Row(
                     children: [
                       Expanded(
@@ -382,7 +530,9 @@ class VendorDetailsView extends GetView<ShippersController> {
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            color: item.orderId == 'ORD00019' ? const Color(0xFF2563EB) : const Color(0xFF475569),
+                            color: item.orderId == 'ORD00019'
+                                ? const Color(0xFF2563EB)
+                                : const Color(0xFF475569),
                           ),
                         ),
                       ),
@@ -394,9 +544,14 @@ class VendorDetailsView extends GetView<ShippersController> {
                         child: Align(
                           alignment: Alignment.centerLeft,
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
                             decoration: BoxDecoration(
-                              color: item.status == 'Delivered' ? const Color(0xFFDCFCE7) : const Color(0xFFDBEAFE),
+                              color: item.status == 'Delivered'
+                                  ? const Color(0xFFDCFCE7)
+                                  : const Color(0xFFDBEAFE),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
@@ -404,7 +559,9 @@ class VendorDetailsView extends GetView<ShippersController> {
                               style: TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.bold,
-                                color: item.status == 'Delivered' ? const Color(0xFF16A34A) : const Color(0xFF2563EB),
+                                color: item.status == 'Delivered'
+                                    ? const Color(0xFF16A34A)
+                                    : const Color(0xFF2563EB),
                               ),
                             ),
                           ),
@@ -424,7 +581,10 @@ class VendorDetailsView extends GetView<ShippersController> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Row(
               children: [
-                const Text('Showing  ', style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+                const Text(
+                  'Showing  ',
+                  style: TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                ),
                 Container(
                   height: 28,
                   padding: const EdgeInsets.symmetric(horizontal: 6),
@@ -436,14 +596,26 @@ class VendorDetailsView extends GetView<ShippersController> {
                   child: DropdownButtonHideUnderline(
                     child: DropdownButton<int>(
                       value: 10,
-                      icon: const Icon(Icons.keyboard_arrow_down, size: 14, color: Color(0xFF64748B)),
-                      style: const TextStyle(fontSize: 11, color: Color(0xFF1E293B)),
+                      icon: const Icon(
+                        Icons.keyboard_arrow_down,
+                        size: 14,
+                        color: Color(0xFF64748B),
+                      ),
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: Color(0xFF1E293B),
+                      ),
                       onChanged: (v) {},
-                      items: const [DropdownMenuItem(value: 10, child: Text('10'))],
+                      items: const [
+                        DropdownMenuItem(value: 10, child: Text('10')),
+                      ],
                     ),
                   ),
                 ),
-                const Text('  Results', style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+                const Text(
+                  '  Results',
+                  style: TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                ),
                 const Spacer(),
                 Row(
                   children: [
@@ -451,7 +623,10 @@ class VendorDetailsView extends GetView<ShippersController> {
                     _buildPageNum('1', isSelected: true),
                     _buildPageNum('2'),
                     _buildPageNum('3'),
-                    const Text(' ... ', style: TextStyle(fontSize: 11, color: Color(0xFF94A3B8))),
+                    const Text(
+                      ' ... ',
+                      style: TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
+                    ),
                     _buildPageNum('8'),
                     _buildPageNum('>', isArrow: true),
                   ],
@@ -481,12 +656,18 @@ class VendorDetailsView extends GetView<ShippersController> {
               children: [
                 const Text(
                   'Compliance & Certifications',
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1E293B),
+                  ),
                 ),
                 Obx(
                   () => IconButton(
                     icon: Icon(
-                      controller.isComplianceExpanded.value ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                      controller.isComplianceExpanded.value
+                          ? Icons.keyboard_arrow_up
+                          : Icons.keyboard_arrow_down,
                       size: 20,
                       color: const Color(0xFF64748B),
                     ),
@@ -510,12 +691,19 @@ class VendorDetailsView extends GetView<ShippersController> {
 
                 // Toolbar: Count + Sort + Search
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 18,
+                    vertical: 12,
+                  ),
                   child: Row(
                     children: [
                       const Text(
                         'Total No of Documents : 4',
-                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1E293B),
+                        ),
                       ),
                       const Spacer(),
                       Container(
@@ -529,10 +717,22 @@ class VendorDetailsView extends GetView<ShippersController> {
                         child: DropdownButtonHideUnderline(
                           child: DropdownButton<String>(
                             value: 'Docs Type',
-                            icon: const Icon(Icons.keyboard_arrow_down, size: 14, color: Color(0xFF64748B)),
-                            style: const TextStyle(fontSize: 11, color: Color(0xFF1E293B)),
+                            icon: const Icon(
+                              Icons.keyboard_arrow_down,
+                              size: 14,
+                              color: Color(0xFF64748B),
+                            ),
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: Color(0xFF1E293B),
+                            ),
                             onChanged: (v) {},
-                            items: const [DropdownMenuItem(value: 'Docs Type', child: Text('Sort By : Docs Type'))],
+                            items: const [
+                              DropdownMenuItem(
+                                value: 'Docs Type',
+                                child: Text('Sort By : Docs Type'),
+                              ),
+                            ],
                           ),
                         ),
                       ),
@@ -549,8 +749,15 @@ class VendorDetailsView extends GetView<ShippersController> {
                           style: TextStyle(fontSize: 11),
                           decoration: InputDecoration(
                             hintText: 'Search',
-                            hintStyle: TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
-                            prefixIcon: Icon(Icons.search, size: 14, color: Color(0xFF94A3B8)),
+                            hintStyle: TextStyle(
+                              fontSize: 11,
+                              color: Color(0xFF94A3B8),
+                            ),
+                            prefixIcon: Icon(
+                              Icons.search,
+                              size: 14,
+                              color: Color(0xFF94A3B8),
+                            ),
                             border: InputBorder.none,
                             contentPadding: EdgeInsets.symmetric(vertical: 8),
                           ),
@@ -564,7 +771,10 @@ class VendorDetailsView extends GetView<ShippersController> {
 
                 // Document Table Header
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 18,
+                    vertical: 10,
+                  ),
                   color: const Color(0xFFF8FAFC),
                   child: Row(
                     children: [
@@ -583,7 +793,10 @@ class VendorDetailsView extends GetView<ShippersController> {
                   return Column(
                     children: [
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 18,
+                          vertical: 12,
+                        ),
                         child: Row(
                           children: [
                             Expanded(
@@ -596,16 +809,43 @@ class VendorDetailsView extends GetView<ShippersController> {
                                       color: const Color(0xFFEF4444),
                                       borderRadius: BorderRadius.circular(4),
                                     ),
-                                    child: const Text('PDF', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Colors.white)),
+                                    child: const Text(
+                                      'PDF',
+                                      style: TextStyle(
+                                        fontSize: 8,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                      ),
+                                    ),
                                   ),
                                   const SizedBox(width: 10),
-                                  Text(cert.name, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                                  Text(
+                                    cert.name,
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF1E293B),
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
-                            _buildTd(cert.size, flex: 2, color: const Color(0xFF64748B)),
-                            _buildTd(cert.type, flex: 2, color: const Color(0xFF64748B)),
-                            _buildTd(cert.expiryDate, flex: 2, isBold: true, color: const Color(0xFF334155)),
+                            _buildTd(
+                              cert.size,
+                              flex: 2,
+                              color: const Color(0xFF64748B),
+                            ),
+                            _buildTd(
+                              cert.type,
+                              flex: 2,
+                              color: const Color(0xFF64748B),
+                            ),
+                            _buildTd(
+                              cert.expiryDate,
+                              flex: 2,
+                              isBold: true,
+                              color: const Color(0xFF334155),
+                            ),
                           ],
                         ),
                       ),
@@ -633,11 +873,22 @@ class VendorDetailsView extends GetView<ShippersController> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: const [
-          Text('Notes', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+          Text(
+            'Notes',
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF1E293B),
+            ),
+          ),
           SizedBox(height: 12),
           Text(
             "Keep in mind that in order to be deductible, your employees' pay must be reasonable and necessary for conducting business to qualify for",
-            style: TextStyle(fontSize: 12, height: 1.5, color: Color(0xFF64748B)),
+            style: TextStyle(
+              fontSize: 12,
+              height: 1.5,
+              color: Color(0xFF64748B),
+            ),
           ),
         ],
       ),
@@ -655,7 +906,14 @@ class VendorDetailsView extends GetView<ShippersController> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Vendor Contact Roles', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+          const Text(
+            'Vendor Contact Roles',
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF1E293B),
+            ),
+          ),
           const SizedBox(height: 14),
           const Divider(height: 1, color: Color(0xFFE2E8F0)),
           const SizedBox(height: 14),
@@ -666,10 +924,29 @@ class VendorDetailsView extends GetView<ShippersController> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(r.roleName, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                  Text(
+                    r.roleName,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1E293B),
+                    ),
+                  ),
                   const SizedBox(height: 2),
-                  Text(r.name, style: const TextStyle(fontSize: 11, color: Color(0xFF64748B))),
-                  Text(r.phone, style: const TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+                  Text(
+                    r.name,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: Color(0xFF64748B),
+                    ),
+                  ),
+                  Text(
+                    r.phone,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: Color(0xFF64748B),
+                    ),
+                  ),
                 ],
               ),
             );
@@ -679,7 +956,11 @@ class VendorDetailsView extends GetView<ShippersController> {
     );
   }
 
-  Widget _buildPageNum(String text, {bool isSelected = false, bool isArrow = false}) {
+  Widget _buildPageNum(
+    String text, {
+    bool isSelected = false,
+    bool isArrow = false,
+  }) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 2),
       width: 24,
@@ -692,7 +973,11 @@ class VendorDetailsView extends GetView<ShippersController> {
       alignment: Alignment.center,
       child: Text(
         text,
-        style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: isSelected ? Colors.white : const Color(0xFF64748B)),
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.bold,
+          color: isSelected ? Colors.white : const Color(0xFF64748B),
+        ),
       ),
     );
   }
@@ -704,7 +989,11 @@ class VendorDetailsView extends GetView<ShippersController> {
         children: [
           Text(
             title,
-            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF334155)),
+            style: const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF334155),
+            ),
           ),
           if (sortable) ...[
             const SizedBox(width: 3),
@@ -715,7 +1004,12 @@ class VendorDetailsView extends GetView<ShippersController> {
     );
   }
 
-  Widget _buildTd(String text, {int flex = 1, bool isBold = false, Color color = const Color(0xFF334155)}) {
+  Widget _buildTd(
+    String text, {
+    int flex = 1,
+    bool isBold = false,
+    Color color = const Color(0xFF334155),
+  }) {
     return Expanded(
       flex: flex,
       child: Text(

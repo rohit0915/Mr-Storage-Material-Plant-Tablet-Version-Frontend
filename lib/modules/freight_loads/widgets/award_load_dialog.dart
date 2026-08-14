@@ -6,12 +6,14 @@ class AwardLoadDialog extends StatefulWidget {
   final String carrierName;
   final String awardAmount;
   final String project;
+  final Future<bool> Function()? onConfirm;
 
   const AwardLoadDialog({
     super.key,
     this.carrierName = 'QuickFreight Solutions',
     this.awardAmount = r'$2,850',
     this.project = 'ABC Logistics Warehouse',
+    this.onConfirm,
   });
 
   @override
@@ -104,7 +106,10 @@ class _AwardLoadDialogState extends State<AwardLoadDialog> {
                       SizedBox(width: 4),
                       Text(
                         '4.8 rating',
-                        style: TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Color(0xFF64748B),
+                        ),
                       ),
                     ],
                   ),
@@ -128,7 +133,10 @@ class _AwardLoadDialogState extends State<AwardLoadDialog> {
                   ),
                   const SizedBox(height: 4),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
                       color: const Color(0xFFDCFCE7),
                       borderRadius: BorderRadius.circular(4),
@@ -257,8 +265,15 @@ class _AwardLoadDialogState extends State<AwardLoadDialog> {
               child: SizedBox(
                 height: 44,
                 child: ElevatedButton.icon(
-                  onPressed: () => setState(() => isSuccess = true),
-                  icon: const Icon(Icons.workspace_premium, size: 16, color: Colors.white),
+                  onPressed: () async {
+                    final success = await widget.onConfirm?.call() ?? true;
+                    if (success && mounted) setState(() => isSuccess = true);
+                  },
+                  icon: const Icon(
+                    Icons.workspace_premium,
+                    size: 16,
+                    color: Colors.white,
+                  ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF16A34A),
                     elevation: 0,
@@ -285,14 +300,14 @@ class _AwardLoadDialogState extends State<AwardLoadDialog> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ),
               ),
               child: const Text(
                 'Cancel',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: Color(0xFF64748B),
-                ),
+                style: TextStyle(fontSize: 13, color: Color(0xFF64748B)),
               ),
             ),
           ],
@@ -426,10 +441,7 @@ class _AwardLoadDialogState extends State<AwardLoadDialog> {
         Expanded(
           child: Text(
             value,
-            style: const TextStyle(
-              fontSize: 12,
-              color: Color(0xFF475569),
-            ),
+            style: const TextStyle(fontSize: 12, color: Color(0xFF475569)),
           ),
         ),
       ],

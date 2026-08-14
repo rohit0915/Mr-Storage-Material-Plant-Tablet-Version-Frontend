@@ -38,12 +38,19 @@ class CustomerInfoView extends GetView<CustomerInfoController> {
                     children: [
                       // Back Button & Screen Title Header Bar
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16.0,
+                          vertical: 8.0,
+                        ),
                         child: Row(
                           children: [
                             ElevatedButton.icon(
                               onPressed: () => Get.back(),
-                              icon: const Icon(Icons.arrow_back, size: 16, color: Colors.white),
+                              icon: const Icon(
+                                Icons.arrow_back,
+                                size: 16,
+                                color: Colors.white,
+                              ),
                               label: const Text(
                                 'Back',
                                 style: TextStyle(
@@ -55,8 +62,13 @@ class CustomerInfoView extends GetView<CustomerInfoController> {
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppColors.primary,
                                 elevation: 0,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 14,
+                                  vertical: 10,
+                                ),
                               ),
                             ),
                             const SizedBox(width: 16),

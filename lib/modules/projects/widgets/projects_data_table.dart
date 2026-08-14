@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../app/routes/app_routes.dart';
 import '../../../app/utils/app_colors.dart';
+import '../../../app/widgets/common_pagination.dart';
 import '../model/projects_model.dart';
 
 class ProjectsDataTable extends StatelessWidget {
@@ -9,6 +10,11 @@ class ProjectsDataTable extends StatelessWidget {
   final bool selectAll;
   final ValueChanged<bool?> onSelectAll;
   final ValueChanged<int> onSelectRow;
+  final int currentPage;
+  final int totalPages;
+  final int rowsPerPage;
+  final ValueChanged<int>? onPageChanged;
+  final ValueChanged<int>? onRowsPerPageChanged;
 
   const ProjectsDataTable({
     super.key,
@@ -16,6 +22,11 @@ class ProjectsDataTable extends StatelessWidget {
     required this.selectAll,
     required this.onSelectAll,
     required this.onSelectRow,
+    this.currentPage = 1,
+    this.totalPages = 1,
+    this.rowsPerPage = 10,
+    this.onPageChanged,
+    this.onRowsPerPageChanged,
   });
 
   @override
@@ -338,41 +349,13 @@ class ProjectsDataTable extends StatelessWidget {
               );
             }),
             const Divider(height: 1, color: AppColors.divider),
-            // Pagination Bar Footer (Matching Web UI)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: const [
-                      Text('Row Per Page ', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-                      Text('5 ', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-                      Icon(Icons.keyboard_arrow_down, size: 14, color: AppColors.textSecondary),
-                      Text(' Entries', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      const Icon(Icons.chevron_left, size: 18, color: AppColors.textSecondary),
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF97316),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Text(
-                          '1',
-                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      const Icon(Icons.chevron_right, size: 18, color: AppColors.textSecondary),
-                    ],
-                  ),
-                ],
-              ),
+            // Pagination Bar Footer
+            CommonPaginationFooter(
+              currentPage: currentPage,
+              totalPages: totalPages,
+              rowsPerPage: rowsPerPage,
+              onPageChanged: onPageChanged,
+              onRowsPerPageChanged: onRowsPerPageChanged,
             ),
           ],
         ),

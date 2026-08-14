@@ -27,7 +27,11 @@ class CustomerProfileCard extends StatelessWidget {
                 CircleAvatar(
                   radius: 30,
                   backgroundColor: AppColors.primary.withValues(alpha: 0.15),
-                  child: const Icon(Icons.person, size: 36, color: AppColors.primary),
+                  child: const Icon(
+                    Icons.person,
+                    size: 36,
+                    color: AppColors.primary,
+                  ),
                 ),
                 const SizedBox(width: 16),
                 Column(
@@ -45,14 +49,21 @@ class CustomerProfileCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 10),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 3,
+                          ),
                           decoration: BoxDecoration(
                             color: AppColors.badgeGreenBg,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Row(
                             children: const [
-                              Icon(Icons.circle, size: 8, color: AppColors.badgeGreenText),
+                              Icon(
+                                Icons.circle,
+                                size: 8,
+                                color: AppColors.badgeGreenText,
+                              ),
                               SizedBox(width: 4),
                               Text(
                                 'Active',
@@ -94,9 +105,18 @@ class CustomerProfileCard extends StatelessWidget {
               children: [
                 _buildInfoRow(Icons.phone_outlined, 'Phone', profile.phone),
                 const SizedBox(height: 8),
-                _buildInfoRow(Icons.email_outlined, 'Email', profile.email, isLink: true),
+                _buildInfoRow(
+                  Icons.email_outlined,
+                  'Email',
+                  profile.email,
+                  isLink: true,
+                ),
                 const SizedBox(height: 8),
-                _buildInfoRow(Icons.location_on_outlined, 'Address', profile.address),
+                _buildInfoRow(
+                  Icons.location_on_outlined,
+                  'Address',
+                  profile.address,
+                ),
               ],
             ),
           ],
@@ -105,7 +125,12 @@ class CustomerProfileCard extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String label, String value, {bool isLink = false}) {
+  Widget _buildInfoRow(
+    IconData icon,
+    String label,
+    String value, {
+    bool isLink = false,
+  }) {
     return Row(
       children: [
         Icon(icon, size: 16, color: AppColors.textSecondary),

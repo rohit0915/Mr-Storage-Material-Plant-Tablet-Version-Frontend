@@ -1,253 +1,411 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
 import '../../../app/utils/app_colors.dart';
+import '../controller/project_details_controller.dart';
 import 'upload_success_dialog.dart';
 
 class UploadDrawingsDialog extends StatelessWidget {
-  const UploadDrawingsDialog({super.key});
+  final Future<void> Function()? onUploaded;
+
+  const UploadDrawingsDialog({super.key, this.onUploaded});
 
   @override
   Widget build(BuildContext context) {
+    final controller = Get.find<ProjectDetailsController>();
+    controller.resetUpload();
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      elevation: 8,
       backgroundColor: Colors.white,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
       child: Container(
-        width: 520,
-        padding: const EdgeInsets.all(28.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Title & Close Row
-            Row(
+        width: 560,
+        padding: const EdgeInsets.all(28),
+        child: Obx(
+          () => Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _header('Upload Building Drawings & Photos'),
+              const SizedBox(height: 20),
+              _existingFiles(controller),
+              const SizedBox(height: 16),
+              _picker(controller),
+              if (controller.selectedUploadFiles.isNotEmpty) ...[
+                const SizedBox(height: 14),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxHeight: 180),
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    itemCount: controller.selectedUploadFiles.length,
+                    separatorBuilder: (_, _) => const SizedBox(height: 8),
+                    itemBuilder: (_, index) {
+                      final file = controller.selectedUploadFiles[index];
+                      return _fileRow(
+                        file.name,
+                        () => controller.removeUploadFile(index),
+                      );
+                    },
+                  ),
+                ),
+              ],
+              if (controller.isUploading.value) ...[
+                const SizedBox(height: 14),
+                LinearProgressIndicator(
+                  value: controller.uploadProgress.value,
+                  backgroundColor: const Color(0xFFE2E8F0),
+                  valueColor: const AlwaysStoppedAnimation<Color>(
+                    Color(0xFF2563EB),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  '${(controller.uploadProgress.value * 100).round()}% uploaded',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+              if (controller.uploadError.value.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                Text(
+                  controller.uploadError.value,
+                  style: const TextStyle(color: Colors.red, fontSize: 12),
+                ),
+              ],
+              const SizedBox(height: 24),
+              _actions(controller),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _header(String title) => Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  'Select a building to replace or upload up to 5 files.',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            onPressed: Get.back,
+            icon: const Icon(Icons.close, color: AppColors.textPrimary),
+          ),
+        ],
+      );
+
+  Widget _existingFiles(ProjectDetailsController controller) {
+    if (controller.buildings.isEmpty) {
+      return const Text(
+        'No buildings are available for this project.',
+        style: TextStyle(color: AppColors.textSecondary),
+      );
+    }
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxHeight: 220),
+      child: ListView.separated(
+        shrinkWrap: true,
+        itemCount: controller.buildings.length,
+        separatorBuilder: (_, _) => const SizedBox(height: 8),
+        itemBuilder: (_, index) {
+          final building = controller.buildings[index];
+          final id = controller.buildingId(building);
+          final existing =
+              controller.existingFileForBuilding(id, isBom: false);
+          final fileName = (existing?['fileName'] ??
+                  existing?['name'] ??
+                  'No drawing uploaded')
+              .toString();
+          final status = _status(existing?['status']);
+          final version = existing?['version'] ?? existing?['revision'];
+          return Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFDBEAFE),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(
+                    Icons.image_outlined,
+                    color: Color(0xFF2563EB),
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
-                      Text(
-                        'Upload Building Drawings & Photos',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
-                        ),
+                    children: [
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              controller.buildingName(building),
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                          ),
+                          if (existing != null) ...[
+                            const SizedBox(width: 8),
+                            _statusBadge(status),
+                          ],
+                        ],
                       ),
-                      SizedBox(height: 4),
+                      const SizedBox(height: 3),
                       Text(
-                        'Add your documents here, and you can upload up to 5 files max',
-                        style: TextStyle(
-                          fontSize: 13,
+                        version == null ? fileName : '$fileName  •  v$version',
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 12,
                           color: AppColors.textSecondary,
                         ),
                       ),
                     ],
                   ),
                 ),
-                IconButton(
-                  onPressed: () => Get.back(),
-                  icon: const Icon(Icons.close, color: AppColors.textPrimary, size: 20),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
+                const SizedBox(width: 10),
+                OutlinedButton(
+                  onPressed: controller.isUploading.value
+                      ? null
+                      : () async {
+                          controller.selectBuildingForUpload(id);
+                          await controller.pickUploadFiles(isBom: false);
+                        },
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFF2563EB),
+                    side: const BorderSide(color: Color(0xFF2563EB)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 8,
+                    ),
+                  ),
+                  child: Text(
+                    existing == null ? 'Upload file' : 'Replace file',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ],
             ),
+          );
+        },
+      ),
+    );
+  }
 
-            const SizedBox(height: 20),
+  Widget _statusBadge(String status) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        decoration: BoxDecoration(
+          color: status.toLowerCase().contains('approved')
+              ? const Color(0xFFDCFCE7)
+              : const Color(0xFFFEF3C7),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Text(
+          status,
+          style: TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.bold,
+            color: status.toLowerCase().contains('approved')
+                ? const Color(0xFF16A34A)
+                : const Color(0xFFD97706),
+          ),
+        ),
+      );
 
-            // Dashed Drag & Drop Container
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF8FAFC),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: const Color(0xFF3B82F6),
-                  width: 1.5,
-                  style: BorderStyle.solid,
+  String _status(dynamic value) {
+    final text = (value ?? 'Pending Review').toString().replaceAll('_', ' ');
+    return text
+        .split(' ')
+        .map(
+          (word) => word.isEmpty
+              ? word
+              : '${word[0].toUpperCase()}${word.substring(1)}',
+        )
+        .join(' ');
+  }
+
+  Widget _picker(ProjectDetailsController controller) => InkWell(
+        onTap: controller.isUploading.value
+            ? null
+            : () {
+                if (controller.selectedBuildingId.value.isEmpty &&
+                    controller.buildings.isNotEmpty) {
+                  final firstId = controller
+                      .buildingId(controller.buildings.first);
+                  controller.selectBuildingForUpload(firstId);
+                }
+                controller.pickUploadFiles(isBom: false);
+              },
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 28),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF8FAFC),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0xFF3B82F6)),
+          ),
+          child: Column(
+            children: const [
+              Icon(
+                Icons.cloud_upload_outlined,
+                color: Color(0xFF2563EB),
+                size: 38,
+              ),
+              SizedBox(height: 10),
+              Text(
+                'Browse drawing files',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
                 ),
               ),
+              SizedBox(height: 4),
+              Text(
+                'PDF, JPG, PNG, SVG or ZIP',
+                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+              ),
+            ],
+          ),
+        ),
+      );
+
+  Widget _fileRow(String name, VoidCallback remove) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          border: Border.all(color: AppColors.inputBorder),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          children: [
+            const Icon(
+              Icons.insert_drive_file_outlined,
+              color: Color(0xFF2563EB),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Folder icon with arrow
-                  Container(
-                    width: 54,
-                    height: 54,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF2563EB),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(Icons.drive_folder_upload, color: Colors.white, size: 30),
-                  ),
-                  const SizedBox(height: 12),
+                  Text(name, overflow: TextOverflow.ellipsis),
                   const Text(
-                    'Drag your file(s) to start uploading',
+                    'Ready to upload',
                     style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: const [
-                      Expanded(child: Divider(color: AppColors.divider)),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 12),
-                        child: Text(
-                          'OR',
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textHint,
-                          ),
-                        ),
-                      ),
-                      Expanded(child: Divider(color: AppColors.divider)),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  OutlinedButton(
-                    onPressed: () {},
-                    style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: Color(0xFF2563EB)),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                    ),
-                    child: const Text(
-                      'Browse files',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF2563EB),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 12),
-
-            const Text(
-              'Only support .jpg, .png and .svg and zip files',
-              style: TextStyle(
-                fontSize: 12,
-                color: AppColors.textSecondary,
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            // File Card Preview Item
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.inputBorder),
-              ),
-              child: Row(
-                children: [
-                  // Red PDF icon
-                  Container(
-                    width: 36,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFEF4444),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    alignment: Alignment.center,
-                    child: const Text(
-                      'PDF',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
-                        Text(
-                          'Building ABC -1 Drawing',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                        SizedBox(height: 2),
-                        Text(
-                          '5.3MB',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Icon(Icons.cancel, color: AppColors.textHint, size: 20),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
-            // Bottom Buttons
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                OutlinedButton(
-                  onPressed: () => Get.back(),
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: AppColors.inputBorder),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  ),
-                  child: const Text(
-                    'Cancel',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
+                      fontSize: 11,
                       color: AppColors.textSecondary,
                     ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                ElevatedButton(
-                  onPressed: () {
-                    Get.back(); // close upload dialog
-                    Get.dialog(const UploadSuccessDialog()); // open success dialog
+                ],
+              ),
+            ),
+            IconButton(
+              onPressed: remove,
+              icon: const Icon(Icons.close, size: 18),
+            ),
+          ],
+        ),
+      );
+
+  Widget _actions(ProjectDetailsController controller) => Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          OutlinedButton(
+            onPressed: controller.isUploading.value ? null : Get.back,
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.textPrimary,
+              side: const BorderSide(color: Color(0xFFCBD5E1)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 20,
+                vertical: 10,
+              ),
+            ),
+            child: const Text('Cancel'),
+          ),
+          const SizedBox(width: 12),
+          ElevatedButton(
+            onPressed: controller.isUploading.value
+                ? null
+                : () async {
+                    final success = await controller.uploadSelectedFiles(
+                      isBom: false,
+                    );
+                    if (success) {
+                      await onUploaded?.call();
+                      Get.back();
+                      Get.dialog(const UploadSuccessDialog());
+                    }
                   },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1D4ED8),
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
-                  ),
-                  child: const Text(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF2563EB),
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 24,
+                vertical: 10,
+              ),
+            ),
+            child: controller.isUploading.value
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                : const Text(
                     'Upload',
                     style: TextStyle(
-                      fontSize: 13,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
                   ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+          ),
+        ],
+      );
 }

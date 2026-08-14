@@ -35,6 +35,9 @@ class BomFilesDetailsController extends GetxController {
     }
     try {
       final data = await repository.fetch(projectId);
+      final consolidated = data['consolidatedBom'] is Map
+          ? Map<String, dynamic>.from(data['consolidatedBom'] as Map)
+          : <String, dynamic>{};
       final buildings = data['buildings'] is List
           ? data['buildings'] as List
           : const [];
@@ -46,6 +49,14 @@ class BomFilesDetailsController extends GetxController {
             : building;
         final rawItems = bom['items'];
         if (rawItems is List) items.addAll(rawItems.whereType<Map>());
+      }
+      final grouped = consolidated['groupedItems'];
+      if (grouped is List) {
+        items.addAll(grouped.whereType<Map>());
+      } else if (grouped is Map) {
+        for (final value in grouped.values) {
+          if (value is List) items.addAll(value.whereType<Map>());
+        }
       }
       if (items.isNotEmpty) {
         bomItems.assignAll(

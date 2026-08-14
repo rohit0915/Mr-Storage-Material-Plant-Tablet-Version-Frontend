@@ -29,7 +29,10 @@ class DeliveryCalendarView extends GetView<DeliveryCalendarController> {
 
                 return SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 16,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -73,7 +76,11 @@ class DeliveryCalendarView extends GetView<DeliveryCalendarController> {
           children: const [
             Text(
               'Delivery Calendar',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
             ),
             SizedBox(height: 4),
             Text(
@@ -91,11 +98,17 @@ class DeliveryCalendarView extends GetView<DeliveryCalendarController> {
             backgroundColor: const Color(0xFF3B82F6),
             elevation: 0,
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
           ),
           child: const Text(
             'Filters',
-            style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
           ),
         ),
         const SizedBox(width: 12),
@@ -110,12 +123,22 @@ class DeliveryCalendarView extends GetView<DeliveryCalendarController> {
           ),
           child: Row(
             children: [
-              Obx(() => Text(
-                    controller.selectedDateRange.value,
-                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
-                  )),
+              Obx(
+                () => Text(
+                  controller.selectedDateRange.value,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+              ),
               const SizedBox(width: 8),
-              const Icon(Icons.calendar_today_outlined, size: 14, color: AppColors.textSecondary),
+              const Icon(
+                Icons.calendar_today_outlined,
+                size: 14,
+                color: AppColors.textSecondary,
+              ),
             ],
           ),
         ),
@@ -129,30 +152,39 @@ class DeliveryCalendarView extends GetView<DeliveryCalendarController> {
             borderRadius: BorderRadius.circular(10),
             border: Border.all(color: AppColors.inputBorder),
           ),
-          child: Obx(() => Row(
-                children: ['Day', 'Week', 'Month'].map((view) {
-                  final isSelected = controller.selectedView.value == view;
-                  return InkWell(
-                    onTap: () => controller.setView(view),
-                    borderRadius: BorderRadius.circular(8),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: isSelected ? const Color(0xFF3B82F6) : Colors.transparent,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        view,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: isSelected ? Colors.white : AppColors.textSecondary,
-                        ),
+          child: Obx(
+            () => Row(
+              children: ['Day', 'Week', 'Month'].map((view) {
+                final isSelected = controller.selectedView.value == view;
+                return InkWell(
+                  onTap: () => controller.setView(view),
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? const Color(0xFF3B82F6)
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      view,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: isSelected
+                            ? Colors.white
+                            : AppColors.textSecondary,
                       ),
                     ),
-                  );
-                }).toList(),
-              )),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
         ),
       ],
     );
@@ -175,26 +207,40 @@ class DeliveryCalendarView extends GetView<DeliveryCalendarController> {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFFDBEAFE),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Text(
                   "Today's Deliveries: 4 deliveries",
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E40AF)),
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1E40AF),
+                  ),
                 ),
               ),
               const SizedBox(width: 12),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFFDBEAFE),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Text(
                   "Weather: ☀️ Clear",
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E40AF)),
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1E40AF),
+                  ),
                 ),
               ),
             ],
@@ -204,7 +250,11 @@ class DeliveryCalendarView extends GetView<DeliveryCalendarController> {
           // Date Header
           const Text(
             'Tuesday, March 25, 2024',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+            ),
           ),
           const SizedBox(height: 16),
 
@@ -243,44 +293,67 @@ class DeliveryCalendarView extends GetView<DeliveryCalendarController> {
                 width: 10,
                 height: 10,
                 decoration: BoxDecoration(
-                  color: item.status == 'Confirmed' ? const Color(0xFF22C55E) : const Color(0xFF3B82F6),
+                  color: item.status == 'Confirmed'
+                      ? const Color(0xFF22C55E)
+                      : const Color(0xFF3B82F6),
                   shape: BoxShape.circle,
                 ),
               ),
               const SizedBox(width: 10),
               Text(
                 item.title,
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
               ),
               const SizedBox(width: 8),
               Text(
                 item.id,
-                style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: AppColors.textSecondary,
+                ),
               ),
               const SizedBox(width: 12),
               if (item.isCriticalPath)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFFEE2E2),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: const Text(
                     'Critical Path Items',
-                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF991B1B)),
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF991B1B),
+                    ),
                   ),
                 ),
               if (item.isEquipmentConflict) ...[
                 const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFFEF3C7),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: const Text(
                     '⚠️ Equipment conflict',
-                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF92400E)),
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF92400E),
+                    ),
                   ),
                 ),
               ],
@@ -288,14 +361,21 @@ class DeliveryCalendarView extends GetView<DeliveryCalendarController> {
 
               // Status Pill
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFFDCFCE7),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
                   item.status,
-                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF166534)),
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF166534),
+                  ),
                 ),
               ),
             ],
@@ -307,16 +387,26 @@ class DeliveryCalendarView extends GetView<DeliveryCalendarController> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                child: _buildDetailCell('PROJECT', item.project, icon: Icons.business_outlined),
+                child: _buildDetailCell(
+                  'PROJECT',
+                  item.project,
+                  icon: Icons.business_outlined,
+                ),
+              ),
+              Expanded(child: _buildDetailCell('CUSTOMER', item.customer)),
+              Expanded(
+                child: _buildDetailCell(
+                  'TIME WINDOW',
+                  item.timeWindow,
+                  icon: Icons.access_time,
+                ),
               ),
               Expanded(
-                child: _buildDetailCell('CUSTOMER', item.customer),
-              ),
-              Expanded(
-                child: _buildDetailCell('TIME WINDOW', item.timeWindow, icon: Icons.access_time),
-              ),
-              Expanded(
-                child: _buildDetailCell('RECEIVING CONTACT', item.receivingContact, icon: Icons.phone_outlined),
+                child: _buildDetailCell(
+                  'RECEIVING CONTACT',
+                  item.receivingContact,
+                  icon: Icons.phone_outlined,
+                ),
               ),
             ],
           ),
@@ -327,20 +417,25 @@ class DeliveryCalendarView extends GetView<DeliveryCalendarController> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                child: _buildDetailCell('VENDOR', item.vendor, icon: Icons.local_shipping_outlined),
+                child: _buildDetailCell(
+                  'VENDOR',
+                  item.vendor,
+                  icon: Icons.local_shipping_outlined,
+                ),
               ),
               Expanded(
                 child: _buildDetailCell('SITE LOCATION', item.siteLocation),
               ),
               Expanded(
-                child: _buildDetailCell('REQUIRED EQUIPMENT', item.requiredEquipment),
+                child: _buildDetailCell(
+                  'REQUIRED EQUIPMENT',
+                  item.requiredEquipment,
+                ),
               ),
               Expanded(
                 child: _buildDetailCell('INTERNAL OWNER', item.internalOwner),
               ),
-              Expanded(
-                child: _buildDetailCell('CARRIER', item.carrier),
-              ),
+              Expanded(child: _buildDetailCell('CARRIER', item.carrier)),
             ],
           ),
           const SizedBox(height: 18),
@@ -351,12 +446,25 @@ class DeliveryCalendarView extends GetView<DeliveryCalendarController> {
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: () => controller.goToDeliveryDetails(),
-                  icon: const Icon(Icons.local_shipping_outlined, size: 14, color: AppColors.textPrimary),
-                  label: const Text('View Details', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                  icon: const Icon(
+                    Icons.local_shipping_outlined,
+                    size: 14,
+                    color: AppColors.textPrimary,
+                  ),
+                  label: const Text(
+                    'View Details',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 10),
                     side: const BorderSide(color: AppColors.inputBorder),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
                 ),
               ),
@@ -364,12 +472,25 @@ class DeliveryCalendarView extends GetView<DeliveryCalendarController> {
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: () => controller.openRescheduleDialog(),
-                  icon: const Icon(Icons.event_repeat, size: 14, color: AppColors.textPrimary),
-                  label: const Text('Reschedule Delivery', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                  icon: const Icon(
+                    Icons.event_repeat,
+                    size: 14,
+                    color: AppColors.textPrimary,
+                  ),
+                  label: const Text(
+                    'Reschedule Delivery',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 10),
                     side: const BorderSide(color: AppColors.inputBorder),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
                 ),
               ),
@@ -377,12 +498,25 @@ class DeliveryCalendarView extends GetView<DeliveryCalendarController> {
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: () => controller.openMarkDeliveredDialog(),
-                  icon: const Icon(Icons.check_box_outlined, size: 14, color: AppColors.textPrimary),
-                  label: const Text('Mark Delivered', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                  icon: const Icon(
+                    Icons.check_box_outlined,
+                    size: 14,
+                    color: AppColors.textPrimary,
+                  ),
+                  label: const Text(
+                    'Mark Delivered',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 10),
                     side: const BorderSide(color: AppColors.inputBorder),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
                 ),
               ),
@@ -390,12 +524,25 @@ class DeliveryCalendarView extends GetView<DeliveryCalendarController> {
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: () => controller.sendReminder(),
-                  icon: const Icon(Icons.notifications_none, size: 14, color: AppColors.textPrimary),
-                  label: const Text('Send Reminder Now', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                  icon: const Icon(
+                    Icons.notifications_none,
+                    size: 14,
+                    color: AppColors.textPrimary,
+                  ),
+                  label: const Text(
+                    'Send Reminder Now',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 10),
                     side: const BorderSide(color: AppColors.inputBorder),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
                 ),
               ),
@@ -410,7 +557,14 @@ class DeliveryCalendarView extends GetView<DeliveryCalendarController> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.bold,
+            color: AppColors.textSecondary,
+          ),
+        ),
         const SizedBox(height: 4),
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -422,7 +576,10 @@ class DeliveryCalendarView extends GetView<DeliveryCalendarController> {
             Expanded(
               child: Text(
                 value,
-                style: const TextStyle(fontSize: 12, color: AppColors.textPrimary),
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: AppColors.textPrimary,
+                ),
               ),
             ),
           ],
@@ -467,17 +624,32 @@ class DeliveryCalendarView extends GetView<DeliveryCalendarController> {
                   ),
                   child: Column(
                     children: [
-                      Text(d['day'].toString(), style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+                      Text(
+                        d['day'].toString(),
+                        style: const TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
                       const SizedBox(height: 2),
                       Text(
                         d['date'].toString(),
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: isToday ? const Color(0xFF2563EB) : AppColors.textPrimary,
+                          color: isToday
+                              ? const Color(0xFF2563EB)
+                              : AppColors.textPrimary,
                         ),
                       ),
-                      Text(d['month'].toString(), style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+                      Text(
+                        d['month'].toString(),
+                        style: const TextStyle(
+                          fontSize: 10,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -494,41 +666,89 @@ class DeliveryCalendarView extends GetView<DeliveryCalendarController> {
                 Expanded(child: Container()), // Mon 24
                 Expanded(
                   child: Container(
-                    decoration: const BoxDecoration(border: Border(right: BorderSide(color: AppColors.divider))),
+                    decoration: const BoxDecoration(
+                      border: Border(
+                        right: BorderSide(color: AppColors.divider),
+                      ),
+                    ),
                     padding: const EdgeInsets.all(8),
                     child: Column(
                       children: [
-                        _buildWeekCard('Industrial Complex A', 'Acme Corp', 'Scheduled', Colors.blue),
+                        _buildWeekCard(
+                          'Industrial Complex A',
+                          'Acme Corp',
+                          'Scheduled',
+                          Colors.blue,
+                        ),
                         const SizedBox(height: 8),
-                        _buildWeekCard('Storage Facility B', 'BuildTech LLC', 'Confirmed', Colors.green),
+                        _buildWeekCard(
+                          'Storage Facility B',
+                          'BuildTech LLC',
+                          'Confirmed',
+                          Colors.green,
+                        ),
                       ],
                     ),
                   ),
                 ), // Tue 25
                 Expanded(
                   child: Container(
-                    decoration: const BoxDecoration(border: Border(right: BorderSide(color: AppColors.divider))),
+                    decoration: const BoxDecoration(
+                      border: Border(
+                        right: BorderSide(color: AppColors.divider),
+                      ),
+                    ),
                     padding: const EdgeInsets.all(8),
                     child: Column(
                       children: [
-                        _buildWeekCard('Warehouse Complex', 'Steel Masters', 'Scheduled', Colors.blue),
+                        _buildWeekCard(
+                          'Warehouse Complex',
+                          'Steel Masters',
+                          'Scheduled',
+                          Colors.blue,
+                        ),
                       ],
                     ),
                   ),
                 ), // Wed 26
                 Expanded(
                   child: Container(
-                    decoration: const BoxDecoration(border: Border(right: BorderSide(color: AppColors.divider))),
+                    decoration: const BoxDecoration(
+                      border: Border(
+                        right: BorderSide(color: AppColors.divider),
+                      ),
+                    ),
                     padding: const EdgeInsets.all(8),
                     child: Column(
                       children: [
-                        _buildWeekCard('Industrial Park C', 'Metro Build', 'Confirmed', Colors.green),
+                        _buildWeekCard(
+                          'Industrial Park C',
+                          'Metro Build',
+                          'Confirmed',
+                          Colors.green,
+                        ),
                       ],
                     ),
                   ),
                 ), // Thu 27
-                Expanded(child: Container(decoration: const BoxDecoration(border: Border(right: BorderSide(color: AppColors.divider))))),
-                Expanded(child: Container(decoration: const BoxDecoration(border: Border(right: BorderSide(color: AppColors.divider))))),
+                Expanded(
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      border: Border(
+                        right: BorderSide(color: AppColors.divider),
+                      ),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      border: Border(
+                        right: BorderSide(color: AppColors.divider),
+                      ),
+                    ),
+                  ),
+                ),
                 Expanded(child: Container()),
               ],
             ),
@@ -538,11 +758,18 @@ class DeliveryCalendarView extends GetView<DeliveryCalendarController> {
     );
   }
 
-  Widget _buildWeekCard(String project, String customer, String status, Color color) {
+  Widget _buildWeekCard(
+    String project,
+    String customer,
+    String status,
+    Color color,
+  ) {
     return InkWell(
       onTap: () {
         if (controller.deliveriesList.isNotEmpty) {
-          Get.dialog(DeliveryCalendarDetailDialog(item: controller.deliveriesList.first));
+          Get.dialog(
+            DeliveryCalendarDetailDialog(item: controller.deliveriesList.first),
+          );
         }
       },
       borderRadius: BorderRadius.circular(8),
@@ -559,21 +786,45 @@ class DeliveryCalendarView extends GetView<DeliveryCalendarController> {
           children: [
             Row(
               children: [
-                Container(width: 6, height: 6, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+                Container(
+                  width: 6,
+                  height: 6,
+                  decoration: BoxDecoration(
+                    color: color,
+                    shape: BoxShape.circle,
+                  ),
+                ),
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
                     project,
-                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 2),
-            Text(customer, style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+            Text(
+              customer,
+              style: const TextStyle(
+                fontSize: 10,
+                color: AppColors.textSecondary,
+              ),
+            ),
             const SizedBox(height: 6),
-            Text(status, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: color)),
+            Text(
+              status,
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
+            ),
           ],
         ),
       ),
@@ -598,20 +849,37 @@ class DeliveryCalendarView extends GetView<DeliveryCalendarController> {
             children: [
               const Text(
                 'March 2024',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
               ),
               const Spacer(),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(color: AppColors.inputBorder),
                 ),
                 child: Row(
                   children: const [
-                    Text('Select Month', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                    Text(
+                      'Select Month',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
                     SizedBox(width: 6),
-                    Icon(Icons.keyboard_arrow_down, size: 14, color: AppColors.textSecondary),
+                    Icon(
+                      Icons.keyboard_arrow_down,
+                      size: 14,
+                      color: AppColors.textSecondary,
+                    ),
                   ],
                 ),
               ),
@@ -621,12 +889,18 @@ class DeliveryCalendarView extends GetView<DeliveryCalendarController> {
 
           // Days Header
           Row(
-            children: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) {
+            children: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((
+              day,
+            ) {
               return Expanded(
                 child: Center(
                   child: Text(
                     day,
-                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textSecondary),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textSecondary,
+                    ),
                   ),
                 ),
               );
@@ -669,13 +943,33 @@ class DeliveryCalendarView extends GetView<DeliveryCalendarController> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('$dayNum', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                      Text(
+                        '$dayNum',
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
                       if (hasEvents) ...[
                         const SizedBox(height: 4),
                         Container(height: 2, color: const Color(0xFF2563EB)),
                         const SizedBox(height: 4),
-                        const Text('2 Deliveries', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Color(0xFF2563EB))),
-                        const Text('* Steel', style: TextStyle(fontSize: 8, color: AppColors.textSecondary)),
+                        const Text(
+                          '2 Deliveries',
+                          style: TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF2563EB),
+                          ),
+                        ),
+                        const Text(
+                          '* Steel',
+                          style: TextStyle(
+                            fontSize: 8,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
                       ],
                     ],
                   ),
@@ -713,7 +1007,11 @@ class DeliveryCalendarView extends GetView<DeliveryCalendarController> {
         children: [
           const Text(
             'Status Legend',
-            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+            ),
           ),
           const SizedBox(height: 10),
           Row(
@@ -733,7 +1031,10 @@ class DeliveryCalendarView extends GetView<DeliveryCalendarController> {
                     const SizedBox(width: 6),
                     Text(
                       item['label'] as String,
-                      style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textSecondary,
+                      ),
                     ),
                   ],
                 ),

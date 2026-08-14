@@ -45,10 +45,14 @@ class DayDeliveriesDialog extends StatelessWidget {
             Flexible(
               child: SingleChildScrollView(
                 child: Column(
-                  children: items.map((item) => Padding(
-                    padding: const EdgeInsets.only(bottom: 16),
-                    child: _buildDeliveryCard(item),
-                  )).toList(),
+                  children: items
+                      .map(
+                        (item) => Padding(
+                          padding: const EdgeInsets.only(bottom: 16),
+                          child: _buildDeliveryCard(item),
+                        ),
+                      )
+                      .toList(),
                 ),
               ),
             ),
@@ -77,44 +81,67 @@ class DayDeliveriesDialog extends StatelessWidget {
                 width: 10,
                 height: 10,
                 decoration: BoxDecoration(
-                  color: item.status == 'Confirmed' ? const Color(0xFF22C55E) : const Color(0xFF3B82F6),
+                  color: item.status == 'Confirmed'
+                      ? const Color(0xFF22C55E)
+                      : const Color(0xFF3B82F6),
                   shape: BoxShape.circle,
                 ),
               ),
               const SizedBox(width: 10),
               Text(
                 item.title,
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
               ),
               const SizedBox(width: 8),
               Text(
                 item.id,
-                style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: AppColors.textSecondary,
+                ),
               ),
               const SizedBox(width: 12),
               if (item.isCriticalPath)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFFEE2E2),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: const Text(
                     'Critical Path Items',
-                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF991B1B)),
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF991B1B),
+                    ),
                   ),
                 ),
               if (item.isEquipmentConflict) ...[
                 const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFFEF3C7),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: const Text(
                     '⚠️ Equipment conflict',
-                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF92400E)),
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF92400E),
+                    ),
                   ),
                 ),
               ],
@@ -122,14 +149,21 @@ class DayDeliveriesDialog extends StatelessWidget {
 
               // Status Pill
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFFDCFCE7),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
                   item.status,
-                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF166534)),
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF166534),
+                  ),
                 ),
               ),
             ],
@@ -140,10 +174,29 @@ class DayDeliveriesDialog extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(child: _buildDetailCell('PROJECT', item.project, icon: Icons.business_outlined)),
+              Expanded(
+                child: _buildDetailCell(
+                  'PROJECT',
+                  item.project,
+                  icon: Icons.business_outlined,
+                ),
+              ),
               Expanded(child: _buildDetailCell('CUSTOMER', item.customer)),
-              Expanded(child: _buildDetailCell('TIME WINDOW', item.timeWindow, icon: Icons.access_time)),
-              Expanded(child: _buildDetailCell('RECEIVING CONTACT', item.receivingContact, icon: Icons.phone_outlined, iconColor: const Color(0xFF2563EB))),
+              Expanded(
+                child: _buildDetailCell(
+                  'TIME WINDOW',
+                  item.timeWindow,
+                  icon: Icons.access_time,
+                ),
+              ),
+              Expanded(
+                child: _buildDetailCell(
+                  'RECEIVING CONTACT',
+                  item.receivingContact,
+                  icon: Icons.phone_outlined,
+                  iconColor: const Color(0xFF2563EB),
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 14),
@@ -152,10 +205,25 @@ class DayDeliveriesDialog extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(child: _buildDetailCell('VENDOR', item.vendor, icon: Icons.local_shipping_outlined)),
-              Expanded(child: _buildDetailCell('SITE LOCATION', item.siteLocation)),
-              Expanded(child: _buildDetailCell('REQUIRED EQUIPMENT', item.requiredEquipment)),
-              Expanded(child: _buildDetailCell('INTERNAL OWNER', item.internalOwner)),
+              Expanded(
+                child: _buildDetailCell(
+                  'VENDOR',
+                  item.vendor,
+                  icon: Icons.local_shipping_outlined,
+                ),
+              ),
+              Expanded(
+                child: _buildDetailCell('SITE LOCATION', item.siteLocation),
+              ),
+              Expanded(
+                child: _buildDetailCell(
+                  'REQUIRED EQUIPMENT',
+                  item.requiredEquipment,
+                ),
+              ),
+              Expanded(
+                child: _buildDetailCell('INTERNAL OWNER', item.internalOwner),
+              ),
               Expanded(child: _buildDetailCell('CARRIER', item.carrier)),
             ],
           ),
@@ -170,12 +238,25 @@ class DayDeliveriesDialog extends StatelessWidget {
                     Get.back();
                     Get.toNamed(AppRoutes.deliveryDetails);
                   },
-                  icon: const Icon(Icons.local_shipping_outlined, size: 14, color: AppColors.textPrimary),
-                  label: const Text('View Details', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                  icon: const Icon(
+                    Icons.local_shipping_outlined,
+                    size: 14,
+                    color: AppColors.textPrimary,
+                  ),
+                  label: const Text(
+                    'View Details',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 10),
                     side: const BorderSide(color: AppColors.inputBorder),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
                 ),
               ),
@@ -186,12 +267,25 @@ class DayDeliveriesDialog extends StatelessWidget {
                     Get.back();
                     Get.dialog(const RescheduleDeliveryDialog());
                   },
-                  icon: const Icon(Icons.event_repeat, size: 14, color: AppColors.textPrimary),
-                  label: const Text('Reschedule Delivery', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                  icon: const Icon(
+                    Icons.event_repeat,
+                    size: 14,
+                    color: AppColors.textPrimary,
+                  ),
+                  label: const Text(
+                    'Reschedule Delivery',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 10),
                     side: const BorderSide(color: AppColors.inputBorder),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
                 ),
               ),
@@ -202,12 +296,25 @@ class DayDeliveriesDialog extends StatelessWidget {
                     Get.back();
                     Get.dialog(const MarkedAsDeliveredDialog());
                   },
-                  icon: const Icon(Icons.check_box_outlined, size: 14, color: AppColors.textPrimary),
-                  label: const Text('Mark Delivered', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                  icon: const Icon(
+                    Icons.check_box_outlined,
+                    size: 14,
+                    color: AppColors.textPrimary,
+                  ),
+                  label: const Text(
+                    'Mark Delivered',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 10),
                     side: const BorderSide(color: AppColors.inputBorder),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
                 ),
               ),
@@ -225,12 +332,25 @@ class DayDeliveriesDialog extends StatelessWidget {
                       margin: const EdgeInsets.all(16),
                     );
                   },
-                  icon: const Icon(Icons.notifications_none, size: 14, color: AppColors.textPrimary),
-                  label: const Text('Send Reminder Now', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                  icon: const Icon(
+                    Icons.notifications_none,
+                    size: 14,
+                    color: AppColors.textPrimary,
+                  ),
+                  label: const Text(
+                    'Send Reminder Now',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 10),
                     side: const BorderSide(color: AppColors.inputBorder),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
                 ),
               ),
@@ -241,11 +361,23 @@ class DayDeliveriesDialog extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailCell(String label, String value, {IconData? icon, Color? iconColor}) {
+  Widget _buildDetailCell(
+    String label,
+    String value, {
+    IconData? icon,
+    Color? iconColor,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.bold,
+            color: AppColors.textSecondary,
+          ),
+        ),
         const SizedBox(height: 4),
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -257,7 +389,10 @@ class DayDeliveriesDialog extends StatelessWidget {
             Expanded(
               child: Text(
                 value,
-                style: const TextStyle(fontSize: 12, color: AppColors.textPrimary),
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: AppColors.textPrimary,
+                ),
               ),
             ),
           ],

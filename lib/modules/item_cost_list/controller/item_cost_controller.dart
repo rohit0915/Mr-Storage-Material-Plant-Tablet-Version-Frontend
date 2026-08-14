@@ -1,25 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
 import '../../../app/routes/app_routes.dart';
+import '../../../app/widgets/common_snackbar.dart';
 import '../model/item_cost_model.dart';
+import '../repository/item_cost_repository.dart';
 import '../widgets/add_edit_part_cost_dialog.dart';
 import '../widgets/success_dialog.dart';
 import '../widgets/upload_bom_file_dialog.dart';
 
 class ItemCostController extends GetxController {
-  final RxBool isLoading = false.obs;
-  final RxString searchQuery = ''.obs;
-  final RxString sortBy = 'Latest'.obs;
-  final RxBool selectAll = false.obs;
+  final ItemCostRepository repository;
+  ItemCostController({required this.repository});
 
-  final Rx<ItemCostSummaryModel> summary = ItemCostSummaryModel(
-    totalItemCost: 24400.0,
-    totalItems: 120,
-    newAdded: 2,
+  final isLoading = true.obs;
+  final errorMessage = ''.obs;
+  final searchQuery = ''.obs;
+  final sortBy = 'Latest'.obs;
+  final selectAll = false.obs;
+  final summary = ItemCostSummaryModel(
+    totalItemCost: 0,
+    totalItems: 0,
+    newAdded: 0,
   ).obs;
-
-  final RxList<ItemCostModel> itemCosts = <ItemCostModel>[].obs;
-  final RxList<ItemCostModel> filteredItemCosts = <ItemCostModel>[].obs;
+  final itemCosts = <ItemCostModel>[].obs;
+  final filteredItemCosts = <ItemCostModel>[].obs;
 
   @override
   void onInit() {
@@ -27,35 +32,50 @@ class ItemCostController extends GetxController {
     loadItemCosts();
   }
 
-  void loadItemCosts() {
+  Future<void> loadItemCosts() async {
     isLoading.value = true;
-    final initialList = [
-      ItemCostModel(id: '1', partName: "'30_VRR48'", partColor: "'-'", costUnit: "'FT'", mbsCost: 2.6, currentMarketCost: null, description: "'VRR+ Insul R10'"),
-      ItemCostModel(id: '2', partName: "'30_VRR72'", partColor: "'-'", costUnit: "'FT'", mbsCost: 3.9, currentMarketCost: null, description: "'VRR+ Insul R10'"),
-      ItemCostModel(id: '3', partName: "'35_VRR48'", partColor: "'-'", costUnit: "'FT'", mbsCost: 2.9, currentMarketCost: null, description: "'VRR+ Insul R11'"),
-      ItemCostModel(id: '4', partName: "'35_VRR72'", partColor: "'-'", costUnit: "'FT'", mbsCost: 4.4, currentMarketCost: null, description: "'VRR+ Insul R11'"),
-      ItemCostModel(id: '5', partName: "'40_VRR48'", partColor: "'-'", costUnit: "'FT'", mbsCost: 3.3, currentMarketCost: null, description: "'VRR+ Insul R13'"),
-      ItemCostModel(id: '6', partName: "'40_VRR72'", partColor: "'-'", costUnit: "'FT'", mbsCost: 4.9, currentMarketCost: null, description: "'VRR+ Insul R13'"),
-      ItemCostModel(id: '7', partName: "'60_VRR48'", partColor: "'-'", costUnit: "'FT'", mbsCost: 4.2, currentMarketCost: null, description: "'VRR+ Insul R19'"),
-      ItemCostModel(id: '8', partName: "'60_VRR72'", partColor: "'-'", costUnit: "'FT'", mbsCost: 6.3, currentMarketCost: null, description: "'VRR+ Insul R19'"),
-      ItemCostModel(id: '9', partName: "'30_UF48 '", partColor: "'-'", costUnit: "'FT'", mbsCost: 2.6, currentMarketCost: null, description: "-"),
-      ItemCostModel(id: '10', partName: "'30_UF72 '", partColor: "'-'", costUnit: "'FT'", mbsCost: 3.9, currentMarketCost: null, description: "'UF Insul R10 '"),
-      ItemCostModel(id: '11', partName: "'35_UF48 '", partColor: "'-'", costUnit: "'FT'", mbsCost: 2.9, currentMarketCost: null, description: "'UF Insul R10 '"),
-      ItemCostModel(id: '12', partName: "'35_UF72 '", partColor: "'-'", costUnit: "'FT'", mbsCost: 4.4, currentMarketCost: null, description: "'UF Insul R11 '"),
-      ItemCostModel(id: '13', partName: "'40_UF48 '", partColor: "'-'", costUnit: "'FT'", mbsCost: 2.9, currentMarketCost: null, description: "'UF Insul R11 '"),
-      ItemCostModel(id: '14', partName: "'40_UF72 ' '", partColor: "'-'", costUnit: "'FT'", mbsCost: 4.4, currentMarketCost: null, description: "'UF Insul R13 '"),
-      ItemCostModel(id: '15', partName: "'60_UF48 '", partColor: "'-'", costUnit: "'FT'", mbsCost: 3.3, currentMarketCost: null, description: "'UF Insul R13 '"),
-      ItemCostModel(id: '16', partName: "'60_UF72 '", partColor: "'-'", costUnit: "'FT'", mbsCost: 4.9, currentMarketCost: null, description: "'UF Insul R19 '"),
-      ItemCostModel(id: '17', partName: "'R30_FG9.5'", partColor: "'-'", costUnit: "'FT'", mbsCost: 4.2, currentMarketCost: null, description: "'UF Insul R19 '"),
-      ItemCostModel(id: '18', partName: "'R30_FG10'", partColor: "'-'", costUnit: "'FT'", mbsCost: 6.3, currentMarketCost: null, description: "'Fiber Glass 9.5'"),
-      ItemCostModel(id: '19', partName: "'R30_MW7.5'", partColor: "'-'", costUnit: "'FT'", mbsCost: 4.1, currentMarketCost: null, description: "'Fiber Glass 10'"),
-      ItemCostModel(id: '20', partName: "'R30_SF'", partColor: "'-'", costUnit: "'FT'", mbsCost: 4.5, currentMarketCost: null, description: "'Mineral Wool7.5'"),
-    ];
-
-    itemCosts.assignAll(initialList);
-    applyFilter();
-    isLoading.value = false;
+    errorMessage.value = '';
+    try {
+      final results = await Future.wait([
+        repository.stats(),
+        repository.list(search: searchQuery.value),
+      ]);
+      final stats = results[0];
+      final data = results[1];
+      final raw = data['items'] is List ? data['items'] as List : const [];
+      itemCosts.assignAll(
+        raw.whereType<Map>().map(
+          (entry) => _model(Map<String, dynamic>.from(entry)),
+        ),
+      );
+      final totalCost = itemCosts.fold<double>(
+        0,
+        (sum, item) => sum + (item.mbsCost ?? 0),
+      );
+      summary.value = ItemCostSummaryModel(
+        totalItemCost: _double(stats['totalItemCost'] ?? totalCost),
+        totalItems: _int(stats['totalItems'] ?? data['total']),
+        newAdded: _int(stats['newAdded']),
+      );
+      applyFilter();
+    } catch (error) {
+      errorMessage.value = error.toString();
+      itemCosts.clear();
+      filteredItemCosts.clear();
+    } finally {
+      isLoading.value = false;
+    }
   }
+
+  ItemCostModel _model(Map<String, dynamic> item) => ItemCostModel(
+    id: (item['_id'] ?? item['id'] ?? '').toString(),
+    partName: (item['partName'] ?? '').toString(),
+    partColor: (item['partColor'] ?? item['color'] ?? '-').toString(),
+    costUnit: (item['costUnit'] ?? '-').toString(),
+    mbsCost: _nullableDouble(item['mbsCost']),
+    currentMarketCost: _nullableDouble(item['currentMarketCost']),
+    description: (item['description'] ?? '').toString(),
+  );
 
   void filterSearchResults(String query) {
     searchQuery.value = query;
@@ -63,104 +83,111 @@ class ItemCostController extends GetxController {
   }
 
   void applyFilter() {
-    if (searchQuery.isEmpty) {
-      filteredItemCosts.assignAll(itemCosts);
-    } else {
-      final q = searchQuery.value.toLowerCase();
-      filteredItemCosts.assignAll(
-        itemCosts.where((item) =>
-            item.partName.toLowerCase().contains(q) ||
-            item.description.toLowerCase().contains(q) ||
-            item.partColor.toLowerCase().contains(q)),
-      );
-    }
+    final query = searchQuery.value.trim().toLowerCase();
+    final result = query.isEmpty
+        ? itemCosts
+        : itemCosts.where(
+            (item) =>
+                item.partName.toLowerCase().contains(query) ||
+                item.description.toLowerCase().contains(query) ||
+                item.partColor.toLowerCase().contains(query),
+          );
+    filteredItemCosts.assignAll(result);
   }
 
-  void toggleSelectAll(bool? val) {
-    selectAll.value = val ?? false;
-    for (var item in itemCosts) {
+  void toggleSelectAll(bool? value) {
+    selectAll.value = value ?? false;
+    for (final item in itemCosts) {
       item.isSelected = selectAll.value;
     }
     itemCosts.refresh();
     filteredItemCosts.refresh();
   }
 
-  void toggleSelectItem(ItemCostModel item, bool? val) {
-    item.isSelected = val ?? false;
+  void toggleSelectItem(ItemCostModel item, bool? value) {
+    item.isSelected = value ?? false;
     itemCosts.refresh();
     filteredItemCosts.refresh();
   }
 
-  void openAddPartCostDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AddEditPartCostDialog(
-        onSave: (newItem) {
-          itemCosts.insert(0, newItem);
-          applyFilter();
-          showSaveSuccessDialog(context);
-        },
-      ),
-    );
+  void openAddPartCostDialog(BuildContext context) => showDialog(
+    context: context,
+    builder: (_) => AddEditPartCostDialog(
+      onSave: (item) => _save(item, context, isEdit: false),
+    ),
+  );
+  void openEditPartCostDialog(BuildContext context, ItemCostModel item) =>
+      showDialog(
+        context: context,
+        builder: (_) => AddEditPartCostDialog(
+          itemToEdit: item,
+          onSave: (updated) => _save(updated, context, isEdit: true),
+        ),
+      );
+  Future<void> _save(
+    ItemCostModel item,
+    BuildContext context, {
+    required bool isEdit,
+  }) async {
+    try {
+      final payload = {
+        'category': 'General',
+        'partName': item.partName,
+        'partColor': item.partColor,
+        'costUnit': item.costUnit,
+        'mbsCost': item.mbsCost,
+        'currentMarketCost': item.currentMarketCost,
+        'description': item.description,
+      };
+      if (isEdit) {
+        await repository.update(item.id, payload);
+      } else {
+        await repository.add(payload);
+      }
+      await loadItemCosts();
+      if (context.mounted) showSaveSuccessDialog(context);
+    } catch (error) {
+      CommonSnackbar.showError(
+        title: 'Unable to save item',
+        message: error.toString(),
+      );
+    }
   }
 
-  void openEditPartCostDialog(BuildContext context, ItemCostModel item) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AddEditPartCostDialog(
-        itemToEdit: item,
-        onSave: (updatedItem) {
-          final idx = itemCosts.indexWhere((e) => e.id == item.id);
-          if (idx != -1) {
-            itemCosts[idx] = updatedItem;
-            applyFilter();
-          }
-          showSaveSuccessDialog(context);
-        },
-      ),
-    );
+  void showSaveSuccessDialog(BuildContext context) => showDialog(
+    context: context,
+    builder: (ctx) => SuccessDialog(
+      title: 'Item/Part Cost Saved Successfully',
+      buttonText: 'Ok',
+      onPressed: () => Navigator.of(ctx).pop(),
+    ),
+  );
+  void openUploadBomDialog(BuildContext context) => showDialog(
+    context: context,
+    builder: (_) => UploadBomFileDialog(
+      onUploadSuccess: () => Get.toNamed(AppRoutes.bomFilesDetails),
+    ),
+  );
+  Future<void> exportFile(BuildContext context) async {
+    try {
+      final url = await repository.export();
+      if (url.isEmpty) throw Exception('Download URL was not returned.');
+      CommonSnackbar.showSuccess(
+        title: 'Export ready',
+        message: url,
+      );
+    } catch (error) {
+      CommonSnackbar.showError(
+        title: 'Export failed',
+        message: error.toString(),
+      );
+    }
   }
 
-  void showSaveSuccessDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (ctx) => SuccessDialog(
-        title: 'Item/Part Cost Saved Successfully',
-        buttonText: 'Ok',
-        onPressed: () => Navigator.of(ctx).pop(),
-      ),
-    );
-  }
-
-  void openUploadBomDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (ctx) => UploadBomFileDialog(
-        onUploadSuccess: () {
-          showDialog(
-            context: context,
-            builder: (successCtx) => SuccessDialog(
-              title: 'BOM File Uploaded',
-              buttonText: 'View BOM File',
-              onPressed: () {
-                Navigator.of(successCtx).pop();
-                Get.toNamed(AppRoutes.bomFilesDetails);
-              },
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  void exportFile(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (ctx) => SuccessDialog(
-        title: 'File Exported Successfully',
-        buttonText: 'Ok',
-        onPressed: () => Navigator.of(ctx).pop(),
-      ),
-    );
-  }
+  int _int(dynamic value) =>
+      value is num ? value.toInt() : int.tryParse('$value') ?? 0;
+  double _double(dynamic value) =>
+      value is num ? value.toDouble() : double.tryParse('$value') ?? 0;
+  double? _nullableDouble(dynamic value) =>
+      value == null ? null : _double(value);
 }

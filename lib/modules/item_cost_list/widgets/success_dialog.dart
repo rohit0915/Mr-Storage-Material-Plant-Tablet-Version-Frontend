@@ -78,7 +78,9 @@ class SuccessDialog extends StatelessWidget {
                         onPressed: onSecondaryPressed ?? () => Get.back(),
                         style: OutlinedButton.styleFrom(
                           side: const BorderSide(color: Color(0xFFCBD5E1)),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
                         ),
                         child: Text(
                           secondaryButtonText!,
@@ -100,7 +102,9 @@ class SuccessDialog extends StatelessWidget {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF3B82F6),
                           elevation: 0,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
                         ),
                         child: Text(
                           buttonText ?? 'Ok',
@@ -124,7 +128,9 @@ class SuccessDialog extends StatelessWidget {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF3B82F6),
                     elevation: 0,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
                   child: Text(
                     buttonText ?? 'Ok',

@@ -7,6 +7,17 @@ abstract class AppException implements Exception {
   AppException(this.message);
 
   factory AppException.fromDioError(DioException error) {
+    String? serverMessage;
+    final responseData = error.response?.data;
+    if (responseData != null) {
+      if (responseData is Map) {
+        serverMessage = responseData['message']?.toString() ??
+            responseData['error']?.toString();
+      } else if (responseData is String && responseData.isNotEmpty) {
+        serverMessage = responseData;
+      }
+    }
+
     switch (error.type) {
       case DioExceptionType.connectionTimeout:
       case DioExceptionType.sendTimeout:
@@ -14,17 +25,26 @@ abstract class AppException implements Exception {
         return TimeoutException(AppStrings.errorTimeout);
       case DioExceptionType.badResponse:
         final statusCode = error.response?.statusCode;
+        final msg = (serverMessage != null && serverMessage.isNotEmpty)
+            ? serverMessage
+            : (statusCode == 401 || statusCode == 403
+                ? AppStrings.errorUnauthorized
+                : 'Server error: $statusCode');
         if (statusCode == 401 || statusCode == 403) {
-          return UnauthorizedException(AppStrings.errorUnauthorized);
+          return UnauthorizedException(msg);
         }
-        return ServerException('Server error: $statusCode');
+        return ServerException(msg);
       case DioExceptionType.connectionError:
         return NetworkException(AppStrings.errorInternet);
       case DioExceptionType.cancel:
       case DioExceptionType.unknown:
       case DioExceptionType.badCertificate:
       default:
-        return UnknownException(AppStrings.errorUnknown);
+        return UnknownException(
+          (serverMessage != null && serverMessage.isNotEmpty)
+              ? serverMessage
+              : AppStrings.errorUnknown,
+        );
     }
   }
 

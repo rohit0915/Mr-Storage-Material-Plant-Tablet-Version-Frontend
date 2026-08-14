@@ -29,32 +29,26 @@ class ProjectsToolbar extends GetView<ProjectsController> {
               ),
             ],
           ),
-          // Right filter dropdowns
+          // Right filter dropdowns (Matching Web UI: Select Customer, Building types, All Lifecycle Statuses)
           Obx(() {
             return Row(
               children: [
                 _buildFilterDropdownMenu(
-                  label: controller.selectedProjectFilter.value,
-                  options: controller.projectOptions,
-                  onSelected: (val) => controller.selectedProjectFilter.value = val,
-                ),
-                const SizedBox(width: 8),
-                _buildFilterDropdownMenu(
                   label: controller.selectedCustomerFilter.value,
                   options: controller.customerOptions,
-                  onSelected: (val) => controller.selectedCustomerFilter.value = val,
+                  onSelected: controller.onSelectCustomerFilter,
                 ),
                 const SizedBox(width: 8),
                 _buildFilterDropdownMenu(
                   label: controller.selectedBuildingTypeFilter.value,
                   options: controller.buildingTypeOptions,
-                  onSelected: (val) => controller.selectedBuildingTypeFilter.value = val,
+                  onSelected: controller.onSelectBuildingTypeFilter,
                 ),
                 const SizedBox(width: 8),
                 _buildFilterDropdownMenu(
                   label: controller.selectedStatusFilter.value,
                   options: controller.statusOptions,
-                  onSelected: (val) => controller.selectedStatusFilter.value = val,
+                  onSelected: controller.onSelectStatusFilter,
                 ),
               ],
             );

@@ -3,10 +3,7 @@ import 'package:flutter/material.dart';
 class UploadBomFileDialog extends StatefulWidget {
   final VoidCallback onUploadSuccess;
 
-  const UploadBomFileDialog({
-    super.key,
-    required this.onUploadSuccess,
-  });
+  const UploadBomFileDialog({super.key, required this.onUploadSuccess});
 
   @override
   State<UploadBomFileDialog> createState() => _UploadBomFileDialogState();
@@ -42,7 +39,11 @@ class _UploadBomFileDialogState extends State<UploadBomFileDialog> {
                 ),
                 IconButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  icon: const Icon(Icons.close, size: 20, color: Color(0xFF64748B)),
+                  icon: const Icon(
+                    Icons.close,
+                    size: 20,
+                    color: Color(0xFF64748B),
+                  ),
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
                 ),
@@ -62,10 +63,7 @@ class _UploadBomFileDialogState extends State<UploadBomFileDialog> {
               decoration: BoxDecoration(
                 color: const Color(0xFFF8FAFC),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: const Color(0xFF93C5FD),
-                  width: 1.5,
-                ),
+                border: Border.all(color: const Color(0xFF93C5FD), width: 1.5),
               ),
               child: Column(
                 children: [
@@ -75,29 +73,50 @@ class _UploadBomFileDialogState extends State<UploadBomFileDialog> {
                       color: const Color(0xFF2563EB),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Icon(Icons.cloud_upload_outlined, color: Colors.white, size: 26),
+                    child: const Icon(
+                      Icons.cloud_upload_outlined,
+                      color: Colors.white,
+                      size: 26,
+                    ),
                   ),
                   const SizedBox(height: 12),
                   const Text(
                     'Drag your file(s) to start uploading',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF334155)),
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF334155),
+                    ),
                   ),
                   const SizedBox(height: 4),
                   const Text(
                     'OR',
-                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF94A3B8)),
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF94A3B8),
+                    ),
                   ),
                   const SizedBox(height: 8),
                   OutlinedButton(
                     onPressed: () {},
                     style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
                       side: const BorderSide(color: Color(0xFF3B82F6)),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(6),
+                      ),
                     ),
                     child: const Text(
                       'Browse Files',
-                      style: TextStyle(fontSize: 11, color: Color(0xFF2563EB), fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Color(0xFF2563EB),
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ],
@@ -113,7 +132,10 @@ class _UploadBomFileDialogState extends State<UploadBomFileDialog> {
             // File Item Preview
             if (_hasFile)
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFFF8FAFC),
                   borderRadius: BorderRadius.circular(8),
@@ -129,7 +151,11 @@ class _UploadBomFileDialogState extends State<UploadBomFileDialog> {
                       ),
                       child: const Text(
                         'PDF',
-                        style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.white),
+                        style: TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -139,11 +165,18 @@ class _UploadBomFileDialogState extends State<UploadBomFileDialog> {
                         children: [
                           Text(
                             _fileName,
-                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF1E293B),
+                            ),
                           ),
                           Text(
                             _fileSize,
-                            style: const TextStyle(fontSize: 10, color: Color(0xFF94A3B8)),
+                            style: const TextStyle(
+                              fontSize: 10,
+                              color: Color(0xFF94A3B8),
+                            ),
                           ),
                         ],
                       ),
@@ -154,7 +187,11 @@ class _UploadBomFileDialogState extends State<UploadBomFileDialog> {
                           _hasFile = false;
                         });
                       },
-                      icon: const Icon(Icons.cancel_outlined, size: 18, color: Color(0xFF94A3B8)),
+                      icon: const Icon(
+                        Icons.cancel_outlined,
+                        size: 18,
+                        color: Color(0xFF94A3B8),
+                      ),
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
                     ),
@@ -169,13 +206,22 @@ class _UploadBomFileDialogState extends State<UploadBomFileDialog> {
                 OutlinedButton(
                   onPressed: () => Navigator.of(context).pop(),
                   style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 12,
+                    ),
                     side: const BorderSide(color: Color(0xFFCBD5E1)),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
                   child: const Text(
                     'Cancel',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF475569)),
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF475569),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -186,13 +232,22 @@ class _UploadBomFileDialogState extends State<UploadBomFileDialog> {
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF2563EB),
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
                     elevation: 0,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
                   child: const Text(
                     'Upload',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ],

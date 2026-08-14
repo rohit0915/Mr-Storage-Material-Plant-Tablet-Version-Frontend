@@ -27,7 +27,10 @@ class NotificationHistoryView extends GetView<NotificationHistoryController> {
 
                 return SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 16,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -123,11 +126,7 @@ class NotificationHistoryView extends GetView<NotificationHistoryController> {
                     color: Colors.white.withValues(alpha: 0.9),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Icon(
-                    stat.icon,
-                    size: 22,
-                    color: stat.themeColor,
-                  ),
+                  child: Icon(stat.icon, size: 22, color: stat.themeColor),
                 ),
               ],
             ),
@@ -175,7 +174,10 @@ class NotificationHistoryView extends GetView<NotificationHistoryController> {
                     onTap: () => controller.selectFilter(chipLabel),
                     borderRadius: BorderRadius.circular(8),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 10,
+                      ),
                       decoration: BoxDecoration(
                         color: isSelected
                             ? const Color(0xFF2563EB)
@@ -186,7 +188,9 @@ class NotificationHistoryView extends GetView<NotificationHistoryController> {
                         chipLabel,
                         style: TextStyle(
                           fontSize: 13,
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                          fontWeight: isSelected
+                              ? FontWeight.bold
+                              : FontWeight.w500,
                           color: isSelected
                               ? Colors.white
                               : const Color(0xFF64748B),
@@ -258,11 +262,7 @@ class NotificationHistoryView extends GetView<NotificationHistoryController> {
               color: item.iconBgColor,
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(
-              item.icon,
-              color: item.iconFgColor,
-              size: 20,
-            ),
+            child: Icon(item.icon, color: item.iconFgColor, size: 20),
           ),
           const SizedBox(width: 16),
           Expanded(

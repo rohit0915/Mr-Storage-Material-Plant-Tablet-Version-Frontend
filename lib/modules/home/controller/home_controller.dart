@@ -12,6 +12,26 @@ class HomeController extends GetxController {
   final RxBool isLoading = false.obs;
   final RxString errorMessage = ''.obs;
   final RxString selectedDrawerItem = 'Dashboard'.obs;
+  final RxString selectedTimeFilter = 'month'.obs;
+
+  String get timeFilterLabel {
+    switch (selectedTimeFilter.value) {
+      case 'today':
+        return 'Today';
+      case 'week':
+        return 'This Week';
+      case 'month':
+      default:
+        return 'This Month';
+    }
+  }
+
+  void changeTimeFilter(String filter) {
+    if (selectedTimeFilter.value != filter) {
+      selectedTimeFilter.value = filter;
+      loadDashboardData();
+    }
+  }
 
   // Rx Data Lists
   final RxList<TopMetricModel> topMetrics = <TopMetricModel>[].obs;
@@ -28,307 +48,308 @@ class HomeController extends GetxController {
     loadDashboardData();
   }
 
-  void loadDashboardData() {
+  String _formatDate(String? isoString) {
+    if (isoString == null || isoString.isEmpty) return 'Recent';
+    try {
+      final dt = DateTime.parse(isoString).toLocal();
+      final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      return '${months[dt.month - 1]} ${dt.day}, ${dt.year}';
+    } catch (_) {
+      return 'Recent';
+    }
+  }
+
+  String _formatTime(String? isoString) {
+    if (isoString == null || isoString.isEmpty) return '';
+    try {
+      final dt = DateTime.parse(isoString).toLocal();
+      final hour = dt.hour % 12 == 0 ? 12 : dt.hour % 12;
+      final period = dt.hour >= 12 ? 'PM' : 'AM';
+      final minute = dt.minute.toString().padLeft(2, '0');
+      return '$hour:$minute $period';
+    } catch (_) {
+      return '';
+    }
+  }
+
+  Future<void> loadDashboardData() async {
     isLoading.value = true;
+    errorMessage.value = '';
 
-    topMetrics.assignAll([
-      TopMetricModel(
-        title: 'Total Projects',
-        count: '04',
-        iconAsset: AppIcons.totalProject,
-        backgroundColor: AppColors.totalProjectsCard,
-      ),
-      TopMetricModel(
-        title: 'In Production',
-        count: '02',
-        iconAsset: AppIcons.inProduction,
-        backgroundColor: AppColors.inProductionCard,
-      ),
-      TopMetricModel(
-        title: 'Ready to Dispatch',
-        count: '01',
-        iconAsset: AppIcons.readyToDispatch,
-        backgroundColor: AppColors.readyToDispatchCard,
-      ),
-      TopMetricModel(
-        title: 'Dispatched Today',
-        count: '01',
-        iconAsset: AppIcons.dispatchedToday,
-        backgroundColor: AppColors.dispatchedTodayCard,
-      ),
-      TopMetricModel(
-        title: 'Pending Approval',
-        count: '01',
-        iconAsset: AppIcons.pendingApproval,
-        backgroundColor: AppColors.pendingApprovalCard,
-      ),
-    ]);
+    final currentFilter = selectedTimeFilter.value;
 
-    productionOverviewItems.assignAll([
-      ProductionOverviewModel(
-        iconAsset: AppIcons.plannedTonnage,
-        label: 'Planned Tonnage',
-        value: '125.50 MT',
-      ),
-      ProductionOverviewModel(
-        iconAsset: AppIcons.producedTonnage,
-        label: 'Produced Tonnage',
-        value: '78.80 MT',
-      ),
-      ProductionOverviewModel(
-        iconAsset: AppIcons.utilization,
-        label: 'Utilization',
-        value: '63%',
-      ),
-      ProductionOverviewModel(
-        iconAsset: AppIcons.onTimeDelivery,
-        label: 'On-Time Delivery',
-        value: '92%',
-      ),
-      ProductionOverviewModel(
-        iconAsset: AppIcons.rework,
-        label: 'Rework/Rejection',
-        value: '2.4%',
-      ),
-    ]);
+    try {
+      final results = await Future.wait([
+        repository.fetchProjectStats(filter: currentFilter),
+        repository.fetchProjects(filter: currentFilter),
+        repository.fetchShipperFilesStats(filter: currentFilter),
+        repository.fetchBomStats(filter: currentFilter),
+        repository.fetchDeliveriesStats(filter: currentFilter),
+        repository.fetchNotifications(),
+      ]);
 
-    shipperFiles.assignAll([
-      ShipperFileReceivedModel(
-        title: 'ABC Warehouse',
-        subtitle: 'SHP-1044 | ABC Steel',
-        itemCount: '120 Items',
-        date: 'Mar 15, 2025',
-        time: '05:00:14 PM',
-        iconAsset: AppIcons.pdf,
-        iconBgColor: AppColors.badgeRedBg,
-        iconColor: AppColors.badgeRedText,
-      ),
-      ShipperFileReceivedModel(
-        title: 'Tech Park Dev',
-        subtitle: 'SHP-1044 | ABC Steel',
-        itemCount: '95 Items',
-        date: 'Jan 8, 2025',
-        time: '08:20:13 PM',
-        iconAsset: AppIcons.xls,
-        iconBgColor: AppColors.badgeGreenBg,
-        iconColor: AppColors.badgeGreenText,
-      ),
-      ShipperFileReceivedModel(
-        title: 'Downtown Plaza',
-        subtitle: 'SHP-1044 | ABC Steel',
-        itemCount: '50 Items',
-        date: 'Aug 6, 2025',
-        time: '04:10:12 PM',
-        iconAsset: AppIcons.pdf,
-        iconBgColor: AppColors.badgePurpleBg,
-        iconColor: AppColors.badgePurpleText,
-      ),
-      ShipperFileReceivedModel(
-        title: 'Riverside complex',
-        subtitle: 'SHP-1044 | ABC Steel',
-        itemCount: '120 Items',
-        date: 'Jan 6, 2025',
-        time: '03:40:14 PM',
-        iconAsset: AppIcons.xls,
-        iconBgColor: AppColors.badgeRedBg,
-        iconColor: AppColors.badgeRedText,
-      ),
-      ShipperFileReceivedModel(
-        title: 'Techpark Dev',
-        subtitle: 'SHP-1044 | ABC Steel',
-        itemCount: '120 Items',
-        date: 'Oct 12, 2025',
-        time: '05:00:14 PM',
-        iconAsset: AppIcons.pdf,
-        iconBgColor: AppColors.badgeRedBg,
-        iconColor: AppColors.badgeRedText,
-      ),
-    ]);
+      final projectStats = results[0];
+      final projectsData = results[1];
+      final shipperStats = results[2];
+      final bomStats = results[3];
+      final deliveriesStats = results[4];
+      final notificationsData = results[5];
 
-    plantAlerts.assignAll([
-      PlantAlertModel(
-        title: 'Shipper File Comparison Completed SH-001',
-        actionText: 'View Result',
-        iconAsset: AppIcons.file,
-        iconBgColor: AppColors.badgeBlueBg,
-        iconColor: AppColors.badgeBlueText,
-      ),
-      PlantAlertModel(
-        title: 'Shipper File Comparison Failed SH-002',
-        actionText: 'Try Again',
-        iconAsset: AppIcons.shipperFile,
-        iconBgColor: AppColors.badgeRedBg,
-        iconColor: AppColors.badgeRedText,
-      ),
-      PlantAlertModel(
-        title: 'Oder ORD-1045 Marked as ready to dispatch',
-        timeText: '04:10:12 PM',
-        iconAsset: AppIcons.truckDelivery,
-        iconBgColor: AppColors.badgeGreenBg,
-        iconColor: AppColors.badgeGreenText,
-      ),
-      PlantAlertModel(
-        title: 'Drawing DRG-098 Uploaded',
-        timeText: '03:40:14 PM',
-        iconAsset: AppIcons.drawing,
-        iconBgColor: AppColors.badgePurpleBg,
-        iconColor: AppColors.badgePurpleText,
-      ),
-      PlantAlertModel(
-        title: 'Production Target for todayis 63%',
-        timeText: '05:00:14 PM',
-        iconAsset: AppIcons.productionTarget,
-        iconBgColor: AppColors.badgeYellowBg,
-        iconColor: AppColors.badgeYellowText,
-      ),
-    ]);
+      // 1. Top Metrics
+      final totalPrj = projectStats?['totalProjects'] ?? projectsData?['total'] ?? 0;
+      final activePrj = projectStats?['activeProjects'] ?? 0;
+      final pendingAppr = projectStats?['pendingCustomerApproval'] ?? 0;
+      final readyDispatch = deliveriesStats?['scheduledCount'] ?? (shipperStats?['ordersSent'] ?? 0);
+      final dispatched = deliveriesStats?['deliveredCount'] ?? (bomStats?['readyForShipper'] ?? 0);
 
-    freightCarriers.assignAll([
-      FreightCarrierModel(
-        title: 'Roadking Logistics',
-        loadsCount: '12 Loads Today',
-        status: 'On Time',
-        isOnTime: true,
-        iconAsset: AppIcons.roadkingLogistics,
-      ),
-      FreightCarrierModel(
-        title: 'Swift Transport',
-        loadsCount: '08 Loads Today',
-        status: 'On Time',
-        isOnTime: true,
-        iconAsset: AppIcons.swiftTransport,
-      ),
-      FreightCarrierModel(
-        title: 'Global Freight Lines',
-        loadsCount: '12 Loads Today',
-        status: 'Delayed',
-        isOnTime: false,
-        iconAsset: AppIcons.globalFreightLines,
-      ),
-      FreightCarrierModel(
-        title: 'Eagle Freight',
-        loadsCount: '08 Loads Today',
-        status: 'On Time',
-        isOnTime: true,
-        iconAsset: AppIcons.eagleFreight,
-      ),
-      FreightCarrierModel(
-        title: 'Prime Carriers',
-        loadsCount: '12 Loads Today',
-        status: 'Delayed',
-        isOnTime: false,
-        iconAsset: AppIcons.primeCarriers,
-      ),
-    ]);
+      topMetrics.assignAll([
+        TopMetricModel(
+          title: 'Total Projects',
+          count: totalPrj.toString().padLeft(2, '0'),
+          iconAsset: AppIcons.totalProject,
+          backgroundColor: AppColors.totalProjectsCard,
+        ),
+        TopMetricModel(
+          title: 'In Production',
+          count: activePrj.toString().padLeft(2, '0'),
+          iconAsset: AppIcons.inProduction,
+          backgroundColor: AppColors.inProductionCard,
+        ),
+        TopMetricModel(
+          title: 'Ready to Dispatch',
+          count: readyDispatch.toString().padLeft(2, '0'),
+          iconAsset: AppIcons.readyToDispatch,
+          backgroundColor: AppColors.readyToDispatchCard,
+        ),
+        TopMetricModel(
+          title: 'Dispatched Today',
+          count: dispatched.toString().padLeft(2, '0'),
+          iconAsset: AppIcons.dispatchedToday,
+          backgroundColor: AppColors.dispatchedTodayCard,
+        ),
+        TopMetricModel(
+          title: 'Pending Approval',
+          count: pendingAppr.toString().padLeft(2, '0'),
+          iconAsset: AppIcons.pendingApproval,
+          backgroundColor: AppColors.pendingApprovalCard,
+        ),
+      ]);
 
-    recentShipperCards.assignAll([
-      RecentShipperFileCardModel(
-        projectCode: 'PRJ-001',
-        title: 'Downtown Office Complex',
-        site: 'Site A',
-        fileName: 'SHP-1044',
-        uploadDate: '12/09/2026',
-        items: '120',
-        rates: '\$2100',
-        weight: '18,000 lbs',
-        status: 'File Received',
-        statusType: BadgeStatusType.fileReceived,
-      ),
-      RecentShipperFileCardModel(
-        projectCode: 'PRJ-002',
-        title: 'Residential Tower A',
-        site: 'Site A',
-        fileName: 'SHP-1044',
-        uploadDate: '12/09/2026',
-        items: '120',
-        rates: '\$2100',
-        weight: '18,000 lbs',
-        status: 'Order Sent',
-        statusType: BadgeStatusType.orderSent,
-      ),
-      RecentShipperFileCardModel(
-        projectCode: 'PRJ-004',
-        title: 'Shopping Mall Renovation',
-        site: 'Site A',
-        fileName: 'SHP-1044',
-        uploadDate: '12/09/2026',
-        items: '120',
-        rates: '\$2100',
-        weight: '18,000 lbs',
-        status: 'Revision Sent',
-        statusType: BadgeStatusType.revisionSent,
-      ),
-      RecentShipperFileCardModel(
-        projectCode: 'PRJ-001',
-        title: 'Downtown Office Complex',
-        site: 'Site A',
-        fileName: 'SHP-1044',
-        uploadDate: '12/09/2026',
-        items: '120',
-        rates: '\$2100',
-        weight: '18,000 lbs',
-        status: 'File Received',
-        statusType: BadgeStatusType.fileReceived,
-      ),
-    ]);
+      // 2. Production Overview (Dynamic metrics from stats)
+      productionOverviewItems.assignAll([
+        ProductionOverviewModel(
+          iconAsset: AppIcons.plannedTonnage,
+          label: 'BOM Uploads',
+          value: '${bomStats?['totalBomFilesUploaded'] ?? 0} Files',
+        ),
+        ProductionOverviewModel(
+          iconAsset: AppIcons.producedTonnage,
+          label: 'Ready for Shipper',
+          value: '${bomStats?['readyForShipper'] ?? 0} Items',
+        ),
+        ProductionOverviewModel(
+          iconAsset: AppIcons.utilization,
+          label: 'Shipper Orders',
+          value: '${shipperStats?['ordersSent'] ?? 0} Sent',
+        ),
+        ProductionOverviewModel(
+          iconAsset: AppIcons.onTimeDelivery,
+          label: 'Total Deliveries',
+          value: '${deliveriesStats?['totalCount'] ?? 0} Loads',
+        ),
+        ProductionOverviewModel(
+          iconAsset: AppIcons.rework,
+          label: 'Issues Detected',
+          value: '${bomStats?['issuesDetected'] ?? 0}',
+        ),
+      ]);
 
-    drawingApprovalItems.assignAll([
-      DrawingApprovalStatusModel(
-        clientName: 'ABC Steel',
-        projectName: 'ABC Warehouse',
-        fileName: 'Drawing',
-        sentDate: '22 Feb 2025',
-        status: 'Pending',
-        statusType: BadgeStatusType.pending,
-        avatarInitial: 'A',
-      ),
-      DrawingApprovalStatusModel(
-        clientName: 'Steel Works LTD',
-        projectName: 'Tech Park Dev',
-        fileName: 'Drawing',
-        sentDate: '07 Feb 2025',
-        status: 'Approved',
-        statusType: BadgeStatusType.approved,
-        avatarInitial: 'S',
-      ),
-      DrawingApprovalStatusModel(
-        clientName: 'Metro Steel',
-        projectName: 'Downtown Plaza',
-        fileName: 'Drawing',
-        sentDate: '30 Jan 2025',
-        status: 'Revision Sent',
-        statusType: BadgeStatusType.revisionSent,
-        avatarInitial: 'M',
-      ),
-      DrawingApprovalStatusModel(
-        clientName: 'ABC Steel',
-        projectName: 'Riverside Complex',
-        fileName: 'Drawing',
-        sentDate: '17 Jan 2025',
-        status: 'Pending',
-        statusType: BadgeStatusType.pending,
-        avatarInitial: 'A',
-      ),
-      DrawingApprovalStatusModel(
-        clientName: 'Steel Works LTD',
-        projectName: 'Tech Park Dev',
-        fileName: 'Drawing',
-        sentDate: '04 Jan 2025',
-        status: 'Approved',
-        statusType: BadgeStatusType.approved,
-        avatarInitial: 'S',
-      ),
-      DrawingApprovalStatusModel(
-        clientName: 'Metro Steel',
-        projectName: 'Downtown Plaza',
-        fileName: 'Drawing',
-        sentDate: '08 Dec 2024',
-        status: 'Approved',
-        statusType: BadgeStatusType.approved,
-        avatarInitial: 'M',
-      ),
-    ]);
+      // 3. Projects list mapping to Recent Shipper Cards, Drawing Approval Items, & Shipper Files
+      if (projectsData != null && projectsData['projects'] is List) {
+        final List list = projectsData['projects'];
 
-    isLoading.value = false;
+        // Recent Shipper Cards
+        final mappedCards = list.map((item) {
+          final jobId = (item['jobId'] ?? item['projectId'] ?? 'PRJ-000').toString();
+          final name = (item['projectName'] ?? 'Project').toString();
+          final loc = (item['location'] ?? 'Site').toString();
+          final drawingStatus = (item['drawingStatus'] ?? 'pending').toString();
+          final quoteVal = item['quoteValue'] != null ? '\$${item['quoteValue']}' : '\$0';
+          final dateStr = _formatDate(item['createdAt']);
+
+          BadgeStatusType statusType;
+          if (drawingStatus == 'approved') {
+            statusType = BadgeStatusType.approved;
+          } else if (drawingStatus == 'pending') {
+            statusType = BadgeStatusType.pending;
+          } else if (drawingStatus == 'rejected') {
+            statusType = BadgeStatusType.revisionSent;
+          } else {
+            statusType = BadgeStatusType.fileReceived;
+          }
+
+          return RecentShipperFileCardModel(
+            projectCode: jobId,
+            title: name,
+            site: loc,
+            fileName: 'SHP-FILE',
+            uploadDate: dateStr,
+            items: 'BOM: ${item['bomStatus'] ?? 'none'}',
+            rates: quoteVal,
+            weight: '${item['numberOfBuildings'] ?? 1} bldg',
+            status: drawingStatus.toUpperCase(),
+            statusType: statusType,
+          );
+        }).toList();
+        recentShipperCards.assignAll(mappedCards);
+
+        // Drawing Approval Items
+        final mappedDrawings = list.map((item) {
+          final clientName = (item['clientName'] ?? item['customer']?['firstName'] ?? 'Client').toString();
+          final projectName = (item['projectName'] ?? 'Project').toString();
+          final drawingStatus = (item['drawingStatus'] ?? 'pending').toString();
+          final dateStr = _formatDate(item['createdAt']);
+
+          BadgeStatusType statusType;
+          String statusText;
+          if (drawingStatus == 'approved') {
+            statusType = BadgeStatusType.approved;
+            statusText = 'Approved';
+          } else if (drawingStatus == 'pending') {
+            statusType = BadgeStatusType.pending;
+            statusText = 'Pending';
+          } else if (drawingStatus == 'rejected') {
+            statusType = BadgeStatusType.revisionSent;
+            statusText = 'Revision Sent';
+          } else {
+            statusType = BadgeStatusType.pending;
+            statusText = drawingStatus.capitalizeFirst ?? 'Pending';
+          }
+
+          return DrawingApprovalStatusModel(
+            clientName: clientName,
+            projectName: projectName,
+            fileName: 'Drawing (${item['jobId'] ?? ''})',
+            sentDate: dateStr,
+            status: statusText,
+            statusType: statusType,
+            avatarInitial: clientName.isNotEmpty ? clientName[0].toUpperCase() : 'C',
+          );
+        }).toList();
+        drawingApprovalItems.assignAll(mappedDrawings);
+
+        // Shipper Files Received Column
+        final mappedShippers = list.map((item) {
+          final projectName = (item['projectName'] ?? 'Project').toString();
+          final jobId = (item['jobId'] ?? item['projectId'] ?? '').toString();
+          final clientName = (item['clientName'] ?? 'Client').toString();
+          final dateStr = _formatDate(item['createdAt']);
+          final timeStr = _formatTime(item['createdAt']);
+
+          return ShipperFileReceivedModel(
+            title: projectName,
+            subtitle: '$jobId | $clientName',
+            itemCount: '${item['numberOfBuildings'] ?? 1} Buildings',
+            date: dateStr,
+            time: timeStr.isNotEmpty ? timeStr : 'Today',
+            iconAsset: AppIcons.pdf,
+            iconBgColor: AppColors.badgeBlueBg,
+            iconColor: AppColors.badgeBlueText,
+          );
+        }).toList();
+        shipperFiles.assignAll(mappedShippers);
+      } else {
+        recentShipperCards.clear();
+        drawingApprovalItems.clear();
+        shipperFiles.clear();
+      }
+
+      // 4. Plant Alerts (Dynamic notifications & system status)
+      if (notificationsData != null &&
+          notificationsData['notifications'] is List &&
+          (notificationsData['notifications'] as List).isNotEmpty) {
+        final List nList = notificationsData['notifications'];
+        final mappedAlerts = nList.map((n) {
+          return PlantAlertModel(
+            title: (n['title'] ?? n['message'] ?? 'Notification').toString(),
+            timeText: _formatTime(n['createdAt']),
+            iconAsset: AppIcons.file,
+            iconBgColor: AppColors.badgeBlueBg,
+            iconColor: AppColors.badgeBlueText,
+          );
+        }).toList();
+        plantAlerts.assignAll(mappedAlerts);
+      } else {
+        final List<PlantAlertModel> alerts = [];
+        final pendingCount = projectStats?['pendingCustomerApproval'] ?? 0;
+        if (pendingCount > 0) {
+          alerts.add(PlantAlertModel(
+            title: '$pendingCount Project(s) pending customer approval',
+            actionText: 'View Projects',
+            iconAsset: AppIcons.file,
+            iconBgColor: AppColors.badgeBlueBg,
+            iconColor: AppColors.badgeBlueText,
+          ));
+        }
+
+        final issues = bomStats?['issuesDetected'] ?? 0;
+        if (issues > 0) {
+          alerts.add(PlantAlertModel(
+            title: '$issues BOM issue(s) detected',
+            actionText: 'Resolve',
+            iconAsset: AppIcons.shipperFile,
+            iconBgColor: AppColors.badgeRedBg,
+            iconColor: AppColors.badgeRedText,
+          ));
+        }
+
+        final totalDeliveries = deliveriesStats?['totalCount'] ?? 0;
+        if (totalDeliveries > 0) {
+          alerts.add(PlantAlertModel(
+            title: '$totalDeliveries total deliveries recorded',
+            timeText: 'Active',
+            iconAsset: AppIcons.truckDelivery,
+            iconBgColor: AppColors.badgeGreenBg,
+            iconColor: AppColors.badgeGreenText,
+          ));
+        }
+        plantAlerts.assignAll(alerts);
+      }
+
+      // 5. Freight Carriers (Dynamic metrics based on delivery stats)
+      final totalLoads = deliveriesStats?['totalCount'] ?? 0;
+      final scheduledLoads = deliveriesStats?['scheduledCount'] ?? 0;
+      final inTransitLoads = deliveriesStats?['inTransitCount'] ?? 0;
+      final deliveredLoads = deliveriesStats?['deliveredCount'] ?? 0;
+
+      freightCarriers.assignAll([
+        FreightCarrierModel(
+          title: 'Active Freight Shipments',
+          loadsCount: '$totalLoads Total Loads',
+          status: inTransitLoads > 0 ? 'In Transit ($inTransitLoads)' : 'Active',
+          isOnTime: true,
+          iconAsset: AppIcons.roadkingLogistics,
+        ),
+        FreightCarrierModel(
+          title: 'Scheduled Dispatches',
+          loadsCount: '$scheduledLoads Scheduled',
+          status: 'Scheduled',
+          isOnTime: true,
+          iconAsset: AppIcons.swiftTransport,
+        ),
+        FreightCarrierModel(
+          title: 'Delivered Orders',
+          loadsCount: '$deliveredLoads Delivered',
+          status: 'Delivered',
+          isOnTime: true,
+          iconAsset: AppIcons.globalFreightLines,
+        ),
+      ]);
+
+    } catch (e) {
+      errorMessage.value = e.toString();
+    } finally {
+      isLoading.value = false;
+    }
   }
 }

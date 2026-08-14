@@ -27,7 +27,10 @@ class FreightCarriersView extends GetView<FreightCarriersController> {
 
                 return SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 16,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -104,10 +107,17 @@ class FreightCarriersView extends GetView<FreightCarriersController> {
                   Expanded(
                     child: TextField(
                       onChanged: (val) => controller.filterCarriers(val),
-                      style: const TextStyle(fontSize: 14, color: Color(0xFF0F172A)),
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Color(0xFF0F172A),
+                      ),
                       decoration: const InputDecoration(
-                        hintText: 'Search by carrier name, contact, email, or phone...',
-                        hintStyle: TextStyle(fontSize: 13, color: Color(0xFF94A3B8)),
+                        hintText:
+                            'Search by carrier name, contact, email, or phone...',
+                        hintStyle: TextStyle(
+                          fontSize: 13,
+                          color: Color(0xFF94A3B8),
+                        ),
                         border: InputBorder.none,
                         isDense: true,
                       ),
@@ -120,16 +130,27 @@ class FreightCarriersView extends GetView<FreightCarriersController> {
           const SizedBox(width: 16),
 
           // Filter Button
-          ElevatedButton.icon(
-            onPressed: () {},
-            icon: const SizedBox.shrink(),
-            label: const Text('Filter', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF71717A),
-              foregroundColor: Colors.white,
-              elevation: 0,
+          PopupMenuButton<String>(
+            onSelected: controller.setStatusFilter,
+            itemBuilder: (_) => const [
+              PopupMenuItem(value: '', child: Text('All statuses')),
+              PopupMenuItem(value: 'active', child: Text('Active')),
+              PopupMenuItem(value: 'inactive', child: Text('Inactive')),
+            ],
+            child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              decoration: BoxDecoration(
+                color: const Color(0xFF71717A),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Text(
+                'Filter',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
             ),
           ),
           const SizedBox(width: 12),
@@ -138,13 +159,18 @@ class FreightCarriersView extends GetView<FreightCarriersController> {
           ElevatedButton.icon(
             onPressed: () => Get.toNamed(AppRoutes.addFreightCarrier),
             icon: const Icon(Icons.add, size: 18),
-            label: const Text('Add Carrier', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+            label: const Text(
+              'Add Carrier',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+            ),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF2563EB),
               foregroundColor: Colors.white,
               elevation: 0,
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
           ),
         ],
@@ -179,7 +205,10 @@ class FreightCarriersView extends GetView<FreightCarriersController> {
               children: [
                 // Header Row
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 16,
+                  ),
                   decoration: const BoxDecoration(
                     color: Color(0xFFE8F2FE),
                     borderRadius: BorderRadius.only(
@@ -189,18 +218,150 @@ class FreightCarriersView extends GetView<FreightCarriersController> {
                   ),
                   child: Row(
                     children: const [
-                      SizedBox(width: 210, child: Text('CARRIER', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF475569), letterSpacing: 0.5))),
-                      SizedBox(width: 140, child: Text('CONTACT', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF475569), letterSpacing: 0.5))),
-                      SizedBox(width: 220, child: Text('EMAIL', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF475569), letterSpacing: 0.5))),
-                      SizedBox(width: 140, child: Text('PHONE', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF475569), letterSpacing: 0.5))),
-                      SizedBox(width: 100, child: Text('BIDS', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF475569), letterSpacing: 0.5))),
-                      SizedBox(width: 100, child: Text('AWARDED', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF475569), letterSpacing: 0.5))),
-                      SizedBox(width: 150, child: Text('AVG BID', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF475569), letterSpacing: 0.5))),
-                      SizedBox(width: 100, child: Text('STATUS', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF475569), letterSpacing: 0.5))),
-                      SizedBox(width: 140, child: Text('SERVICE TYPE', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF475569), letterSpacing: 0.5))),
-                      SizedBox(width: 120, child: Text('SERVICE AREA', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF475569), letterSpacing: 0.5))),
-                      SizedBox(width: 130, child: Text('EQUIPMENT TYPE', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF475569), letterSpacing: 0.5))),
-                      SizedBox(width: 90, child: Text('ACTIONS', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF475569), letterSpacing: 0.5))),
+                      SizedBox(
+                        width: 210,
+                        child: Text(
+                          'CARRIER',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF475569),
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        width: 140,
+                        child: Text(
+                          'CONTACT',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF475569),
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        width: 220,
+                        child: Text(
+                          'EMAIL',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF475569),
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        width: 140,
+                        child: Text(
+                          'PHONE',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF475569),
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        width: 100,
+                        child: Text(
+                          'BIDS',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF475569),
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        width: 100,
+                        child: Text(
+                          'AWARDED',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF475569),
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        width: 150,
+                        child: Text(
+                          'AVG BID',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF475569),
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        width: 100,
+                        child: Text(
+                          'STATUS',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF475569),
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        width: 140,
+                        child: Text(
+                          'SERVICE TYPE',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF475569),
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        width: 120,
+                        child: Text(
+                          'SERVICE AREA',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF475569),
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        width: 130,
+                        child: Text(
+                          'EQUIPMENT TYPE',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF475569),
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        width: 90,
+                        child: Text(
+                          'ACTIONS',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF475569),
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -212,23 +373,37 @@ class FreightCarriersView extends GetView<FreightCarriersController> {
                     return const Padding(
                       padding: EdgeInsets.all(32.0),
                       child: Center(
-                        child: Text('No carriers found', style: TextStyle(color: Color(0xFF64748B), fontSize: 14)),
+                        child: Text(
+                          'No carriers found',
+                          style: TextStyle(
+                            color: Color(0xFF64748B),
+                            fontSize: 14,
+                          ),
+                        ),
                       ),
                     );
                   }
 
                   return Column(
-                    children: List.generate(controller.filteredCarriers.length, (index) {
-                      final carrier = controller.filteredCarriers[index];
-                      final isLast = index == controller.filteredCarriers.length - 1;
+                    children: List.generate(
+                      controller.filteredCarriers.length,
+                      (index) {
+                        final carrier = controller.filteredCarriers[index];
+                        final isLast =
+                            index == controller.filteredCarriers.length - 1;
 
-                      return Column(
-                        children: [
-                          _buildCarrierRow(carrier),
-                          if (!isLast) const Divider(height: 1, color: Color(0xFFF1F5F9)),
-                        ],
-                      );
-                    }),
+                        return Column(
+                          children: [
+                            _buildCarrierRow(carrier),
+                            if (!isLast)
+                              const Divider(
+                                height: 1,
+                                color: Color(0xFFF1F5F9),
+                              ),
+                          ],
+                        );
+                      },
+                    ),
                   );
                 }),
               ],
@@ -313,7 +488,11 @@ class FreightCarriersView extends GetView<FreightCarriersController> {
             width: 220,
             child: Row(
               children: [
-                const Icon(Icons.email_outlined, size: 14, color: Color(0xFF2563EB)),
+                const Icon(
+                  Icons.email_outlined,
+                  size: 14,
+                  color: Color(0xFF2563EB),
+                ),
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
@@ -335,7 +514,11 @@ class FreightCarriersView extends GetView<FreightCarriersController> {
             width: 140,
             child: Row(
               children: [
-                const Icon(Icons.phone_outlined, size: 14, color: Color(0xFF2563EB)),
+                const Icon(
+                  Icons.phone_outlined,
+                  size: 14,
+                  color: Color(0xFF2563EB),
+                ),
                 const SizedBox(width: 4),
                 Expanded(
                   child: Text(
@@ -360,7 +543,10 @@ class FreightCarriersView extends GetView<FreightCarriersController> {
               children: [
                 RichText(
                   text: TextSpan(
-                    style: const TextStyle(fontSize: 13, color: Color(0xFF0F172A)),
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: Color(0xFF0F172A),
+                    ),
                     children: [
                       TextSpan(
                         text: '${carrier.activeBids} ',
@@ -376,7 +562,10 @@ class FreightCarriersView extends GetView<FreightCarriersController> {
                 const SizedBox(height: 2),
                 Text(
                   '${carrier.totalBids} total',
-                  style: const TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: Color(0xFF94A3B8),
+                  ),
                 ),
               ],
             ),
@@ -399,7 +588,10 @@ class FreightCarriersView extends GetView<FreightCarriersController> {
                 const SizedBox(height: 2),
                 Text(
                   carrier.winRate,
-                  style: const TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: Color(0xFF94A3B8),
+                  ),
                 ),
               ],
             ),
@@ -413,7 +605,10 @@ class FreightCarriersView extends GetView<FreightCarriersController> {
               children: [
                 RichText(
                   text: TextSpan(
-                    style: const TextStyle(fontSize: 13, color: Color(0xFF0F172A)),
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: Color(0xFF0F172A),
+                    ),
                     children: [
                       TextSpan(
                         text: '${carrier.avgBid} ',
@@ -421,7 +616,10 @@ class FreightCarriersView extends GetView<FreightCarriersController> {
                       ),
                       const TextSpan(
                         text: 'average',
-                        style: TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Color(0xFF64748B),
+                        ),
                       ),
                     ],
                   ),
@@ -429,7 +627,10 @@ class FreightCarriersView extends GetView<FreightCarriersController> {
                 const SizedBox(height: 2),
                 Text(
                   '• ${carrier.respondsTime}',
-                  style: const TextStyle(fontSize: 10, color: Color(0xFF94A3B8)),
+                  style: const TextStyle(
+                    fontSize: 10,
+                    color: Color(0xFF94A3B8),
+                  ),
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
@@ -442,9 +643,14 @@ class FreightCarriersView extends GetView<FreightCarriersController> {
             child: Align(
               alignment: Alignment.centerLeft,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
-                  color: isActive ? const Color(0xFFDCFCE7) : const Color(0xFFFEE2E2),
+                  color: isActive
+                      ? const Color(0xFFDCFCE7)
+                      : const Color(0xFFFEE2E2),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
@@ -453,7 +659,9 @@ class FreightCarriersView extends GetView<FreightCarriersController> {
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
-                    color: isActive ? const Color(0xFF16A34A) : const Color(0xFFEF4444),
+                    color: isActive
+                        ? const Color(0xFF16A34A)
+                        : const Color(0xFFEF4444),
                   ),
                 ),
               ),
@@ -465,10 +673,7 @@ class FreightCarriersView extends GetView<FreightCarriersController> {
             width: 140,
             child: Text(
               carrier.serviceType,
-              style: const TextStyle(
-                fontSize: 12,
-                color: Color(0xFF334155),
-              ),
+              style: const TextStyle(fontSize: 12, color: Color(0xFF334155)),
               overflow: TextOverflow.ellipsis,
             ),
           ),
@@ -478,10 +683,7 @@ class FreightCarriersView extends GetView<FreightCarriersController> {
             width: 120,
             child: Text(
               carrier.serviceArea,
-              style: const TextStyle(
-                fontSize: 12,
-                color: Color(0xFF334155),
-              ),
+              style: const TextStyle(fontSize: 12, color: Color(0xFF334155)),
               overflow: TextOverflow.ellipsis,
             ),
           ),
@@ -491,10 +693,7 @@ class FreightCarriersView extends GetView<FreightCarriersController> {
             width: 130,
             child: Text(
               carrier.equipmentType,
-              style: const TextStyle(
-                fontSize: 12,
-                color: Color(0xFF334155),
-              ),
+              style: const TextStyle(fontSize: 12, color: Color(0xFF334155)),
               overflow: TextOverflow.ellipsis,
             ),
           ),
@@ -506,17 +705,32 @@ class FreightCarriersView extends GetView<FreightCarriersController> {
               children: [
                 InkWell(
                   onTap: () {},
-                  child: const Icon(Icons.remove_red_eye_outlined, size: 16, color: Color(0xFF475569)),
+                  child: const Icon(
+                    Icons.remove_red_eye_outlined,
+                    size: 16,
+                    color: Color(0xFF475569),
+                  ),
                 ),
                 const SizedBox(width: 8),
                 InkWell(
-                  onTap: () => Get.toNamed(AppRoutes.editFreightCarrier),
-                  child: const Icon(Icons.edit_outlined, size: 16, color: Color(0xFF2563EB)),
+                  onTap: () {
+                    controller.selectedCarrier.value = carrier;
+                    Get.toNamed(AppRoutes.editFreightCarrier);
+                  },
+                  child: const Icon(
+                    Icons.edit_outlined,
+                    size: 16,
+                    color: Color(0xFF2563EB),
+                  ),
                 ),
                 const SizedBox(width: 8),
                 InkWell(
-                  onTap: () {},
-                  child: const Icon(Icons.delete_outline, size: 16, color: Color(0xFFEF4444)),
+                  onTap: () => controller.toggleStatus(carrier),
+                  child: const Icon(
+                    Icons.delete_outline,
+                    size: 16,
+                    color: Color(0xFFEF4444),
+                  ),
                 ),
               ],
             ),

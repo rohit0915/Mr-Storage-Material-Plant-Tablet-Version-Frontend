@@ -18,7 +18,10 @@ class CustomerStatCards extends StatelessWidget {
               margin: EdgeInsets.only(
                 right: index == stats.length - 1 ? 0 : 12.0,
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 14.0,
+              ),
               decoration: BoxDecoration(
                 color: item.backgroundColor,
                 borderRadius: BorderRadius.circular(12),
@@ -67,11 +70,7 @@ class CustomerStatCards extends StatelessWidget {
                       color: Colors.white.withValues(alpha: 0.25),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Icon(
-                      item.iconData,
-                      color: Colors.white,
-                      size: 18,
-                    ),
+                    child: Icon(item.iconData, color: Colors.white, size: 18),
                   ),
                 ],
               ),

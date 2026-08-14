@@ -4,11 +4,13 @@ import 'package:get/get.dart';
 class RequestRevisionDialog extends StatefulWidget {
   final String carrierName;
   final String currentBidAmount;
+  final Future<bool> Function(double targetAmount, String message)? onConfirm;
 
   const RequestRevisionDialog({
     super.key,
     this.carrierName = 'QuickFreight Solutions',
     this.currentBidAmount = r'$2,850',
+    this.onConfirm,
   });
 
   @override
@@ -16,8 +18,9 @@ class RequestRevisionDialog extends StatefulWidget {
 }
 
 class _RequestRevisionDialogState extends State<RequestRevisionDialog> {
-  final TextEditingController targetAmountController =
-      TextEditingController(text: r'$ 2,500');
+  final TextEditingController targetAmountController = TextEditingController(
+    text: r'$ 2,500',
+  );
   final TextEditingController messageController = TextEditingController(
     text:
         "We appreciate your bid. Can you match the lowest bid of \$2,850? We're looking to award this load quickly.",
@@ -106,7 +109,10 @@ class _RequestRevisionDialogState extends State<RequestRevisionDialog> {
                       SizedBox(width: 4),
                       Text(
                         '4.8 rating',
-                        style: TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Color(0xFF64748B),
+                        ),
                       ),
                     ],
                   ),
@@ -145,7 +151,11 @@ class _RequestRevisionDialogState extends State<RequestRevisionDialog> {
           ),
           child: Row(
             children: [
-              const Icon(Icons.info_outline, size: 14, color: Color(0xFF2563EB)),
+              const Icon(
+                Icons.info_outline,
+                size: 14,
+                color: Color(0xFF2563EB),
+              ),
               const SizedBox(width: 8),
               Expanded(
                 child: Column(
@@ -161,7 +171,10 @@ class _RequestRevisionDialogState extends State<RequestRevisionDialog> {
                     ),
                     Text(
                       'This will send a revision request to ${widget.carrierName} with the specified target amount and message.',
-                      style: const TextStyle(fontSize: 10, color: Color(0xFF1D4ED8)),
+                      style: const TextStyle(
+                        fontSize: 10,
+                        color: Color(0xFF1D4ED8),
+                      ),
                     ),
                   ],
                 ),
@@ -186,7 +199,10 @@ class _RequestRevisionDialogState extends State<RequestRevisionDialog> {
           style: const TextStyle(fontSize: 13, color: Color(0xFF0F172A)),
           decoration: InputDecoration(
             isDense: true,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 10,
+            ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
               borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
@@ -239,9 +255,12 @@ class _RequestRevisionDialogState extends State<RequestRevisionDialog> {
               height: 24,
               child: Checkbox(
                 value: allowCounterOffer,
-                onChanged: (val) => setState(() => allowCounterOffer = val ?? false),
+                onChanged: (val) =>
+                    setState(() => allowCounterOffer = val ?? false),
                 activeColor: const Color(0xFFD97706),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(4),
+                ),
               ),
             ),
             const SizedBox(width: 8),
@@ -260,8 +279,28 @@ class _RequestRevisionDialogState extends State<RequestRevisionDialog> {
               child: SizedBox(
                 height: 44,
                 child: ElevatedButton.icon(
-                  onPressed: () => setState(() => isSuccess = true),
-                  icon: const Icon(Icons.autorenew, size: 16, color: Colors.white),
+                  onPressed: () async {
+                    final amount =
+                        double.tryParse(
+                          targetAmountController.text.replaceAll(
+                            RegExp(r'[^0-9.]'),
+                            '',
+                          ),
+                        ) ??
+                        0;
+                    final success =
+                        await widget.onConfirm?.call(
+                          amount,
+                          messageController.text.trim(),
+                        ) ??
+                        true;
+                    if (success && mounted) setState(() => isSuccess = true);
+                  },
+                  icon: const Icon(
+                    Icons.autorenew,
+                    size: 16,
+                    color: Colors.white,
+                  ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFB45309),
                     elevation: 0,
@@ -288,14 +327,14 @@ class _RequestRevisionDialogState extends State<RequestRevisionDialog> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ),
               ),
               child: const Text(
                 'Cancel',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: Color(0xFF64748B),
-                ),
+                style: TextStyle(fontSize: 13, color: Color(0xFF64748B)),
               ),
             ),
           ],
@@ -392,10 +431,7 @@ class _RequestRevisionDialogState extends State<RequestRevisionDialog> {
         const SizedBox(height: 4),
         Text(
           value,
-          style: const TextStyle(
-            fontSize: 12,
-            color: Color(0xFF475569),
-          ),
+          style: const TextStyle(fontSize: 12, color: Color(0xFF475569)),
         ),
       ],
     );

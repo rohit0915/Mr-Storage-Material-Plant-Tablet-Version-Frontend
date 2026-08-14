@@ -26,7 +26,10 @@ class ItemCostListView extends GetView<ItemCostController> {
 
                 return SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 16,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -75,15 +78,25 @@ class ItemCostListView extends GetView<ItemCostController> {
         // Export button
         OutlinedButton.icon(
           onPressed: () => controller.exportFile(context),
-          icon: const Icon(Icons.upload_outlined, size: 16, color: Color(0xFF475569)),
+          icon: const Icon(
+            Icons.upload_outlined,
+            size: 16,
+            color: Color(0xFF475569),
+          ),
           label: const Text(
             'Export',
-            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF475569)),
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF475569),
+            ),
           ),
           style: OutlinedButton.styleFrom(
             backgroundColor: Colors.white,
             side: const BorderSide(color: Color(0xFFCBD5E1)),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           ),
         ),
@@ -92,15 +105,25 @@ class ItemCostListView extends GetView<ItemCostController> {
         // Check BOM Costing button
         ElevatedButton.icon(
           onPressed: () => controller.openUploadBomDialog(context),
-          icon: const Icon(Icons.add_circle_outline, size: 16, color: Colors.white),
+          icon: const Icon(
+            Icons.add_circle_outline,
+            size: 16,
+            color: Colors.white,
+          ),
           label: const Text(
             'Check BOM Costing',
-            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white),
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            ),
           ),
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFF64748B),
             elevation: 0,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           ),
         ),
@@ -112,12 +135,18 @@ class ItemCostListView extends GetView<ItemCostController> {
           icon: const Icon(Icons.add, size: 16, color: Colors.white),
           label: const Text(
             'Add New Item/Part Cost',
-            style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
           ),
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFF6366F1),
             elevation: 0,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
             padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
           ),
         ),
@@ -145,12 +174,20 @@ class ItemCostListView extends GetView<ItemCostController> {
                   children: [
                     const Text(
                       'Total Item Cost',
-                      style: TextStyle(fontSize: 13, color: Colors.white70, fontWeight: FontWeight.w500),
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.white70,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       '\$${s.totalItemCost.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')}',
-                      style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.white),
+                      style: const TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
                     ),
                   ],
                 ),
@@ -162,7 +199,11 @@ class ItemCostListView extends GetView<ItemCostController> {
                   ),
                   child: const Text(
                     '\$',
-                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.w300, color: Colors.white),
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.w300,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ],
@@ -187,20 +228,24 @@ class ItemCostListView extends GetView<ItemCostController> {
                   children: [
                     const Text(
                       'Total Items',
-                      style: TextStyle(fontSize: 13, color: Colors.white70, fontWeight: FontWeight.w500),
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.white70,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       '${s.totalItems}',
-                      style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.white),
+                      style: const TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
                     ),
                   ],
                 ),
-                const Icon(
-                  Icons.trending_up,
-                  size: 38,
-                  color: Colors.white,
-                ),
+                const Icon(Icons.trending_up, size: 38, color: Colors.white),
               ],
             ),
           ),
@@ -223,12 +268,20 @@ class ItemCostListView extends GetView<ItemCostController> {
                   children: [
                     const Text(
                       'New Added',
-                      style: TextStyle(fontSize: 13, color: Colors.white70, fontWeight: FontWeight.w500),
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.white70,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       '${s.newAdded}',
-                      style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.white),
+                      style: const TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
                     ),
                   ],
                 ),
@@ -270,7 +323,11 @@ class ItemCostListView extends GetView<ItemCostController> {
             decoration: const InputDecoration(
               hintText: 'Search',
               hintStyle: TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
-              prefixIcon: Icon(Icons.search, size: 16, color: Color(0xFF94A3B8)),
+              prefixIcon: Icon(
+                Icons.search,
+                size: 16,
+                color: Color(0xFF94A3B8),
+              ),
               border: InputBorder.none,
               contentPadding: EdgeInsets.symmetric(vertical: 10),
             ),
@@ -281,15 +338,25 @@ class ItemCostListView extends GetView<ItemCostController> {
         // Filter button
         OutlinedButton.icon(
           onPressed: () {},
-          icon: const Icon(Icons.filter_list, size: 16, color: Color(0xFF475569)),
+          icon: const Icon(
+            Icons.filter_list,
+            size: 16,
+            color: Color(0xFF475569),
+          ),
           label: const Text(
             'Filter',
-            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF475569)),
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF475569),
+            ),
           ),
           style: OutlinedButton.styleFrom(
             backgroundColor: Colors.white,
             side: const BorderSide(color: Color(0xFFCBD5E1)),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           ),
         ),
@@ -317,8 +384,16 @@ class ItemCostListView extends GetView<ItemCostController> {
                 child: Obx(
                   () => DropdownButton<String>(
                     value: controller.sortBy.value,
-                    icon: const Icon(Icons.keyboard_arrow_down, size: 16, color: Color(0xFF475569)),
-                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                    icon: const Icon(
+                      Icons.keyboard_arrow_down,
+                      size: 16,
+                      color: Color(0xFF475569),
+                    ),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1E293B),
+                    ),
                     onChanged: (val) {
                       if (val != null) controller.sortBy.value = val;
                     },
@@ -369,7 +444,9 @@ class ItemCostListView extends GetView<ItemCostController> {
                   child: Checkbox(
                     value: controller.selectAll.value,
                     onChanged: controller.toggleSelectAll,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(4),
+                    ),
                     side: const BorderSide(color: Color(0xFFCBD5E1)),
                   ),
                 ),
@@ -379,7 +456,17 @@ class ItemCostListView extends GetView<ItemCostController> {
                 _buildTh('MBS Cost', flex: 1, sortable: true),
                 _buildTh('Current Market Cost', flex: 2, sortable: true),
                 _buildTh('Description', flex: 2, sortable: true),
-                const SizedBox(width: 60, child: Text('Actions', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textPrimary))),
+                const SizedBox(
+                  width: 60,
+                  child: Text(
+                    'Actions',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -391,43 +478,68 @@ class ItemCostListView extends GetView<ItemCostController> {
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: controller.filteredItemCosts.length,
-              separatorBuilder: (ctx, idx) => const Divider(height: 1, color: Color(0xFFF1F5F9)),
+              separatorBuilder: (ctx, idx) =>
+                  const Divider(height: 1, color: Color(0xFFF1F5F9)),
               itemBuilder: (ctx, index) {
                 final item = controller.filteredItemCosts[index];
                 return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
                   child: Row(
                     children: [
                       SizedBox(
                         width: 32,
                         child: Checkbox(
                           value: item.isSelected,
-                          onChanged: (val) => controller.toggleSelectItem(item, val),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                          onChanged: (val) =>
+                              controller.toggleSelectItem(item, val),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(4),
+                          ),
                           side: const BorderSide(color: Color(0xFFCBD5E1)),
                         ),
                       ),
                       _buildTd(item.partName, flex: 2, isBold: true),
                       _buildTd(item.partColor, flex: 1),
                       _buildTd(item.costUnit, flex: 1),
-                      _buildTd(item.mbsCost != null ? '${item.mbsCost}' : '-', flex: 1),
-                      _buildTd(item.currentMarketCost != null ? '\$${item.currentMarketCost}' : '-', flex: 2),
+                      _buildTd(
+                        item.mbsCost != null ? '${item.mbsCost}' : '-',
+                        flex: 1,
+                      ),
+                      _buildTd(
+                        item.currentMarketCost != null
+                            ? '\$${item.currentMarketCost}'
+                            : '-',
+                        flex: 2,
+                      ),
                       _buildTd(item.description, flex: 2),
                       SizedBox(
                         width: 60,
                         child: ElevatedButton(
-                          onPressed: () => controller.openEditPartCostDialog(context, item),
+                          onPressed: () =>
+                              controller.openEditPartCostDialog(context, item),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF2563EB),
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 12,
+                            ),
                             elevation: 0,
                             minimumSize: Size.zero,
                             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(6),
+                            ),
                           ),
                           child: const Text(
                             'Edit',
-                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white),
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
                           ),
                         ),
                       ),

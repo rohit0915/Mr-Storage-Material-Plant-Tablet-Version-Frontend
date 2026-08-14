@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../app/utils/app_colors.dart';
+import '../../../app/widgets/common_snackbar.dart';
 import '../controller/pdf_view_controller.dart';
 
 class PdfViewScreen extends GetView<PdfViewController> {
@@ -137,12 +138,9 @@ class PdfViewScreen extends GetView<PdfViewController> {
           // Download, Print, Share buttons
           IconButton(
             onPressed: () {
-              Get.snackbar(
-                'PDF Downloaded',
-                'Document saved to downloads folder.',
-                snackPosition: SnackPosition.BOTTOM,
-                backgroundColor: const Color(0xFF22C55E),
-                colorText: Colors.white,
+              CommonSnackbar.showSuccess(
+                title: 'PDF Downloaded',
+                message: 'Document saved to downloads folder.',
               );
             },
             icon: const Icon(Icons.download_outlined, color: Colors.white, size: 20),

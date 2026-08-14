@@ -1,9 +1,13 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:steel_building_plant_panel/app/utils/app_icons.dart';
 import '../../../app/routes/app_routes.dart';
+import '../../../app/network/api_client.dart';
+import '../../../app/repositories/workflow_repository.dart';
 import '../../../app/services/shared_pref_service.dart';
 import '../../../app/utils/app_colors.dart';
+import '../controller/home_controller.dart';
 
 class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
   const DashboardAppBar({super.key});
@@ -13,6 +17,26 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    String userName = 'John';
+    String userEmail = 'plant@steelbuilding.depot';
+
+    if (Get.isRegistered<SharedPrefService>()) {
+      final userJson = Get.find<SharedPrefService>().getUserData();
+      if (userJson != null && userJson.isNotEmpty) {
+        try {
+          final Map<String, dynamic> userMap = jsonDecode(userJson);
+          if (userMap['name'] != null &&
+              userMap['name'].toString().isNotEmpty) {
+            userName = userMap['name'].toString();
+          }
+          if (userMap['email'] != null &&
+              userMap['email'].toString().isNotEmpty) {
+            userEmail = userMap['email'].toString();
+          }
+        } catch (_) {}
+      }
+    }
+
     return Container(
       margin: const EdgeInsets.all(12),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -38,7 +62,11 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
               borderRadius: BorderRadius.circular(10),
             ),
             child: IconButton(
-              icon: Image.asset(AppIcons.icMenu, color: Colors.white, fit: BoxFit.contain),
+              icon: Image.asset(
+                AppIcons.icMenu,
+                color: Colors.white,
+                fit: BoxFit.contain,
+              ),
               onPressed: () => Scaffold.of(context).openDrawer(),
             ),
           ),
@@ -47,19 +75,19 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
           Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: const [
+            children: [
               Text(
-                'Welcome, John!',
-                style: TextStyle(
+                'Welcome, $userName!',
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: AppColors.textPrimary,
                 ),
               ),
-              SizedBox(height: 2),
+              const SizedBox(height: 2),
               Text(
-                'plant@steelbuilding.depot',
-                style: TextStyle(
+                userEmail,
+                style: const TextStyle(
                   fontSize: 12,
                   color: AppColors.textSecondary,
                 ),
@@ -80,7 +108,11 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
               decoration: InputDecoration(
                 hintText: 'Search...',
                 hintStyle: TextStyle(fontSize: 13, color: AppColors.textHint),
-                prefixIcon: Icon(Icons.search, size: 18, color: AppColors.textSecondary),
+                prefixIcon: Icon(
+                  Icons.search,
+                  size: 18,
+                  color: AppColors.textSecondary,
+                ),
                 border: InputBorder.none,
                 contentPadding: EdgeInsets.symmetric(vertical: 8),
               ),
@@ -92,114 +124,144 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
           PopupMenuButton<void>(
             offset: const Offset(0, 50),
             elevation: 8,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
             color: Colors.white,
             padding: EdgeInsets.zero,
-            itemBuilder: (context) => [
-              PopupMenuItem<void>(
-                enabled: false,
-                child: SizedBox(
-                  width: 320,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Padding(
-                        padding: EdgeInsets.only(top: 8, bottom: 12),
-                        child: Text(
-                          'Plant Alerts & Notifications',
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                      ),
-                      const Divider(height: 1, color: AppColors.divider),
-                      const SizedBox(height: 8),
-                      _buildNotificationItem(
-                        icon: Icons.description_outlined,
-                        iconBg: AppColors.badgeBlueBg,
-                        iconFg: AppColors.badgeBlueText,
-                        title: 'Shipper File Comparison Completed SH-001',
-                        action: 'View Result',
-                        onTap: () {
-                          Navigator.pop(context);
-                          Get.toNamed(AppRoutes.comparisonResult);
-                        },
-                      ),
-                      _buildNotificationItem(
-                        icon: Icons.local_shipping_outlined,
-                        iconBg: AppColors.badgeGreenBg,
-                        iconFg: AppColors.badgeGreenText,
-                        title: 'Oder ORD-1045 Marked as ready to dispatch',
-                        time: '08:20:13 PM',
-                      ),
-                      _buildNotificationItem(
-                        icon: Icons.square_foot_outlined,
-                        iconBg: AppColors.badgePurpleBg,
-                        iconFg: AppColors.badgePurpleText,
-                        title: 'Drawing DRG-098 Uploaded',
-                        time: '04:10:12 PM',
-                      ),
-                      _buildNotificationItem(
-                        icon: Icons.show_chart,
-                        iconBg: AppColors.badgeYellowBg,
-                        iconFg: AppColors.badgeYellowText,
-                        title: 'Production Target for todayis 63%',
-                        time: '03:40:14 PM',
-                      ),
-                      _buildNotificationItem(
-                        icon: Icons.description_outlined,
-                        iconBg: AppColors.badgeRedBg,
-                        iconFg: AppColors.badgeRedText,
-                        title: 'Oder ORD-1045 Marked as ready to dispatch',
-                        time: '05:00:14 PM',
-                      ),
-                      const SizedBox(height: 8),
-                      SizedBox(
-                        width: double.infinity,
-                        child: OutlinedButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                            Get.toNamed(AppRoutes.notificationHistory);
-                          },
-                          style: OutlinedButton.styleFrom(
-                            side: const BorderSide(color: AppColors.primary),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                            padding: const EdgeInsets.symmetric(vertical: 10),
-                          ),
-                          child: const Text(
-                            'View All Notifications',
+            itemBuilder: (context) {
+              final homeController = Get.isRegistered<HomeController>()
+                  ? Get.find<HomeController>()
+                  : null;
+              final alerts = homeController?.plantAlerts ?? [];
+
+              return [
+                PopupMenuItem<void>(
+                  enabled: false,
+                  child: SizedBox(
+                    width: 340,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Padding(
+                          padding: EdgeInsets.only(top: 10, bottom: 12),
+                          child: Text(
+                            'Plant Alerts & Notifications',
                             style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.primary,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF212B36),
                             ),
                           ),
                         ),
-                      ),
-                    ],
+                        const Divider(height: 1, color: Color(0xFFE2E4E6)),
+                        const SizedBox(height: 8),
+                        if (alerts.isEmpty) ...[
+                          _buildNotificationItem(
+                            icon: Icons.description_outlined,
+                            iconBg: const Color(0xFFDFF4FE),
+                            iconFg: const Color(0xFF155DFC),
+                            title: 'Shipper File Comparison Completed SH-001',
+                            action: 'View Result',
+                            onTap: () {
+                              Navigator.pop(context);
+                              Get.toNamed(AppRoutes.comparisonResult);
+                            },
+                          ),
+                          _buildNotificationItem(
+                            icon: Icons.local_shipping_outlined,
+                            iconBg: const Color(0xFFECF6F1),
+                            iconFg: const Color(0xFF3AB449),
+                            title: 'Order ORD-1045 Marked as ready to dispatch',
+                            time: '08:20:13 PM',
+                          ),
+                          _buildNotificationItem(
+                            icon: Icons.square_foot_outlined,
+                            iconBg: const Color(0xFFDDD1F6),
+                            iconFg: const Color(0xFF7539FF),
+                            title: 'Drawing DRG-098 Uploaded',
+                            time: '04:10:12 PM',
+                          ),
+                          _buildNotificationItem(
+                            icon: Icons.show_chart,
+                            iconBg: const Color(0xFFFFF6D0),
+                            iconFg: const Color(0xFFB78B00),
+                            title: 'Production Target for today is 63%',
+                            time: '03:40:14 PM',
+                          ),
+                          _buildNotificationItem(
+                            icon: Icons.description_outlined,
+                            iconBg: const Color(0xFFFFE7E4),
+                            iconFg: const Color(0xFFEF4444),
+                            title: 'Order ORD-1045 Marked as ready to dispatch',
+                            time: '05:00:14 PM',
+                          ),
+                        ] else ...[
+                          ...alerts
+                              .take(5)
+                              .map(
+                                (item) => _buildNotificationItem(
+                                  icon: Icons.notifications_active_outlined,
+                                  iconBg: item.iconBgColor,
+                                  iconFg: item.iconColor,
+                                  title: item.title,
+                                  action: item.actionText,
+                                  time: item.timeText,
+                                  onTap: () {
+                                    Navigator.pop(context);
+                                    Get.toNamed(AppRoutes.notificationHistory);
+                                  },
+                                ),
+                              ),
+                        ],
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                              Get.toNamed(AppRoutes.notificationHistory);
+                            },
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(color: Color(0xFF155DFC)),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 11),
+                            ),
+                            child: const Text(
+                              'View All Notifications',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF155DFC),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                      ],
+                    ),
                   ),
+                ),
+              ];
+            },
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppColors.primary,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Image.asset(
+                  AppIcons.notification,
+                  color: AppColors.white,
+                  fit: BoxFit.contain,
                 ),
               ),
-            ],
-            child: Stack(
-              children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: AppColors.primary,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(6.0),
-                    child: Image.asset(AppIcons.notification, color: AppColors.white, fit: BoxFit.contain),
-                  ),
-                ),
-
-              ],
             ),
           ),
           const SizedBox(width: 10),
@@ -208,7 +270,9 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
           PopupMenuButton<String>(
             offset: const Offset(0, 50),
             elevation: 8,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
             color: Colors.white,
             onSelected: (value) async {
               if (value == 'signout') {
@@ -216,6 +280,15 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
                   await Get.find<SharedPrefService>().clearSession();
                 }
                 Get.offAllNamed(AppRoutes.login);
+              } else if (value == 'settings') {
+                showDialog(
+                  context: context,
+                  builder: (_) => _ChangePasswordDialog(
+                    repository: WorkflowRepository(
+                      apiClient: Get.find<ApiClient>(),
+                    ),
+                  ),
+                );
               }
             },
             itemBuilder: (context) => [
@@ -223,11 +296,18 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
                 value: 'profile',
                 child: Row(
                   children: const [
-                    Icon(Icons.person_outline, size: 18, color: AppColors.textSecondary),
+                    Icon(
+                      Icons.person_outline,
+                      size: 18,
+                      color: AppColors.textSecondary,
+                    ),
                     SizedBox(width: 12),
                     Text(
                       'My profile',
-                      style: TextStyle(fontSize: 13, color: AppColors.textPrimary),
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: AppColors.textPrimary,
+                      ),
                     ),
                   ],
                 ),
@@ -236,11 +316,18 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
                 value: 'settings',
                 child: Row(
                   children: const [
-                    Icon(Icons.settings_outlined, size: 18, color: AppColors.textSecondary),
+                    Icon(
+                      Icons.settings_outlined,
+                      size: 18,
+                      color: AppColors.textSecondary,
+                    ),
                     SizedBox(width: 12),
                     Text(
                       'Settings',
-                      style: TextStyle(fontSize: 13, color: AppColors.textPrimary),
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: AppColors.textPrimary,
+                      ),
                     ),
                   ],
                 ),
@@ -250,11 +337,19 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
                 value: 'signout',
                 child: Row(
                   children: const [
-                    Icon(Icons.logout_rounded, size: 18, color: AppColors.error),
+                    Icon(
+                      Icons.logout_rounded,
+                      size: 18,
+                      color: AppColors.error,
+                    ),
                     SizedBox(width: 12),
                     Text(
                       'Sign out',
-                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.error),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.error,
+                      ),
                     ),
                   ],
                 ),
@@ -268,8 +363,12 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Padding(
-                padding: const EdgeInsets.all(4.0),
-                child: Image.asset(AppIcons.profile, color: Colors.white, fit: BoxFit.contain),
+                padding: const EdgeInsets.all(6.0),
+                child: Image.asset(
+                  AppIcons.profile,
+                  color: Colors.white,
+                  fit: BoxFit.contain,
+                ),
               ),
             ),
           ),
@@ -292,50 +391,139 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
       child: Row(
         children: [
           Container(
-            width: 32,
-            height: 32,
+            width: 34,
+            height: 34,
             decoration: BoxDecoration(
               color: iconBg,
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(icon, color: iconFg, size: 16),
+            child: Icon(icon, color: iconFg, size: 18),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 12),
           Expanded(
             child: Text(
               title,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(
-                fontSize: 11,
+                fontSize: 12,
                 fontWeight: FontWeight.w500,
-                color: AppColors.textPrimary,
+                color: Color(0xFF212B36),
               ),
             ),
           ),
-          const SizedBox(width: 6),
+          const SizedBox(width: 8),
           if (action != null)
             GestureDetector(
               onTap: onTap,
               child: Text(
                 action,
                 style: const TextStyle(
-                  fontSize: 11,
+                  fontSize: 12,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.primary,
+                  color: Color(0xFF155DFC),
                 ),
               ),
             )
           else if (time != null)
             Text(
               time,
-              style: const TextStyle(
-                fontSize: 10,
-                color: AppColors.textSecondary,
-              ),
+              style: const TextStyle(fontSize: 11, color: Color(0xFF637381)),
             ),
         ],
       ),
     );
   }
+}
+
+class _ChangePasswordDialog extends StatefulWidget {
+  final WorkflowRepository repository;
+  const _ChangePasswordDialog({required this.repository});
+
+  @override
+  State<_ChangePasswordDialog> createState() => _ChangePasswordDialogState();
+}
+
+class _ChangePasswordDialogState extends State<_ChangePasswordDialog> {
+  final current = TextEditingController();
+  final next = TextEditingController();
+  final confirm = TextEditingController();
+  bool loading = false;
+
+  @override
+  void dispose() {
+    current.dispose();
+    next.dispose();
+    confirm.dispose();
+    super.dispose();
+  }
+
+  Future<void> submit() async {
+    if (current.text.isEmpty ||
+        next.text.length < 8 ||
+        next.text != confirm.text) {
+      Get.snackbar(
+        'Check password',
+        'Enter the current password and matching new password (minimum 8 characters).',
+      );
+      return;
+    }
+    setState(() => loading = true);
+    try {
+      await widget.repository.changePassword(
+        currentPassword: current.text,
+        newPassword: next.text,
+      );
+      if (!mounted) return;
+      Navigator.of(context).pop();
+      Get.snackbar(
+        'Password changed',
+        'Your password was updated successfully.',
+      );
+    } catch (error) {
+      Get.snackbar('Unable to change password', error.toString());
+    } finally {
+      if (mounted) setState(() => loading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+    title: const Text('Change Password'),
+    content: SizedBox(
+      width: 380,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextField(
+            controller: current,
+            obscureText: true,
+            decoration: const InputDecoration(labelText: 'Current password'),
+          ),
+          TextField(
+            controller: next,
+            obscureText: true,
+            decoration: const InputDecoration(labelText: 'New password'),
+          ),
+          TextField(
+            controller: confirm,
+            obscureText: true,
+            decoration: const InputDecoration(
+              labelText: 'Confirm new password',
+            ),
+          ),
+        ],
+      ),
+    ),
+    actions: [
+      TextButton(
+        onPressed: loading ? null : () => Navigator.pop(context),
+        child: const Text('Cancel'),
+      ),
+      ElevatedButton(
+        onPressed: loading ? null : submit,
+        child: Text(loading ? 'Updating...' : 'Update Password'),
+      ),
+    ],
+  );
 }

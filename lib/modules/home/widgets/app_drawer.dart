@@ -37,7 +37,10 @@ class AppDrawer extends StatelessWidget {
           child: Column(
             children: [
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 14.0,
+                ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -82,7 +85,11 @@ class AppDrawer extends StatelessWidget {
                       ],
                     ),
                     IconButton(
-                      icon: const Icon(Icons.close, color: Colors.white, size: 22),
+                      icon: const Icon(
+                        Icons.close,
+                        color: Colors.white,
+                        size: 22,
+                      ),
                       onPressed: () => Get.back(),
                     ),
                   ],
@@ -91,58 +98,125 @@ class AppDrawer extends StatelessWidget {
               const Divider(color: Colors.white24, height: 1),
               Expanded(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 12.0),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14.0,
+                    vertical: 12.0,
+                  ),
                   physics: const BouncingScrollPhysics(),
                   child: Obx(() {
                     final activeItem = _controller.selectedDrawerItem.value;
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildNavItem('Dashboard', AppIcons.dashboard, activeItem),
+                        _buildNavItem(
+                          'Dashboard',
+                          AppIcons.dashboard,
+                          activeItem,
+                        ),
                         const SizedBox(height: 6),
                         _buildNavItem('Projects', AppIcons.project, activeItem),
                         const SizedBox(height: 16),
                         _buildSectionHeader('Load Planning'),
                         const SizedBox(height: 8),
-                        _buildNavItem('Uploaded BOM Files', AppIcons.uploadBomFiles, activeItem),
+                        _buildNavItem(
+                          'Uploaded BOM Files',
+                          AppIcons.uploadBomFiles,
+                          activeItem,
+                        ),
                         const SizedBox(height: 6),
-                        _buildNavItem('Shipper Quotations', AppIcons.shipperQuotations, activeItem),
+                        _buildNavItem(
+                          'Shipper Quotations',
+                          AppIcons.shipperQuotations,
+                          activeItem,
+                        ),
                         const SizedBox(height: 6),
-                        _buildNavItem('Load Planning', AppIcons.loadPlanning, activeItem),
+                        _buildNavItem(
+                          'Load Planning',
+                          AppIcons.loadPlanning,
+                          activeItem,
+                        ),
                         const SizedBox(height: 6),
-                        _buildNavItem('Packing List', AppIcons.packingList, activeItem),
+                        _buildNavItem(
+                          'Packing List',
+                          AppIcons.packingList,
+                          activeItem,
+                        ),
                         const SizedBox(height: 6),
-                        _buildNavItem('QR Labels', AppIcons.qeLabels, activeItem),
+                        _buildNavItem(
+                          'QR Labels',
+                          AppIcons.qeLabels,
+                          activeItem,
+                        ),
                         const SizedBox(height: 16),
                         _buildSectionHeader('Delivery'),
                         const SizedBox(height: 8),
-                        _buildNavItem('Freight Loads', AppIcons.freightLoads, activeItem),
+                        _buildNavItem(
+                          'Freight Loads',
+                          AppIcons.freightLoads,
+                          activeItem,
+                        ),
                         const SizedBox(height: 6),
-                        _buildNavItem('Awarded Loads', AppIcons.awardedLoads, activeItem),
+                        _buildNavItem(
+                          'Awarded Loads',
+                          AppIcons.awardedLoads,
+                          activeItem,
+                        ),
                         const SizedBox(height: 6),
-                        _buildNavItem('Deliveries Calendar', AppIcons.deliveriesCalendar, activeItem),
+                        _buildNavItem(
+                          'Deliveries Calendar',
+                          AppIcons.deliveriesCalendar,
+                          activeItem,
+                        ),
                         const SizedBox(height: 6),
-                        _buildNavItem('All Deliveries', AppIcons.allDeliveries, activeItem),
+                        _buildNavItem(
+                          'All Deliveries',
+                          AppIcons.allDeliveries,
+                          activeItem,
+                        ),
                         const SizedBox(height: 6),
-                        _buildNavItem('Notification Details', AppIcons.notificationDetails, activeItem),
+                        _buildNavItem(
+                          'Notification Details',
+                          AppIcons.notificationDetails,
+                          activeItem,
+                        ),
                         const SizedBox(height: 16),
                         _buildSectionHeader('Costings'),
                         const SizedBox(height: 8),
-                        _buildNavItem('Costings', AppIcons.costings, activeItem),
+                        _buildNavItem(
+                          'Costings',
+                          AppIcons.costings,
+                          activeItem,
+                        ),
                         const SizedBox(height: 6),
                         _buildNavItem('Savings', AppIcons.savings, activeItem),
                         const SizedBox(height: 16),
                         _buildSectionHeader('Logistics'),
                         const SizedBox(height: 8),
-                        _buildNavItem('Shippers', AppIcons.shippers, activeItem),
+                        _buildNavItem(
+                          'Shippers',
+                          AppIcons.shippers,
+                          activeItem,
+                        ),
                         const SizedBox(height: 6),
-                        _buildNavItem('Freight Carriers', AppIcons.freightCarriers, activeItem),
+                        _buildNavItem(
+                          'Freight Carriers',
+                          AppIcons.freightCarriers,
+                          activeItem,
+                        ),
                         const SizedBox(height: 16),
                         const Divider(color: Colors.white24, height: 1),
                         const SizedBox(height: 12),
-                        _buildNavItem('Communication', AppIcons.communication, activeItem),
+                        _buildNavItem(
+                          'Communication',
+                          AppIcons.communication,
+                          activeItem,
+                        ),
                         const SizedBox(height: 6),
-                        _buildNavItem('Notifications', AppIcons.notification, activeItem),
+                        _buildNavItem(
+                          'Notifications',
+                          AppIcons.notification,
+                          activeItem,
+                        ),
                         const SizedBox(height: 16),
                       ],
                     );
@@ -182,37 +256,56 @@ class AppDrawer extends StatelessWidget {
           Get.back();
           if (title == 'Dashboard' && Get.currentRoute != AppRoutes.home) {
             Get.offAllNamed(AppRoutes.home);
-          } else if (title == 'Projects' && Get.currentRoute != AppRoutes.projects) {
+          } else if (title == 'Projects' &&
+              Get.currentRoute != AppRoutes.projects) {
             Get.offAllNamed(AppRoutes.projects);
-          } else if (title == 'All Deliveries' && Get.currentRoute != AppRoutes.deliveryDetails) {
-            Get.toNamed(AppRoutes.deliveryDetails);
-          } else if ((title == 'Deliveries Calendar' || title == 'Delivery Calendar') && Get.currentRoute != AppRoutes.deliveryCalendar) {
+          } else if (title == 'All Deliveries' &&
+              Get.currentRoute != AppRoutes.allDeliveries) {
+            Get.toNamed(AppRoutes.allDeliveries);
+          } else if ((title == 'Deliveries Calendar' ||
+                  title == 'Delivery Calendar') &&
+              Get.currentRoute != AppRoutes.deliveryCalendar) {
             Get.toNamed(AppRoutes.deliveryCalendar);
-          } else if (title == 'Shipper Quotations' && Get.currentRoute != AppRoutes.shipperFiles) {
+          } else if (title == 'Shipper Quotations' &&
+              Get.currentRoute != AppRoutes.shipperFiles) {
             Get.toNamed(AppRoutes.shipperFiles);
-          } else if (title == 'Shippers' && Get.currentRoute != AppRoutes.shippersList) {
+          } else if (title == 'Shippers' &&
+              Get.currentRoute != AppRoutes.shippersList) {
             Get.toNamed(AppRoutes.shippersList);
-          } else if (title == 'Uploaded BOM Files' && Get.currentRoute != AppRoutes.uploadedBomFiles) {
+          } else if (title == 'Uploaded BOM Files' &&
+              Get.currentRoute != AppRoutes.uploadedBomFiles) {
             Get.toNamed(AppRoutes.uploadedBomFiles);
-          } else if (title == 'Load Planning' && Get.currentRoute != AppRoutes.loadPlanning) {
+          } else if (title == 'Load Planning' &&
+              Get.currentRoute != AppRoutes.loadPlanning) {
             Get.toNamed(AppRoutes.loadPlanning);
-          } else if (title == 'Packing List' && Get.currentRoute != AppRoutes.packingList) {
+          } else if (title == 'Packing List' &&
+              Get.currentRoute != AppRoutes.packingList) {
             Get.toNamed(AppRoutes.packingList);
-          } else if (title == 'QR Labels' && Get.currentRoute != AppRoutes.qrLabels) {
+          } else if (title == 'QR Labels' &&
+              Get.currentRoute != AppRoutes.qrLabels) {
             Get.toNamed(AppRoutes.qrLabels);
-          } else if (title == 'Freight Loads' && Get.currentRoute != AppRoutes.freightLoads) {
+          } else if (title == 'Freight Loads' &&
+              Get.currentRoute != AppRoutes.freightLoads) {
             Get.toNamed(AppRoutes.freightLoads);
-          } else if (title == 'Awarded Loads' && Get.currentRoute != AppRoutes.awardedLoads) {
+          } else if (title == 'Awarded Loads' &&
+              Get.currentRoute != AppRoutes.awardedLoads) {
             Get.toNamed(AppRoutes.awardedLoads);
-          } else if ((title == 'Notification History' || title == 'Notifications' || title == 'Notification Details') && Get.currentRoute != AppRoutes.notificationHistory) {
+          } else if ((title == 'Notification History' ||
+                  title == 'Notifications' ||
+                  title == 'Notification Details') &&
+              Get.currentRoute != AppRoutes.notificationHistory) {
             Get.toNamed(AppRoutes.notificationHistory);
-          } else if (title == 'Costings' && Get.currentRoute != AppRoutes.itemCostList) {
+          } else if (title == 'Costings' &&
+              Get.currentRoute != AppRoutes.itemCostList) {
             Get.toNamed(AppRoutes.itemCostList);
-          } else if (title == 'Savings' && Get.currentRoute != AppRoutes.savings) {
+          } else if (title == 'Savings' &&
+              Get.currentRoute != AppRoutes.savings) {
             Get.toNamed(AppRoutes.savings);
-          } else if (title == 'Freight Carriers' && Get.currentRoute != AppRoutes.freightCarriers) {
+          } else if (title == 'Freight Carriers' &&
+              Get.currentRoute != AppRoutes.freightCarriers) {
             Get.toNamed(AppRoutes.freightCarriers);
-          } else if (title == 'Communication' && Get.currentRoute != AppRoutes.chat) {
+          } else if (title == 'Communication' &&
+              Get.currentRoute != AppRoutes.chat) {
             Get.toNamed(AppRoutes.chat);
           }
         },
@@ -220,10 +313,15 @@ class AppDrawer extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: BoxDecoration(
-            color: isSelected ? const Color(0xFF2563EB) : const Color(0xFF1D4ED8).withValues(alpha: 0.5),
+            color: isSelected
+                ? const Color(0xFF2563EB)
+                : const Color(0xFF1D4ED8).withValues(alpha: 0.5),
             borderRadius: BorderRadius.circular(10),
             border: isSelected
-                ? Border.all(color: Colors.white.withValues(alpha: 0.4), width: 1)
+                ? Border.all(
+                    color: Colors.white.withValues(alpha: 0.4),
+                    width: 1,
+                  )
                 : null,
             boxShadow: isSelected
                 ? [
@@ -242,9 +340,10 @@ class AppDrawer extends StatelessWidget {
                 height: 18,
                 child: Image.asset(
                   iconAsset,
-                  color: isSelected ? Colors.white : Colors.white.withValues(alpha: 0.85),
+                  color: isSelected
+                      ? Colors.white
+                      : Colors.white.withValues(alpha: 0.85),
                   fit: BoxFit.contain,
-
                 ),
               ),
               const SizedBox(width: 12),
@@ -254,7 +353,9 @@ class AppDrawer extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                    color: isSelected ? Colors.white : Colors.white.withValues(alpha: 0.9),
+                    color: isSelected
+                        ? Colors.white
+                        : Colors.white.withValues(alpha: 0.9),
                   ),
                 ),
               ),

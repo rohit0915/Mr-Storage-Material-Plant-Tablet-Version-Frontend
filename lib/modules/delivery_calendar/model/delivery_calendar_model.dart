@@ -1,4 +1,3 @@
-
 class DeliveryCalendarItemModel {
   final String id;
   final String title;

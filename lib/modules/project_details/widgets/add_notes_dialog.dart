@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../app/utils/app_colors.dart';
+import '../../../app/widgets/common_snackbar.dart';
 import '../controller/project_details_controller.dart';
 
 class AddNotesDialog extends StatelessWidget {
@@ -12,7 +13,8 @@ class AddNotesDialog extends StatelessWidget {
 
     final titleController = TextEditingController(text: 'Steel Investment');
     final notesController = TextEditingController(
-      text: 'Reliable for long-distance steel transport.\nPreferred carrier for Texas routes.\nFast response time during bidding.',
+      text:
+          'Reliable for long-distance steel transport.\nPreferred carrier for Texas routes.\nFast response time during bidding.',
     );
 
     return Dialog(
@@ -56,7 +58,10 @@ class AddNotesDialog extends StatelessWidget {
               ),
               child: TextField(
                 controller: titleController,
-                style: const TextStyle(fontSize: 13, color: AppColors.textPrimary),
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: AppColors.textPrimary,
+                ),
                 decoration: const InputDecoration(
                   border: InputBorder.none,
                   isDense: true,
@@ -86,7 +91,10 @@ class AddNotesDialog extends StatelessWidget {
               child: TextField(
                 controller: notesController,
                 maxLines: 4,
-                style: const TextStyle(fontSize: 13, color: AppColors.textPrimary),
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: AppColors.textPrimary,
+                ),
                 decoration: const InputDecoration(
                   border: InputBorder.none,
                   isDense: true,
@@ -102,8 +110,13 @@ class AddNotesDialog extends StatelessWidget {
                   onPressed: () => Get.back(),
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: AppColors.inputBorder),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
                   ),
                   child: const Text(
                     'Cancel',
@@ -115,24 +128,55 @@ class AddNotesDialog extends StatelessWidget {
                   ),
                 ),
                 const Spacer(),
-                ElevatedButton(
-                  onPressed: () {
-                    controller.addNewNote(titleController.text, notesController.text);
-                    Get.back();
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF6366F1),
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  ),
-                  child: const Text(
-                    'Add Note',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                Obx(
+                  () => ElevatedButton(
+                    onPressed: controller.isAddingNote.value
+                        ? null
+                        : () async {
+                            final success = await controller.addNewNote(
+                              titleController.text,
+                              notesController.text,
+                            );
+                            if (!context.mounted) return;
+                            if (success) {
+                              Get.back();
+                              CommonSnackbar.showSuccess(
+                                message: 'Note added successfully.',
+                              );
+                            } else {
+                              CommonSnackbar.showError(
+                                message: controller.errorMessage.value,
+                              );
+                            }
+                          },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF6366F1),
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 12,
+                      ),
                     ),
+                    child: controller.isAddingNote.value
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Text(
+                            'Add Note',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
                   ),
                 ),
               ],

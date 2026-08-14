@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../app/routes/app_routes.dart';
 import '../../../app/utils/app_colors.dart';
+import '../../../app/widgets/common_pagination.dart';
 import '../model/projects_model.dart';
 
 class ProjectsDataTable extends StatelessWidget {
@@ -9,6 +10,11 @@ class ProjectsDataTable extends StatelessWidget {
   final bool selectAll;
   final ValueChanged<bool?> onSelectAll;
   final ValueChanged<int> onSelectRow;
+  final int currentPage;
+  final int totalPages;
+  final int rowsPerPage;
+  final ValueChanged<int>? onPageChanged;
+  final ValueChanged<int>? onRowsPerPageChanged;
 
   const ProjectsDataTable({
     super.key,
@@ -16,6 +22,11 @@ class ProjectsDataTable extends StatelessWidget {
     required this.selectAll,
     required this.onSelectAll,
     required this.onSelectRow,
+    this.currentPage = 1,
+    this.totalPages = 1,
+    this.rowsPerPage = 10,
+    this.onPageChanged,
+    this.onRowsPerPageChanged,
   });
 
   @override
@@ -158,7 +169,7 @@ class ProjectsDataTable extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 16),
-                        // Project Name + Subtitle
+                        // Project Name + Subtitle (Job ID e.g., PRO-008)
                         Expanded(
                           flex: 3,
                           child: Column(
@@ -183,7 +194,7 @@ class ProjectsDataTable extends StatelessWidget {
                             ],
                           ),
                         ),
-                        // Customer with Avatar
+                        // Customer with Light Blue Initial Circle Avatar (Matching Web UI)
                         Expanded(
                           flex: 3,
                           child: GestureDetector(
@@ -192,8 +203,15 @@ class ProjectsDataTable extends StatelessWidget {
                               children: [
                                 CircleAvatar(
                                   radius: 12,
-                                  backgroundColor: AppColors.primary,
-                                  child: const Icon(Icons.person, color: Colors.white, size: 14),
+                                  backgroundColor: const Color(0xFFDBEAFE),
+                                  child: Text(
+                                    row.customerAvatarInitial,
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF1D4ED8),
+                                    ),
+                                  ),
                                 ),
                                 const SizedBox(width: 8),
                                 Expanded(
@@ -203,8 +221,7 @@ class ProjectsDataTable extends StatelessWidget {
                                     style: const TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w600,
-                                      color: AppColors.primary,
-                                      decoration: TextDecoration.underline,
+                                      color: AppColors.textPrimary,
                                     ),
                                   ),
                                 ),
@@ -224,7 +241,7 @@ class ProjectsDataTable extends StatelessWidget {
                             ),
                           ),
                         ),
-                        // Status Badge
+                        // Status Badge (Matching Web UI colors)
                         Expanded(
                           flex: 3,
                           child: Align(
@@ -232,7 +249,7 @@ class ProjectsDataTable extends StatelessWidget {
                             child: _buildStatusBadge(row.status, row.statusType),
                           ),
                         ),
-                        // Project Value
+                        // Project Value (Formatted e.g., $600,000)
                         Expanded(
                           flex: 2,
                           child: Text(
@@ -244,7 +261,7 @@ class ProjectsDataTable extends StatelessWidget {
                             ),
                           ),
                         ),
-                        // Chat Button with Badge
+                        // Chat Button
                         Expanded(
                           flex: 2,
                           child: Align(
@@ -257,94 +274,70 @@ class ProjectsDataTable extends StatelessWidget {
                                 children: [
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.primary.withValues(alpha: 0.1),
-                                    borderRadius: BorderRadius.circular(16),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.primary.withValues(alpha: 0.1),
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: const [
+                                        Icon(Icons.chat_bubble_outline, size: 14, color: AppColors.primary),
+                                        SizedBox(width: 4),
+                                        Text(
+                                          'Chat',
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w600,
+                                            color: AppColors.primary,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: const [
-                                      Icon(Icons.chat_bubble_outline, size: 14, color: AppColors.primary),
-                                      SizedBox(width: 4),
-                                      Text(
-                                        'Chat',
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w600,
-                                          color: AppColors.primary,
+                                  if (row.chatCount != '0' && row.chatCount.isNotEmpty)
+                                    Positioned(
+                                      top: -4,
+                                      right: -4,
+                                      child: Container(
+                                        padding: const EdgeInsets.all(4),
+                                        decoration: const BoxDecoration(
+                                          color: AppColors.error,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: Text(
+                                          row.chatCount,
+                                          style: const TextStyle(
+                                            fontSize: 9,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                          ),
                                         ),
                                       ),
-                                    ],
-                                  ),
-                                ),
-                                Positioned(
-                                  top: -4,
-                                  right: -4,
-                                  child: Container(
-                                    padding: const EdgeInsets.all(4),
-                                    decoration: const BoxDecoration(
-                                      color: AppColors.error,
-                                      shape: BoxShape.circle,
                                     ),
-                                    child: Text(
-                                      row.chatCount,
-                                      style: const TextStyle(
-                                        fontSize: 9,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           ),
                         ),
-                        ),
-                        // Actions (Eye + Edit/Document)
+                        // Actions (Single Eye Icon Matching Web UI)
                         Expanded(
                           flex: 2,
-                          child: Row(
-                            children: [
-                              GestureDetector(
-                                onTap: () => Get.toNamed(AppRoutes.projectDetails),
-                                child: Container(
-                                  width: 28,
-                                  height: 28,
-                                  padding: const EdgeInsets.all(5),
-                                  decoration: BoxDecoration(
-                                    gradient: AppColors.primaryGradient,
-                                    borderRadius: BorderRadius.circular(6),
-                                    border: Border.all(color: Colors.white, width: 1.5),
-                                  ),
-                                  child: Image.asset(
-                                    'assets/icons/ic_eye.png',
-                                    color: Colors.white,
-                                    fit: BoxFit.contain,
-                                    errorBuilder: (context, error, stackTrace) =>
-                                        const Icon(Icons.visibility, color: Colors.white, size: 14),
-                                  ),
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: GestureDetector(
+                              onTap: () => Get.toNamed(AppRoutes.projectDetails, parameters: {'id': row.id}),
+                              child: Container(
+                                width: 28,
+                                height: 28,
+                                padding: const EdgeInsets.all(5),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(color: AppColors.inputBorder),
                                 ),
+                                child: const Icon(Icons.visibility_outlined, color: Color(0xFF64748B), size: 16),
                               ),
-                              const SizedBox(width: 8),
-                              GestureDetector(
-                                onTap: () {},
-                                child: Container(
-                                  width: 28,
-                                  height: 28,
-                                  padding: const EdgeInsets.all(5),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.badgeRedBg,
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: Icon(
-                                    Icons.edit_note_outlined,
-                                    color: AppColors.badgeRedText,
-                                    size: 16,
-                                  ),
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
                         ),
                       ],
@@ -355,6 +348,15 @@ class ProjectsDataTable extends StatelessWidget {
                 ],
               );
             }),
+            const Divider(height: 1, color: AppColors.divider),
+            // Pagination Bar Footer
+            CommonPaginationFooter(
+              currentPage: currentPage,
+              totalPages: totalPages,
+              rowsPerPage: rowsPerPage,
+              onPageChanged: onPageChanged,
+              onRowsPerPageChanged: onRowsPerPageChanged,
+            ),
           ],
         ),
       ),
@@ -362,18 +364,28 @@ class ProjectsDataTable extends StatelessWidget {
   }
 
   Widget _buildStatusBadge(String text, ProjectStatusType type) {
-    Color bg = AppColors.badgePurpleBg;
-    Color fg = AppColors.badgePurpleText;
+    Color bg = const Color(0xFFF1F5F9);
+    Color fg = const Color(0xFF475569);
 
-    if (type == ProjectStatusType.approved) {
+    final lower = text.toLowerCase();
+    if (lower.contains('drawings received') || lower.contains('drawings_received')) {
+      bg = const Color(0xFFF3E8FF);
+      fg = const Color(0xFF7E22CE);
+    } else if (lower.contains('released to plant') || lower.contains('released_to_plant')) {
+      bg = const Color(0xFFE0F2FE);
+      fg = const Color(0xFF0284C7);
+    } else if (lower.contains('converted to po') || lower.contains('converted_to_po')) {
+      bg = const Color(0xFFF1F5F9);
+      fg = const Color(0xFF475569);
+    } else if (lower.contains('rejected') || lower.contains('canceled')) {
+      bg = const Color(0xFFFEE2E2);
+      fg = const Color(0xFFDC2626);
+    } else if (lower.contains('approved') || lower.contains('completed')) {
       bg = AppColors.badgeGreenBg;
       fg = AppColors.badgeGreenText;
-    } else if (type == ProjectStatusType.bomReady) {
+    } else if (lower.contains('ready')) {
       bg = AppColors.badgeYellowBg;
       fg = AppColors.badgeYellowText;
-    } else if (type == ProjectStatusType.shipperFileReceived) {
-      bg = AppColors.badgePurpleBg;
-      fg = AppColors.badgePurpleText;
     }
 
     return Container(

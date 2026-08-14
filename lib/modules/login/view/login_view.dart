@@ -166,11 +166,18 @@ class LoginView extends GetView<LoginController> {
                           const SizedBox(height: 24),
                           
                           // Login Button
-                          Obx(() => CommonButton(
-                            text: 'Login',
-                            backgroundColor: controller.isFormValid.value ? AppColors.primary : AppColors.primaryLight,
-                            onPressed: controller.isFormValid.value ? controller.login : () {},
-                          )),
+                          Obx(() => controller.isLoading.value
+                              ? const Center(
+                                  child: Padding(
+                                    padding: EdgeInsets.symmetric(vertical: 8.0),
+                                    child: CircularProgressIndicator(color: AppColors.primary),
+                                  ),
+                                )
+                              : CommonButton(
+                                  text: 'Login',
+                                  backgroundColor: controller.isFormValid.value ? AppColors.primary : AppColors.primaryLight,
+                                  onPressed: controller.isFormValid.value ? controller.login : () {},
+                                )),
                         ],
                       ),
                     ),

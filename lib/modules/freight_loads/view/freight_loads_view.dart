@@ -27,7 +27,10 @@ class FreightLoadsView extends GetView<FreightLoadsController> {
 
                 return SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 16,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -69,10 +72,7 @@ class FreightLoadsView extends GetView<FreightLoadsController> {
             SizedBox(height: 4),
             Text(
               'Track all awarded freight loads',
-              style: TextStyle(
-                fontSize: 13,
-                color: AppColors.textSecondary,
-              ),
+              style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
             ),
           ],
         ),
@@ -80,31 +80,57 @@ class FreightLoadsView extends GetView<FreightLoadsController> {
           children: [
             OutlinedButton.icon(
               onPressed: () {},
-              icon: const Icon(Icons.filter_list, size: 14, color: AppColors.textPrimary),
+              icon: const Icon(
+                Icons.filter_list,
+                size: 14,
+                color: AppColors.textPrimary,
+              ),
               label: const Text(
                 'Filter',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
               ),
               style: OutlinedButton.styleFrom(
                 backgroundColor: Colors.white,
                 side: const BorderSide(color: AppColors.inputBorder),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 10,
+                ),
               ),
             ),
             const SizedBox(width: 10),
             OutlinedButton.icon(
               onPressed: () {},
-              icon: const Icon(Icons.download, size: 14, color: AppColors.textPrimary),
+              icon: const Icon(
+                Icons.download,
+                size: 14,
+                color: AppColors.textPrimary,
+              ),
               label: const Text(
                 'Export',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
               ),
               style: OutlinedButton.styleFrom(
                 backgroundColor: Colors.white,
                 side: const BorderSide(color: AppColors.inputBorder),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 10,
+                ),
               ),
             ),
           ],
@@ -187,14 +213,21 @@ class FreightLoadsView extends GetView<FreightLoadsController> {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.search, size: 16, color: AppColors.textSecondary),
+                  const Icon(
+                    Icons.search,
+                    size: 16,
+                    color: AppColors.textSecondary,
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: TextField(
                       onChanged: (val) => controller.searchQuery.value = val,
                       decoration: const InputDecoration(
                         hintText: 'Search notifications...',
-                        hintStyle: TextStyle(fontSize: 12, color: AppColors.textHint),
+                        hintStyle: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textHint,
+                        ),
                         border: InputBorder.none,
                         isDense: true,
                         contentPadding: EdgeInsets.symmetric(vertical: 10),
@@ -212,11 +245,17 @@ class FreightLoadsView extends GetView<FreightLoadsController> {
               backgroundColor: const Color(0xFF3B82F6),
               elevation: 0,
               padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
             ),
             child: const Text(
               'Filter',
-              style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
             ),
           ),
         ],
@@ -241,35 +280,91 @@ class FreightLoadsView extends GetView<FreightLoadsController> {
               children: const [
                 Expanded(
                   flex: 2,
-                  child: Text('REQUEST ID', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+                  child: Text(
+                    'REQUEST ID',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
                 ),
                 Expanded(
                   flex: 2,
-                  child: Text('PROJECT', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+                  child: Text(
+                    'PROJECT',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
                 ),
                 Expanded(
                   flex: 3,
-                  child: Text('DESCRIPTION', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+                  child: Text(
+                    'DESCRIPTION',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
                 ),
                 Expanded(
                   flex: 2,
-                  child: Text('ROUTE', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+                  child: Text(
+                    'ROUTE',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
                 ),
                 Expanded(
                   flex: 2,
-                  child: Text('DATES', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+                  child: Text(
+                    'DATES',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
                 ),
                 Expanded(
                   flex: 2,
-                  child: Text('BIDS', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+                  child: Text(
+                    'BIDS',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
                 ),
                 Expanded(
                   flex: 2,
-                  child: Text('STATUS', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+                  child: Text(
+                    'STATUS',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
                 ),
                 SizedBox(
                   width: 90,
-                  child: Text('ACTIONS', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+                  child: Text(
+                    'ACTIONS',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -281,12 +376,16 @@ class FreightLoadsView extends GetView<FreightLoadsController> {
             return ListView.separated(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              itemCount: controller.freightLoadsList.length,
-              separatorBuilder: (context, index) => const Divider(height: 1, color: AppColors.divider),
+              itemCount: controller.filteredFreightLoads.length,
+              separatorBuilder: (context, index) =>
+                  const Divider(height: 1, color: AppColors.divider),
               itemBuilder: (context, index) {
-                final item = controller.freightLoadsList[index];
+                final item = controller.filteredFreightLoads[index];
                 return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
                   child: Row(
                     children: [
                       // Request ID & Requested Date
@@ -297,12 +396,19 @@ class FreightLoadsView extends GetView<FreightLoadsController> {
                           children: [
                             Text(
                               item.requestId,
-                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.textPrimary,
+                              ),
                             ),
                             const SizedBox(height: 2),
                             Text(
                               'Requested: ${item.requestedDate}',
-                              style: const TextStyle(fontSize: 10, color: AppColors.textHint),
+                              style: const TextStyle(
+                                fontSize: 10,
+                                color: AppColors.textHint,
+                              ),
                             ),
                           ],
                         ),
@@ -313,7 +419,11 @@ class FreightLoadsView extends GetView<FreightLoadsController> {
                         flex: 2,
                         child: Text(
                           item.project,
-                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textPrimary,
+                          ),
                         ),
                       ),
 
@@ -322,7 +432,10 @@ class FreightLoadsView extends GetView<FreightLoadsController> {
                         flex: 3,
                         child: Text(
                           item.description,
-                          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textSecondary,
+                          ),
                         ),
                       ),
 
@@ -332,9 +445,27 @@ class FreightLoadsView extends GetView<FreightLoadsController> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(item.routeFrom, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-                            const Text('↓', style: TextStyle(fontSize: 11, color: AppColors.textHint)),
-                            Text(item.routeTo, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                            Text(
+                              item.routeFrom,
+                              style: const TextStyle(
+                                fontSize: 11,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                            const Text(
+                              '↓',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: AppColors.textHint,
+                              ),
+                            ),
+                            Text(
+                              item.routeTo,
+                              style: const TextStyle(
+                                fontSize: 11,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -345,8 +476,20 @@ class FreightLoadsView extends GetView<FreightLoadsController> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Pickup: ${item.pickupDate}', style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
-                            Text('Delivery: ${item.deliveryDate}', style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+                            Text(
+                              'Pickup: ${item.pickupDate}',
+                              style: const TextStyle(
+                                fontSize: 10,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                            Text(
+                              'Delivery: ${item.deliveryDate}',
+                              style: const TextStyle(
+                                fontSize: 10,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -356,7 +499,11 @@ class FreightLoadsView extends GetView<FreightLoadsController> {
                         flex: 2,
                         child: Text(
                           item.bids,
-                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary,
+                          ),
                         ),
                       ),
 
@@ -373,17 +520,33 @@ class FreightLoadsView extends GetView<FreightLoadsController> {
                       SizedBox(
                         width: 90,
                         child: OutlinedButton.icon(
-                          onPressed: () => controller.openFreightRequestDetails(item),
-                          icon: const Icon(Icons.visibility_outlined, size: 14, color: AppColors.textPrimary),
+                          onPressed: () =>
+                              controller.openFreightRequestDetails(item),
+                          icon: const Icon(
+                            Icons.visibility_outlined,
+                            size: 14,
+                            color: AppColors.textPrimary,
+                          ),
                           label: const Text(
                             'View',
-                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.textPrimary,
+                            ),
                           ),
                           style: OutlinedButton.styleFrom(
                             backgroundColor: Colors.white,
-                            side: const BorderSide(color: AppColors.inputBorder),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            side: const BorderSide(
+                              color: AppColors.inputBorder,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 6,
+                            ),
                           ),
                         ),
                       ),

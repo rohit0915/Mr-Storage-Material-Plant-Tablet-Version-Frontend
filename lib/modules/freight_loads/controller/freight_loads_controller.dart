@@ -1,190 +1,258 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
 import '../../../app/routes/app_routes.dart';
 import '../model/freight_loads_model.dart';
+import '../repository/delivery_repository.dart';
 import '../widgets/award_load_dialog.dart';
 import '../widgets/request_revision_dialog.dart';
 
 class FreightLoadsController extends GetxController {
-  final RxBool isLoading = false.obs;
+  final DeliveryRepository repository;
+  FreightLoadsController({required this.repository});
 
-  final RxList<FreightLoadSummaryStatModel> summaryStats = <FreightLoadSummaryStatModel>[].obs;
-  final RxList<FreightLoadItemModel> freightLoadsList = <FreightLoadItemModel>[].obs;
+  final RxBool isLoading = true.obs;
+  final RxString errorMessage = ''.obs;
+  final RxList<FreightLoadSummaryStatModel> summaryStats =
+      <FreightLoadSummaryStatModel>[].obs;
+  final RxList<FreightLoadItemModel> freightLoadsList =
+      <FreightLoadItemModel>[].obs;
   final RxList<CarrierBidModel> carrierBidsList = <CarrierBidModel>[].obs;
-
-  final RxInt selectedDetailsTabIndex = 1.obs; // 0: Bid Comparison, 1: Request Details, 2: Email Exchange
-  final RxString selectedLoadId = 'FRQ-2001'.obs;
+  final RxInt selectedDetailsTabIndex = 1.obs;
+  final RxString selectedLoadId = ''.obs;
   final RxString searchQuery = ''.obs;
 
   @override
   void onInit() {
     super.onInit();
-    loadSummaryStats();
-    loadFreightLoadsData();
-    loadCarrierBidsData();
+    selectedLoadId.value = Get.parameters['id'] ?? '';
+    loadData();
+    if (selectedLoadId.value.isNotEmpty) {
+      loadCarrierBidsData(selectedLoadId.value);
+    }
   }
 
-  void loadSummaryStats() {
-    summaryStats.assignAll([
-      FreightLoadSummaryStatModel(
-        label: 'Total Awarded',
-        value: '4',
-        themeColor: const Color(0xFF22C55E),
-        icon: Icons.workspace_premium_outlined,
-      ),
-      FreightLoadSummaryStatModel(
-        label: 'In Transit',
-        value: '1',
-        themeColor: const Color(0xFFF97316),
-        icon: Icons.local_shipping_outlined,
-      ),
-      FreightLoadSummaryStatModel(
-        label: 'Delivered',
-        value: '1',
-        themeColor: const Color(0xFF22C55E),
-        icon: Icons.check_circle_outline,
-      ),
-      FreightLoadSummaryStatModel(
-        label: 'Total Spent',
-        value: r'$7,650',
-        themeColor: const Color(0xFF2563EB),
-        icon: Icons.attach_money,
-      ),
-      FreightLoadSummaryStatModel(
-        label: 'Requested Loads',
-        value: '4',
-        themeColor: const Color(0xFFEC4899),
-        icon: Icons.local_shipping_outlined,
-      ),
-      FreightLoadSummaryStatModel(
-        label: 'Bids Pending',
-        value: '0',
-        themeColor: const Color(0xFF3B82F6),
-        icon: Icons.info_outline,
-      ),
-    ]);
-  }
-
-  void loadFreightLoadsData() {
+  Future<void> loadData() async {
     isLoading.value = true;
-    freightLoadsList.assignAll([
-      FreightLoadItemModel(
-        requestId: 'LOAD-002',
-        requestedDate: '2024-03-16',
-        project: 'Storage Facility B',
-        description: 'Roll-up door panels',
-        routeFrom: 'Dallas, TX',
-        routeTo: 'San Antonio, TX',
-        pickupDate: '2024-03-27',
-        deliveryDate: '2024-03-28',
-        bids: r'$12000',
-        status: 'Awarded',
-      ),
-      FreightLoadItemModel(
-        requestId: 'LOAD-005',
-        requestedDate: '2024-03-16',
-        project: 'Industrial Complex A',
-        description: 'Secondary steel beams',
-        routeFrom: 'Houston, TX',
-        routeTo: 'Austin, TX',
-        pickupDate: '2024-03-28',
-        deliveryDate: '2024-03-29',
-        bids: r'$12000',
-        status: 'Requested',
-      ),
-      FreightLoadItemModel(
-        requestId: 'LOAD-007',
-        requestedDate: '2024-03-16',
-        project: 'Warehouse Complex',
-        description: 'Electrical fixtures - bulk',
-        routeFrom: 'San Antonio, TX',
-        routeTo: 'Fort Worth, TX',
-        pickupDate: '2024-03-30',
-        deliveryDate: '2024-03-31',
-        bids: r'$12000',
-        status: 'Bids Received',
-      ),
-      FreightLoadItemModel(
-        requestId: 'LOAD-006',
-        requestedDate: '2024-03-16',
-        project: 'Storage Project C',
-        description: 'Insulation materials',
-        routeFrom: 'Dallas, TX',
-        routeTo: 'Houston, TX',
-        pickupDate: '2024-03-22',
-        deliveryDate: '2024-03-23',
-        bids: r'$12000',
-        status: 'Requested',
-      ),
-      FreightLoadItemModel(
-        requestId: 'LOAD-006',
-        requestedDate: '2024-03-16',
-        project: 'Storage Project C',
-        description: 'Insulation materials',
-        routeFrom: 'Dallas, TX',
-        routeTo: 'Houston, TX',
-        pickupDate: '2024-03-22',
-        deliveryDate: '2024-03-23',
-        bids: r'$12000',
-        status: 'Requested',
-      ),
-    ]);
-    isLoading.value = false;
+    errorMessage.value = '';
+    try {
+      final results = await Future.wait([
+        repository.freightStats(),
+        repository.freightLoads(),
+      ]);
+      _mapStats(results[0]);
+      _mapLoads(results[1]);
+    } catch (error) {
+      errorMessage.value = error.toString();
+      summaryStats.clear();
+      freightLoadsList.clear();
+    } finally {
+      isLoading.value = false;
+    }
   }
 
-  void loadCarrierBidsData() {
-    carrierBidsList.assignAll([
-      CarrierBidModel(
-        carrierName: 'QuickFreight Solutions',
-        rating: 4.8,
-        bidAmount: r'$2,850',
-        isBestRate: true,
+  void _mapStats(Map<String, dynamic> stats) {
+    summaryStats.assignAll([
+      _stat(
+        'Total Loads',
+        stats['total'],
+        const Color(0xFF22C55E),
+        Icons.local_shipping_outlined,
       ),
-      CarrierBidModel(
-        carrierName: 'Apex Logistics Inc',
-        rating: 4.6,
-        bidAmount: r'$3,050',
+      _stat(
+        'In Transit',
+        stats['inTransit'],
+        const Color(0xFFF97316),
+        Icons.local_shipping_outlined,
       ),
-      CarrierBidModel(
-        carrierName: 'TransEast Express',
-        rating: 4.9,
-        bidAmount: r'$3,120',
+      _stat(
+        'Delivered',
+        stats['delivered'],
+        const Color(0xFF22C55E),
+        Icons.check_circle_outline,
       ),
-      CarrierBidModel(
-        carrierName: 'National Haulers',
-        rating: 4.5,
-        bidAmount: r'$3,300',
+      _stat(
+        'Total Spent',
+        _money(stats['totalSpent']),
+        const Color(0xFF2563EB),
+        Icons.attach_money,
       ),
-      CarrierBidModel(
-        carrierName: 'LoneStar Transport',
-        rating: 4.7,
-        bidAmount: r'$3,450',
+      _stat(
+        'Requested Loads',
+        stats['requested'] ?? stats['total'],
+        const Color(0xFFEC4899),
+        Icons.local_shipping_outlined,
+      ),
+      _stat(
+        'Bids Pending',
+        stats['pending'],
+        const Color(0xFF3B82F6),
+        Icons.info_outline,
       ),
     ]);
+  }
+
+  FreightLoadSummaryStatModel _stat(
+    String label,
+    dynamic value,
+    Color color,
+    IconData icon,
+  ) => FreightLoadSummaryStatModel(
+    label: label,
+    value: value?.toString() ?? '0',
+    themeColor: color,
+    icon: icon,
+  );
+
+  void _mapLoads(Map<String, dynamic> data) {
+    final raw = data['deliveries'] is List
+        ? data['deliveries'] as List
+        : const [];
+    freightLoadsList.assignAll(
+      raw.whereType<Map>().map((entry) {
+        final item = Map<String, dynamic>.from(entry);
+        final project = _map(item['project'] ?? item['lead']);
+        final route = _map(item['route']);
+        return FreightLoadItemModel(
+          id: _text(item['_id'] ?? item['id']),
+          requestId: _text(
+            item['deliveryNumber'] ?? item['requestId'] ?? item['_id'],
+          ),
+          requestedDate: _date(item['requestedAt'] ?? item['createdAt']),
+          project: _text(item['projectName'] ?? project['projectName']),
+          description: _text(item['description'] ?? item['itemDescription']),
+          routeFrom: _text(item['pickupLocation'] ?? route['from']),
+          routeTo: _text(
+            item['deliveryLocation'] ?? item['siteLocation'] ?? route['to'],
+          ),
+          pickupDate: _date(item['pickupDate']),
+          deliveryDate: _date(item['deliveryDate']),
+          bids: item['bidCount'] == null
+              ? _money(item['awardedAmount'] ?? item['price'])
+              : '${item['bidCount']}',
+          status: _status(item['status']),
+        );
+      }),
+    );
+  }
+
+  List<FreightLoadItemModel> get filteredFreightLoads {
+    final query = searchQuery.value.trim().toLowerCase();
+    if (query.isEmpty) return freightLoadsList;
+    return freightLoadsList
+        .where(
+          (item) =>
+              item.requestId.toLowerCase().contains(query) ||
+              item.project.toLowerCase().contains(query) ||
+              item.description.toLowerCase().contains(query) ||
+              item.status.toLowerCase().contains(query),
+        )
+        .toList();
   }
 
   void openFreightRequestDetails(FreightLoadItemModel item) {
-    selectedLoadId.value = item.requestId;
-    Get.toNamed(AppRoutes.freightRequestDetails);
-  }
-
-  void showAwardLoadDialog([CarrierBidModel? carrier]) {
-    Get.dialog(
-      AwardLoadDialog(
-        carrierName: carrier?.carrierName ?? 'QuickFreight Solutions',
-        awardAmount: carrier?.bidAmount ?? r'$2,850',
-      ),
-      barrierDismissible: true,
+    selectedLoadId.value = item.id.isEmpty ? item.requestId : item.id;
+    Get.toNamed(
+      AppRoutes.freightRequestDetails,
+      parameters: {'id': selectedLoadId.value},
     );
   }
 
-  void showRequestRevisionDialog([CarrierBidModel? carrier]) {
-    Get.dialog(
-      RequestRevisionDialog(
-        carrierName: carrier?.carrierName ?? 'QuickFreight Solutions',
-        currentBidAmount: carrier?.bidAmount ?? r'$2,850',
-      ),
-      barrierDismissible: true,
-    );
+  Future<void> loadCarrierBidsData(String deliveryId) async {
+    try {
+      final data = await repository.bids(deliveryId);
+      final raw = data['bids'] is List ? data['bids'] as List : const [];
+      carrierBidsList.assignAll(
+        raw.whereType<Map>().map((entry) {
+          final item = Map<String, dynamic>.from(entry);
+          final carrier = _map(item['carrier']);
+          final ratingValue = item['rating'] is num
+              ? item['rating'] as num
+              : num.tryParse('${item['rating']}') ?? 0;
+          return CarrierBidModel(
+            id: _text(item['_id'] ?? item['id']),
+            carrierName: _text(
+              item['carrierName'] ?? carrier['companyName'] ?? carrier['name'],
+            ),
+            rating: ratingValue.toDouble(),
+            bidAmount: _money(item['amount'] ?? item['bidAmount']),
+            isBestRate: item['isBestRate'] == true,
+            deliveryDays: _text(item['deliveryDays'] ?? item['transitTime']),
+          );
+        }),
+      );
+    } catch (error) {
+      errorMessage.value = error.toString();
+      carrierBidsList.clear();
+    }
   }
+
+  void showAwardLoadDialog([CarrierBidModel? carrier]) => Get.dialog(
+    AwardLoadDialog(
+      carrierName: carrier?.carrierName ?? 'Carrier',
+      awardAmount: carrier?.bidAmount ?? r'$0',
+      onConfirm: carrier == null || carrier.id.isEmpty
+          ? null
+          : () async {
+              try {
+                await repository.selectBid(carrier.id);
+                await loadCarrierBidsData(selectedLoadId.value);
+                await loadData();
+                return true;
+              } catch (error) {
+                Get.snackbar('Award failed', error.toString());
+                return false;
+              }
+            },
+    ),
+  );
+
+  void showRequestRevisionDialog([CarrierBidModel? carrier]) => Get.dialog(
+    RequestRevisionDialog(
+      carrierName: carrier?.carrierName ?? 'Carrier',
+      currentBidAmount: carrier?.bidAmount ?? r'$0',
+      onConfirm: carrier == null || carrier.id.isEmpty
+          ? null
+          : (targetAmount, message) async {
+              try {
+                await repository.requestBidResubmit(
+                  carrier.id,
+                  targetAmount: targetAmount,
+                  message: message,
+                );
+                await loadCarrierBidsData(selectedLoadId.value);
+                return true;
+              } catch (error) {
+                Get.snackbar('Revision request failed', error.toString());
+                return false;
+              }
+            },
+    ),
+  );
+
+  Map<String, dynamic> _map(dynamic value) =>
+      value is Map ? Map<String, dynamic>.from(value) : {};
+  String _text(dynamic value) => (value ?? '-').toString();
+  String _money(dynamic value) {
+    final amount = value is num ? value : num.tryParse('$value');
+    return amount == null ? '-' : '\$${amount.toStringAsFixed(0)}';
+  }
+
+  String _date(dynamic value) {
+    final date = DateTime.tryParse((value ?? '').toString())?.toLocal();
+    return date == null
+        ? '-'
+        : '${date.month.toString().padLeft(2, '0')}/${date.day.toString().padLeft(2, '0')}/${date.year}';
+  }
+
+  String _status(dynamic value) => (value ?? 'Unknown')
+      .toString()
+      .replaceAll('_', ' ')
+      .split(' ')
+      .map(
+        (word) => word.isEmpty
+            ? word
+            : '${word[0].toUpperCase()}${word.substring(1).toLowerCase()}',
+      )
+      .join(' ');
 }

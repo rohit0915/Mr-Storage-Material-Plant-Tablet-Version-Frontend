@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../app/utils/app_colors.dart';
 import '../../../app/widgets/common_error_widget.dart';
-import '../../../app/widgets/common_loader.dart';
 import '../controller/home_controller.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/dashboard_app_bar.dart';
+import '../widgets/dashboard_shimmer_loading.dart';
 import '../widgets/drawing_approval_status_table.dart';
 import '../widgets/greeting_header_section.dart';
 import '../widgets/production_overview_section.dart';
@@ -29,7 +29,7 @@ class HomeView extends GetView<HomeController> {
             Expanded(
               child: Obx(() {
                 if (controller.isLoading.value) {
-                  return const CommonLoader();
+                  return const DashboardShimmerLoading();
                 }
 
                 if (controller.errorMessage.isNotEmpty) {
@@ -51,7 +51,12 @@ class HomeView extends GetView<HomeController> {
                       TopMetricsRow(metrics: controller.topMetrics),
                       
                       // Production Overview Section
-                      ProductionOverviewSection(overviewItems: controller.productionOverviewItems),
+                      ProductionOverviewSection(
+                        overviewItems: controller.productionOverviewItems,
+                        activeFilterLabel: controller.timeFilterLabel,
+                        activeFilterValue: controller.selectedTimeFilter.value,
+                        onFilterChanged: controller.changeTimeFilter,
+                      ),
                       
                       // 3 Column Section (Shipper Files, Plant Alerts, Freight Carriers)
                       ThreeColumnSection(

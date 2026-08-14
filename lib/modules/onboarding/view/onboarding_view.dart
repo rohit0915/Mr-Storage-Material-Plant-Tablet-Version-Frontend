@@ -44,9 +44,10 @@ class OnboardingView extends GetView<OnboardingController> {
                             flex: 1,
                             child: Padding(
                               padding: const EdgeInsets.only(left: 60.0, right: 32.0, top: 60.0),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                              child: SingleChildScrollView(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   // Logo
                                   Image.asset(
@@ -99,6 +100,7 @@ class OnboardingView extends GetView<OnboardingController> {
                               ),
                             ),
                           ),
+                        ),
                           // Right Column: Image and Controls
                           Expanded(
                             flex: 1,

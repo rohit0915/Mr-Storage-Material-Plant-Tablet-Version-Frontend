@@ -36,9 +36,7 @@ class CustomerProjectsTable extends StatelessWidget {
             // Header row
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              decoration: const BoxDecoration(
-                color: AppColors.inputBackground,
-              ),
+              decoration: const BoxDecoration(color: AppColors.inputBackground),
               child: Row(
                 children: const [
                   Expanded(
@@ -126,7 +124,10 @@ class CustomerProjectsTable extends StatelessWidget {
                     onTap: () => Get.toNamed(AppRoutes.projectDetails),
                     behavior: HitTestBehavior.opaque,
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
+                      ),
                       child: Row(
                         children: [
                           Expanded(
@@ -169,7 +170,9 @@ class CustomerProjectsTable extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
-                                color: row.isCompleted ? AppColors.badgeGreenText : AppColors.badgeYellowText,
+                                color: row.isCompleted
+                                    ? AppColors.badgeGreenText
+                                    : AppColors.badgeYellowText,
                               ),
                             ),
                           ),

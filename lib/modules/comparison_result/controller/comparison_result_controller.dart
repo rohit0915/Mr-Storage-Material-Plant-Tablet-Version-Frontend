@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../app/routes/app_routes.dart';
+import '../../../app/services/file_export_service.dart';
 import '../../shipper_files/repository/shipper_request_workflow_repository.dart';
 import '../model/comparison_result_model.dart';
 
@@ -92,15 +93,43 @@ class ComparisonResultController extends GetxController {
     }
   }
 
-  void downloadExcelReport() {
-    Get.snackbar(
-      'Report',
-      'Comparison results are available in the table.',
-      backgroundColor: const Color(0xFF2563EB),
-      colorText: Colors.white,
-      snackPosition: SnackPosition.BOTTOM,
-      margin: const EdgeInsets.all(16),
-    );
+  Future<void> downloadExcelReport() async {
+    try {
+      await FileExportService.saveCsv(
+        fileName:
+            'comparison_report_${requestId.value.isEmpty ? 'export' : requestId.value}',
+        rows: [
+          const [
+            'Part Number',
+            'Description',
+            'Ordered Qty',
+            'Shipped Qty',
+            'Difference',
+            'Reason',
+          ],
+          ...comparisonItems.map(
+            (item) => [
+              item.partNumber,
+              item.description,
+              item.orderedQty,
+              item.shippedQty,
+              item.difference,
+              item.reason,
+            ],
+          ),
+        ],
+      );
+      Get.snackbar(
+        'Report downloaded',
+        'Comparison CSV was created successfully.',
+        backgroundColor: const Color(0xFF2563EB),
+        colorText: Colors.white,
+        snackPosition: SnackPosition.BOTTOM,
+        margin: const EdgeInsets.all(16),
+      );
+    } catch (error) {
+      Get.snackbar('Download failed', error.toString());
+    }
   }
 
   int _int(dynamic value) =>

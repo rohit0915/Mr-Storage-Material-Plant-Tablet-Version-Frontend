@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../app/services/file_export_service.dart';
+import '../../../app/widgets/common_snackbar.dart';
 import '../../item_cost_list/model/item_cost_model.dart';
 import '../../item_cost_list/widgets/add_edit_part_cost_dialog.dart';
 import '../../item_cost_list/widgets/success_dialog.dart';
@@ -13,8 +15,10 @@ class MissingItemCostController extends GetxController {
 
   final RxInt missingQty = 15.obs;
 
-  final RxList<MissingItemCostModel> missingItems = <MissingItemCostModel>[].obs;
-  final RxList<MissingItemCostModel> filteredItems = <MissingItemCostModel>[].obs;
+  final RxList<MissingItemCostModel> missingItems =
+      <MissingItemCostModel>[].obs;
+  final RxList<MissingItemCostModel> filteredItems =
+      <MissingItemCostModel>[].obs;
 
   @override
   void onInit() {
@@ -25,26 +29,146 @@ class MissingItemCostController extends GetxController {
   void loadMissingItems() {
     isLoading.value = true;
     final list = [
-      MissingItemCostModel(id: '1', partName: "'30_VRR48'", partColor: "'-'", costUnit: "'FT'", description: "'VRR+ Insul R10'"),
-      MissingItemCostModel(id: '2', partName: "'30_VRR72'", partColor: "'-'", costUnit: "'FT'", description: "'VRR+ Insul R10'"),
-      MissingItemCostModel(id: '3', partName: "'35_VRR48'", partColor: "'-'", costUnit: "'FT'", description: "'VRR+ Insul R11'"),
-      MissingItemCostModel(id: '4', partName: "'35_VRR72'", partColor: "'-'", costUnit: "'FT'", description: "'VRR+ Insul R11'"),
-      MissingItemCostModel(id: '5', partName: "'40_VRR48'", partColor: "'-'", costUnit: "'FT'", description: "'VRR+ Insul R13'"),
-      MissingItemCostModel(id: '6', partName: "'40_VRR72'", partColor: "'-'", costUnit: "'FT'", description: "'VRR+ Insul R13'"),
-      MissingItemCostModel(id: '7', partName: "'60_VRR48'", partColor: "'-'", costUnit: "'FT'", description: "'VRR+ Insul R19'"),
-      MissingItemCostModel(id: '8', partName: "'60_VRR72'", partColor: "'-'", costUnit: "'FT'", description: "'VRR+ Insul R19'"),
-      MissingItemCostModel(id: '9', partName: "'30_UF48 '", partColor: "'-'", costUnit: "'FT'", description: "-"),
-      MissingItemCostModel(id: '10', partName: "'30_UF72 '", partColor: "'-'", costUnit: "'FT'", description: "'UF Insul R10 '"),
-      MissingItemCostModel(id: '11', partName: "'35_UF48 '", partColor: "'-'", costUnit: "'FT'", description: "'UF Insul R10 '"),
-      MissingItemCostModel(id: '12', partName: "'35_UF72 '", partColor: "'-'", costUnit: "'FT'", description: "'UF Insul R11 '"),
-      MissingItemCostModel(id: '13', partName: "'40_UF48 '", partColor: "'-'", costUnit: "'FT'", description: "'UF Insul R11 '"),
-      MissingItemCostModel(id: '14', partName: "'40_UF72 ' '", partColor: "'-'", costUnit: "'FT'", description: "'UF Insul R13 '"),
-      MissingItemCostModel(id: '15', partName: "'60_UF48 '", partColor: "'-'", costUnit: "'FT'", description: "'UF Insul R13 '"),
-      MissingItemCostModel(id: '16', partName: "'60_UF72 '", partColor: "'-'", costUnit: "'FT'", description: "'UF Insul R19 '"),
-      MissingItemCostModel(id: '17', partName: "'R30_FG9.5'", partColor: "'-'", costUnit: "'FT'", description: "'UF Insul R19 '"),
-      MissingItemCostModel(id: '18', partName: "'R30_FG10'", partColor: "'-'", costUnit: "'FT'", description: "'Fiber Glass 9.5'"),
-      MissingItemCostModel(id: '19', partName: "'R30_MW7.5'", partColor: "'-'", costUnit: "'FT'", description: "'Fiber Glass 10'"),
-      MissingItemCostModel(id: '20', partName: "'R30_SF'", partColor: "'-'", costUnit: "'FT'", description: "'Mineral Wool7.5'"),
+      MissingItemCostModel(
+        id: '1',
+        partName: "'30_VRR48'",
+        partColor: "'-'",
+        costUnit: "'FT'",
+        description: "'VRR+ Insul R10'",
+      ),
+      MissingItemCostModel(
+        id: '2',
+        partName: "'30_VRR72'",
+        partColor: "'-'",
+        costUnit: "'FT'",
+        description: "'VRR+ Insul R10'",
+      ),
+      MissingItemCostModel(
+        id: '3',
+        partName: "'35_VRR48'",
+        partColor: "'-'",
+        costUnit: "'FT'",
+        description: "'VRR+ Insul R11'",
+      ),
+      MissingItemCostModel(
+        id: '4',
+        partName: "'35_VRR72'",
+        partColor: "'-'",
+        costUnit: "'FT'",
+        description: "'VRR+ Insul R11'",
+      ),
+      MissingItemCostModel(
+        id: '5',
+        partName: "'40_VRR48'",
+        partColor: "'-'",
+        costUnit: "'FT'",
+        description: "'VRR+ Insul R13'",
+      ),
+      MissingItemCostModel(
+        id: '6',
+        partName: "'40_VRR72'",
+        partColor: "'-'",
+        costUnit: "'FT'",
+        description: "'VRR+ Insul R13'",
+      ),
+      MissingItemCostModel(
+        id: '7',
+        partName: "'60_VRR48'",
+        partColor: "'-'",
+        costUnit: "'FT'",
+        description: "'VRR+ Insul R19'",
+      ),
+      MissingItemCostModel(
+        id: '8',
+        partName: "'60_VRR72'",
+        partColor: "'-'",
+        costUnit: "'FT'",
+        description: "'VRR+ Insul R19'",
+      ),
+      MissingItemCostModel(
+        id: '9',
+        partName: "'30_UF48 '",
+        partColor: "'-'",
+        costUnit: "'FT'",
+        description: "-",
+      ),
+      MissingItemCostModel(
+        id: '10',
+        partName: "'30_UF72 '",
+        partColor: "'-'",
+        costUnit: "'FT'",
+        description: "'UF Insul R10 '",
+      ),
+      MissingItemCostModel(
+        id: '11',
+        partName: "'35_UF48 '",
+        partColor: "'-'",
+        costUnit: "'FT'",
+        description: "'UF Insul R10 '",
+      ),
+      MissingItemCostModel(
+        id: '12',
+        partName: "'35_UF72 '",
+        partColor: "'-'",
+        costUnit: "'FT'",
+        description: "'UF Insul R11 '",
+      ),
+      MissingItemCostModel(
+        id: '13',
+        partName: "'40_UF48 '",
+        partColor: "'-'",
+        costUnit: "'FT'",
+        description: "'UF Insul R11 '",
+      ),
+      MissingItemCostModel(
+        id: '14',
+        partName: "'40_UF72 ' '",
+        partColor: "'-'",
+        costUnit: "'FT'",
+        description: "'UF Insul R13 '",
+      ),
+      MissingItemCostModel(
+        id: '15',
+        partName: "'60_UF48 '",
+        partColor: "'-'",
+        costUnit: "'FT'",
+        description: "'UF Insul R13 '",
+      ),
+      MissingItemCostModel(
+        id: '16',
+        partName: "'60_UF72 '",
+        partColor: "'-'",
+        costUnit: "'FT'",
+        description: "'UF Insul R19 '",
+      ),
+      MissingItemCostModel(
+        id: '17',
+        partName: "'R30_FG9.5'",
+        partColor: "'-'",
+        costUnit: "'FT'",
+        description: "'UF Insul R19 '",
+      ),
+      MissingItemCostModel(
+        id: '18',
+        partName: "'R30_FG10'",
+        partColor: "'-'",
+        costUnit: "'FT'",
+        description: "'Fiber Glass 9.5'",
+      ),
+      MissingItemCostModel(
+        id: '19',
+        partName: "'R30_MW7.5'",
+        partColor: "'-'",
+        costUnit: "'FT'",
+        description: "'Fiber Glass 10'",
+      ),
+      MissingItemCostModel(
+        id: '20',
+        partName: "'R30_SF'",
+        partColor: "'-'",
+        costUnit: "'FT'",
+        description: "'Mineral Wool7.5'",
+      ),
     ];
 
     missingItems.assignAll(list);
@@ -63,10 +187,12 @@ class MissingItemCostController extends GetxController {
     } else {
       final q = searchQuery.value.toLowerCase();
       filteredItems.assignAll(
-        missingItems.where((item) =>
-            item.partName.toLowerCase().contains(q) ||
-            item.description.toLowerCase().contains(q) ||
-            item.partColor.toLowerCase().contains(q)),
+        missingItems.where(
+          (item) =>
+              item.partName.toLowerCase().contains(q) ||
+              item.description.toLowerCase().contains(q) ||
+              item.partColor.toLowerCase().contains(q),
+        ),
       );
     }
   }
@@ -86,7 +212,10 @@ class MissingItemCostController extends GetxController {
     filteredItems.refresh();
   }
 
-  void openAddCostForItemDialog(BuildContext context, MissingItemCostModel item) {
+  void openAddCostForItemDialog(
+    BuildContext context,
+    MissingItemCostModel item,
+  ) {
     final draft = ItemCostModel(
       id: item.id,
       partName: item.partName,
@@ -133,14 +262,36 @@ class MissingItemCostController extends GetxController {
     );
   }
 
-  void exportFile(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (ctx) => SuccessDialog(
-        title: 'File Exported Successfully',
-        buttonText: 'Ok',
-        onPressed: () => Navigator.of(ctx).pop(),
-      ),
-    );
+  Future<void> exportFile(BuildContext context) async {
+    try {
+      await FileExportService.saveCsv(
+        fileName: 'BOM_missing_items_cost_list',
+        rows: [
+          const ['Part Name', 'Part Color', 'Cost Unit', 'Description'],
+          ...filteredItems.map(
+            (item) => [
+              item.partName,
+              item.partColor,
+              item.costUnit,
+              item.description,
+            ],
+          ),
+        ],
+      );
+      if (!context.mounted) return;
+      showDialog(
+        context: context,
+        builder: (ctx) => SuccessDialog(
+          title: 'File Exported Successfully',
+          buttonText: 'Ok',
+          onPressed: () => Navigator.of(ctx).pop(),
+        ),
+      );
+    } catch (error) {
+      CommonSnackbar.showError(
+        title: 'Export failed',
+        message: error.toString(),
+      );
+    }
   }
 }

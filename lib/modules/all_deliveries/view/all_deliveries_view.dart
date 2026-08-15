@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../app/utils/app_colors.dart';
+import '../../../app/widgets/common_loader.dart';
 import '../../home/widgets/app_drawer.dart';
 import '../../home/widgets/dashboard_app_bar.dart';
 import '../controller/all_deliveries_controller.dart';
@@ -18,8 +19,11 @@ class AllDeliveriesView extends GetView<AllDeliveriesController> {
         children: [
           const DashboardAppBar(),
           Expanded(
-            child: Obx(
-              () => SingleChildScrollView(
+            child: Obx(() {
+              if (controller.isLoading.value) {
+                return const CommonLoader();
+              }
+              return SingleChildScrollView(
                 padding: const EdgeInsets.all(20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -107,9 +111,7 @@ class AllDeliveriesView extends GetView<AllDeliveriesController> {
                       ],
                     ),
                     const SizedBox(height: 18),
-                    if (controller.isLoading.value)
-                      const Center(child: CircularProgressIndicator())
-                    else if (controller.errorMessage.value.isNotEmpty)
+                    if (controller.errorMessage.value.isNotEmpty)
                       Center(child: Text(controller.errorMessage.value))
                     else
                       Container(
@@ -173,8 +175,8 @@ class AllDeliveriesView extends GetView<AllDeliveriesController> {
                       ),
                   ],
                 ),
-              ),
-            ),
+              );
+            }),
           ),
         ],
       ),

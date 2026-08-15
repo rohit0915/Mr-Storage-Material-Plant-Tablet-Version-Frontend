@@ -1,4 +1,6 @@
 import 'package:get/get.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../../../app/widgets/common_snackbar.dart';
 import '../model/project_drawings_model.dart';
 import '../repository/project_drawings_repository.dart';
 
@@ -115,6 +117,25 @@ class ProjectDrawingsController extends GetxController {
 
   List<DrawingItemModel> get filteredDrawings => _filter(drawings);
   List<DrawingItemModel> get filteredPhotos => _filter(photos);
+
+  Future<void> downloadFile(DrawingItemModel item) async {
+    final uri = Uri.tryParse(item.fileUrl);
+    if (uri == null || !uri.hasScheme) {
+      CommonSnackbar.showError(
+        title: 'Download unavailable',
+        message: 'This file does not have a valid download URL.',
+      );
+      return;
+    }
+    final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (!opened) {
+      CommonSnackbar.showError(
+        title: 'Download failed',
+        message: 'Unable to open ${item.title}.',
+      );
+    }
+  }
+
   List<DrawingItemModel> _filter(List<DrawingItemModel> source) => source
       .where(
         (item) =>

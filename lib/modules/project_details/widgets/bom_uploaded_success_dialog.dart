@@ -5,7 +5,14 @@ import '../../../app/routes/app_routes.dart';
 import '../../../app/utils/app_colors.dart';
 
 class BomUploadedSuccessDialog extends StatelessWidget {
-  const BomUploadedSuccessDialog({super.key});
+  final String projectId;
+  final String projectName;
+
+  const BomUploadedSuccessDialog({
+    super.key,
+    required this.projectId,
+    required this.projectName,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -48,13 +55,18 @@ class BomUploadedSuccessDialog extends StatelessWidget {
               height: 42,
               child: ElevatedButton(
                 onPressed: () {
-                  Get.back(); // close dialog
-                  Get.toNamed(AppRoutes.bomFilesDetails); // navigate to BOM details
+                  Get.back();
+                  Get.toNamed(
+                    AppRoutes.bomFilesDetails,
+                    parameters: {'id': projectId, 'name': projectName},
+                  );
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF3B82F6),
                   elevation: 0,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
                 child: const Text(
                   'View BOM File',

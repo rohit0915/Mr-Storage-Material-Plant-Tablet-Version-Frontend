@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../app/routes/app_routes.dart';
+import '../../../app/services/file_export_service.dart';
+import '../../../app/widgets/common_snackbar.dart';
+import '../../awarded_loads/widgets/freight_filter_dialog.dart';
 import '../model/freight_loads_model.dart';
 import '../repository/delivery_repository.dart';
 import '../widgets/award_load_dialog.dart';
@@ -21,6 +24,7 @@ class FreightLoadsController extends GetxController {
   final RxInt selectedDetailsTabIndex = 1.obs;
   final RxString selectedLoadId = ''.obs;
   final RxString searchQuery = ''.obs;
+  final RxString selectedStatus = ''.obs;
 
   @override
   void onInit() {
@@ -38,7 +42,10 @@ class FreightLoadsController extends GetxController {
     try {
       final results = await Future.wait([
         repository.freightStats(),
-        repository.freightLoads(),
+        repository.freightLoads(
+          search: searchQuery.value,
+          status: selectedStatus.value,
+        ),
       ]);
       _mapStats(results[0]);
       _mapLoads(results[1]);
@@ -48,6 +55,94 @@ class FreightLoadsController extends GetxController {
       freightLoadsList.clear();
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  void showFilterDialog() => Get.dialog(
+    FreightFilterDialog(
+      onApplyStatus: (status) {
+        selectedStatus.value = status ?? '';
+        loadData();
+      },
+    ),
+  );
+
+  Future<void> exportLoads() async {
+    try {
+      await FileExportService.saveCsv(
+        fileName: 'freight_loads',
+        rows: [
+          const [
+            'Request ID',
+            'Project',
+            'Description',
+            'From',
+            'To',
+            'Pickup Date',
+            'Delivery Date',
+            'Bids',
+            'Status',
+          ],
+          ...filteredFreightLoads.map(
+            (item) => [
+              item.requestId,
+              item.project,
+              item.description,
+              item.routeFrom,
+              item.routeTo,
+              item.pickupDate,
+              item.deliveryDate,
+              item.bids,
+              item.status,
+            ],
+          ),
+        ],
+      );
+      CommonSnackbar.showSuccess(
+        title: 'Export complete',
+        message: 'freight_loads.csv was downloaded.',
+      );
+    } catch (error) {
+      CommonSnackbar.showError(
+        title: 'Export failed',
+        message: error.toString(),
+      );
+    }
+  }
+
+  Future<void> exportCarrierBids() async {
+    try {
+      await FileExportService.saveCsv(
+        fileName:
+            'freight_request_${selectedLoadId.value.isEmpty ? 'export' : selectedLoadId.value}',
+        rows: [
+          const [
+            'Carrier',
+            'Rating',
+            'Bid Amount',
+            'Delivery Days',
+            'Best Rate',
+          ],
+          ...carrierBidsList.map(
+            (item) => [
+              item.carrierName,
+              item.rating,
+              item.bidAmount,
+              item.deliveryDays,
+              item.isBestRate ? 'Yes' : 'No',
+            ],
+          ),
+        ],
+      );
+      CommonSnackbar.showSuccess(
+        title: 'Export complete',
+        message: 'Freight request CSV was downloaded.',
+      );
+    } catch (error) {
+      CommonSnackbar.showError(
+        title: 'Export failed',
+        message: error.toString(),
+      );
     }
   }
 
@@ -200,7 +295,7 @@ class FreightLoadsController extends GetxController {
                 await loadData();
                 return true;
               } catch (error) {
-                Get.snackbar('Award failed', error.toString());
+                CommonSnackbar.showError(title: 'Award failed', message: error.toString());
                 return false;
               }
             },
@@ -223,7 +318,7 @@ class FreightLoadsController extends GetxController {
                 await loadCarrierBidsData(selectedLoadId.value);
                 return true;
               } catch (error) {
-                Get.snackbar('Revision request failed', error.toString());
+                CommonSnackbar.showError(title: 'Revision request failed', message: error.toString());
                 return false;
               }
             },

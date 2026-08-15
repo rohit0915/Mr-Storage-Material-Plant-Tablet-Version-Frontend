@@ -18,6 +18,7 @@ class AwardedLoadsController extends GetxController {
   final RxList<AwardedLoadItemModel> awardedLoadsList =
       <AwardedLoadItemModel>[].obs;
   final RxString searchQuery = ''.obs;
+  final RxString selectedStatus = ''.obs;
 
   @override
   void onInit() {
@@ -31,7 +32,10 @@ class AwardedLoadsController extends GetxController {
     try {
       final results = await Future.wait([
         repository.awardedStats(),
-        repository.awardedLoads(),
+        repository.awardedLoads(
+          search: searchQuery.value,
+          status: selectedStatus.value,
+        ),
       ]);
       final stats = results[0];
       summaryStats.assignAll([
@@ -125,7 +129,14 @@ class AwardedLoadsController extends GetxController {
     parameters: {'id': item.requestId},
   );
 
-  void showFilterDialog() => Get.dialog(const FreightFilterDialog());
+  void showFilterDialog() => Get.dialog(
+    FreightFilterDialog(
+      onApplyStatus: (status) {
+        selectedStatus.value = status ?? '';
+        loadData();
+      },
+    ),
+  );
 
   FreightLoadSummaryStatModel _stat(
     String label,

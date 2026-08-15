@@ -83,7 +83,7 @@ class FreightRequestDetailsView extends GetView<FreightLoadsController> {
                           Row(
                             children: [
                               OutlinedButton.icon(
-                                onPressed: () {},
+                                onPressed: controller.exportCarrierBids,
                                 icon: const Icon(
                                   Icons.download,
                                   size: 14,

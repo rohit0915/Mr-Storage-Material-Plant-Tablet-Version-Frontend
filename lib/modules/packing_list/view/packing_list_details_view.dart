@@ -512,7 +512,7 @@ class PackingListDetailsView extends GetView<PackingListController> {
                         ),
                       ),
                       IconButton(
-                        onPressed: () {},
+                        onPressed: controller.downloadPackingPdf,
                         icon: Container(
                           padding: const EdgeInsets.all(6),
                           decoration: BoxDecoration(
@@ -733,7 +733,7 @@ class PackingListDetailsView extends GetView<PackingListController> {
           ),
           const Spacer(),
           ElevatedButton(
-            onPressed: () {},
+            onPressed: controller.downloadPackingPdf,
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFE2E8F0),
               elevation: 0,
@@ -753,7 +753,7 @@ class PackingListDetailsView extends GetView<PackingListController> {
           ),
           const SizedBox(width: 8),
           ElevatedButton(
-            onPressed: () {},
+            onPressed: controller.exportBundlesCsv,
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFCBD5E1),
               elevation: 0,

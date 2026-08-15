@@ -32,6 +32,9 @@ class ApiEndpoints {
   static const String plantShipperFilesStats = 'plant/shipper-files/stats';
   static const String plantBomStats = 'plant/bom/stats';
   static const String plantBomProjects = 'plant/bom/projects';
+  static String plantBomDetails(String jobId) => 'plant/bom/$jobId';
+  static String plantConfirmBuildingBom(String buildingId) =>
+      'plant/bom/buildings/$buildingId/confirm';
   static const String plantShipperProjects = 'plant/shipper-files/projects';
   static String plantProjectShipperRequests(String leadId) =>
       'plant/shipper-files/projects/$leadId/requests';
@@ -98,6 +101,8 @@ class ApiEndpoints {
   static const String customers = 'customers';
   static String plantConsolidatedBom(String leadId) =>
       'plant/projects/$leadId/consolidated-bom';
+  static String plantSendConsolidatedBom(String leadId) =>
+      'plant/projects/$leadId/consolidated-bom/send';
   static String plantProjectBundlePlan(String leadId) =>
       'plant/projects/$leadId/bundle-plan';
   static String plantProjectFreightAutofill(String leadId) =>

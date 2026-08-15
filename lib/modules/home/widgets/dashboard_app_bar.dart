@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../app/widgets/common_snackbar.dart';
 import 'package:steel_building_plant_panel/app/utils/app_icons.dart';
 import '../../../app/routes/app_routes.dart';
 import '../../../app/network/api_client.dart';
@@ -462,9 +463,9 @@ class _ChangePasswordDialogState extends State<_ChangePasswordDialog> {
     if (current.text.isEmpty ||
         next.text.length < 8 ||
         next.text != confirm.text) {
-      Get.snackbar(
-        'Check password',
-        'Enter the current password and matching new password (minimum 8 characters).',
+      CommonSnackbar.showWarning(
+        title: 'Check password',
+        message: 'Enter the current password and matching new password (minimum 8 characters).',
       );
       return;
     }
@@ -476,12 +477,12 @@ class _ChangePasswordDialogState extends State<_ChangePasswordDialog> {
       );
       if (!mounted) return;
       Navigator.of(context).pop();
-      Get.snackbar(
-        'Password changed',
-        'Your password was updated successfully.',
+      CommonSnackbar.showSuccess(
+        title: 'Password changed',
+        message: 'Your password was updated successfully.',
       );
     } catch (error) {
-      Get.snackbar('Unable to change password', error.toString());
+      CommonSnackbar.showError(title: 'Unable to change password', message: error.toString());
     } finally {
       if (mounted) setState(() => loading = false);
     }

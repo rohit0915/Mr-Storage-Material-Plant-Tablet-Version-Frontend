@@ -1,6 +1,9 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../app/services/file_export_service.dart';
 import '../../../app/utils/app_colors.dart';
+import '../../../app/widgets/common_snackbar.dart';
 import '../model/projects_model.dart';
 import '../repository/projects_repository.dart';
 
@@ -304,5 +307,78 @@ class ProjectsController extends GetxController {
     projectItems[index].isSelected = !projectItems[index].isSelected;
     selectAllRows.value = projectItems.every((item) => item.isSelected);
     projectItems.refresh();
+  }
+
+  Future<void> exportProjectsData() async {
+    final selectedItems = projectItems.where((item) => item.isSelected).toList();
+    final itemsToExport = selectedItems.isNotEmpty ? selectedItems : projectItems;
+
+    if (itemsToExport.isEmpty) {
+      CommonSnackbar.showWarning(
+        title: 'Export Warning',
+        message: 'No project data available to export.',
+      );
+      return;
+    }
+
+    try {
+      final rows = <List<dynamic>>[
+        const [
+          'Job ID',
+          'Project Name',
+          'Customer Name',
+          'Buildings',
+          'Status',
+          'Project Value',
+        ],
+        ...itemsToExport.map(
+          (item) => [
+            item.projectSubtitle,
+            item.projectName,
+            item.customerName,
+            item.buildingsCount,
+            item.status,
+            item.projectValue,
+          ],
+        ),
+      ];
+
+      await FileExportService.saveCsv(
+        fileName: 'projects_export_${DateTime.now().millisecondsSinceEpoch}',
+        rows: rows,
+      );
+
+      CommonSnackbar.showSuccess(
+        title: 'Export Successful',
+        message: '${itemsToExport.length} project(s) exported successfully.',
+      );
+    } catch (e) {
+      CommonSnackbar.showError(
+        title: 'Export Failed',
+        message: e.toString(),
+      );
+    }
+  }
+
+  Future<void> importCsv() async {
+    try {
+      final result = await FilePicker.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['csv'],
+      );
+
+      if (result.isNotEmpty) {
+        final fileName = result.first.name;
+        CommonSnackbar.showSuccess(
+          title: 'Import CSV',
+          message: 'Selected "$fileName" for import.',
+        );
+      }
+    } catch (e) {
+      CommonSnackbar.showError(
+        title: 'Import Failed',
+        message: e.toString(),
+      );
+    }
   }
 }

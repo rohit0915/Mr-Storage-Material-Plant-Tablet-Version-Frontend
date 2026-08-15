@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../app/utils/app_colors.dart';
-import '../../../app/widgets/common_snackbar.dart';
 import '../controller/pdf_view_controller.dart';
 
 class PdfViewScreen extends GetView<PdfViewController> {
@@ -23,13 +22,18 @@ class PdfViewScreen extends GetView<PdfViewController> {
                 color: const Color(0xFF334155),
                 child: SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 32,
+                    horizontal: 24,
+                  ),
                   child: Center(
-                    child: Obx(() => Transform.scale(
-                          scale: controller.zoomScale.value,
-                          alignment: Alignment.topCenter,
-                          child: _buildA4PdfPage(),
-                        )),
+                    child: Obx(
+                      () => Transform.scale(
+                        scale: controller.zoomScale.value,
+                        alignment: Alignment.topCenter,
+                        child: _buildA4PdfPage(),
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -56,12 +60,18 @@ class PdfViewScreen extends GetView<PdfViewController> {
             icon: const Icon(Icons.arrow_back, size: 16, color: Colors.white),
             label: const Text(
               'Back',
-              style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
             ),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF2563EB),
               elevation: 0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             ),
           ),
@@ -76,7 +86,11 @@ class PdfViewScreen extends GetView<PdfViewController> {
             ),
             child: const Text(
               'PDF',
-              style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white),
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
             ),
           ),
           const SizedBox(width: 10),
@@ -100,10 +114,12 @@ class PdfViewScreen extends GetView<PdfViewController> {
               color: const Color(0xFF1E293B),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Obx(() => Text(
-                  'Page ${controller.currentPage.value} / ${controller.totalPages.value}',
-                  style: const TextStyle(fontSize: 12, color: Colors.white70),
-                )),
+            child: Obx(
+              () => Text(
+                'Page ${controller.currentPage.value} / ${controller.totalPages.value}',
+                style: const TextStyle(fontSize: 12, color: Colors.white70),
+              ),
+            ),
           ),
 
           const SizedBox(width: 16),
@@ -113,21 +129,39 @@ class PdfViewScreen extends GetView<PdfViewController> {
             children: [
               IconButton(
                 onPressed: controller.zoomOut,
-                icon: const Icon(Icons.remove_circle_outline, color: Colors.white70, size: 20),
+                icon: const Icon(
+                  Icons.remove_circle_outline,
+                  color: Colors.white70,
+                  size: 20,
+                ),
                 tooltip: 'Zoom Out',
               ),
-              Obx(() => Text(
-                    '${(controller.zoomScale.value * 100).round()}%',
-                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
-                  )),
+              Obx(
+                () => Text(
+                  '${(controller.zoomScale.value * 100).round()}%',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
               IconButton(
                 onPressed: controller.zoomIn,
-                icon: const Icon(Icons.add_circle_outline, color: Colors.white70, size: 20),
+                icon: const Icon(
+                  Icons.add_circle_outline,
+                  color: Colors.white70,
+                  size: 20,
+                ),
                 tooltip: 'Zoom In',
               ),
               IconButton(
                 onPressed: controller.resetZoom,
-                icon: const Icon(Icons.restart_alt, color: Colors.white70, size: 18),
+                icon: const Icon(
+                  Icons.restart_alt,
+                  color: Colors.white70,
+                  size: 18,
+                ),
                 tooltip: 'Reset Zoom',
               ),
             ],
@@ -137,23 +171,30 @@ class PdfViewScreen extends GetView<PdfViewController> {
 
           // Download, Print, Share buttons
           IconButton(
-            onPressed: () {
-              CommonSnackbar.showSuccess(
-                title: 'PDF Downloaded',
-                message: 'Document saved to downloads folder.',
-              );
-            },
-            icon: const Icon(Icons.download_outlined, color: Colors.white, size: 20),
+            onPressed: controller.download,
+            icon: const Icon(
+              Icons.download_outlined,
+              color: Colors.white,
+              size: 20,
+            ),
             tooltip: 'Download PDF',
           ),
           IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.print_outlined, color: Colors.white, size: 20),
+            onPressed: controller.printDocument,
+            icon: const Icon(
+              Icons.print_outlined,
+              color: Colors.white,
+              size: 20,
+            ),
             tooltip: 'Print',
           ),
           IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.share_outlined, color: Colors.white, size: 20),
+            onPressed: controller.shareDocument,
+            icon: const Icon(
+              Icons.share_outlined,
+              color: Colors.white,
+              size: 20,
+            ),
             tooltip: 'Share',
           ),
           IconButton(
@@ -219,14 +260,22 @@ class PdfViewScreen extends GetView<PdfViewController> {
               children: [
                 const Text(
                   'BOM Summary',
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 _buildSummaryLine('Total Items', '125'),
                 const SizedBox(height: 4),
                 _buildSummaryLine('Total Weight', '32,000 lbs', isBold: true),
                 const SizedBox(height: 4),
-                _buildSummaryLine('Total Panels Area', '3,300 sqm', isBold: true),
+                _buildSummaryLine(
+                  'Total Panels Area',
+                  '3,300 sqm',
+                  isBold: true,
+                ),
               ],
             ),
           ),
@@ -255,7 +304,10 @@ class PdfViewScreen extends GetView<PdfViewController> {
                           ),
                         ),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
                           color: const Color(0xFF2563EB),
                           child: const Text(
                             'MATERIALS',
@@ -276,40 +328,93 @@ class PdfViewScreen extends GetView<PdfViewController> {
                   child: Column(
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 8,
+                          horizontal: 12,
+                        ),
                         decoration: const BoxDecoration(
-                          border: Border(bottom: BorderSide(color: Colors.black, width: 1.5)),
+                          border: Border(
+                            bottom: BorderSide(color: Colors.black, width: 1.5),
+                          ),
                         ),
                         child: Row(
                           children: const [
                             Expanded(
                               child: Text(
                                 'STUDS & TOP CHANNELS',
-                                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black),
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
+                                ),
                               ),
                             ),
-                            Text('Date: 01.09.26\nJob Id: BLDG-D', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+                            Text(
+                              'Date: 01.09.26\nJob Id: BLDG-D',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ],
                         ),
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 6,
+                          horizontal: 12,
+                        ),
                         decoration: const BoxDecoration(
-                          border: Border(bottom: BorderSide(color: Colors.black, width: 1.5)),
+                          border: Border(
+                            bottom: BorderSide(color: Colors.black, width: 1.5),
+                          ),
                         ),
                         child: Row(
                           children: const [
-                            SizedBox(width: 100, child: Text('Customer:', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
-                            Text('John Doe', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                            SizedBox(
+                              width: 100,
+                              child: Text(
+                                'Customer:',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            Text(
+                              'John Doe',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ],
                         ),
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 6,
+                          horizontal: 12,
+                        ),
                         child: Row(
                           children: const [
-                            SizedBox(width: 100, child: Text('Project Name:', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
-                            Text('ABC Construction', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                            SizedBox(
+                              width: 100,
+                              child: Text(
+                                'Project Name:',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            Text(
+                              'ABC Construction',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -331,59 +436,293 @@ class PdfViewScreen extends GetView<PdfViewController> {
             child: Column(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 8,
+                  ),
                   color: const Color(0xFFF8FAFC),
                   child: Row(
                     children: const [
-                      Expanded(flex: 1, child: Text('QTY', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
-                      Expanded(flex: 1, child: Text('Mark', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
-                      Expanded(flex: 2, child: Text('Description', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
-                      Expanded(flex: 2, child: Text('Part', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
-                      Expanded(flex: 1, child: Text('Color', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
-                      Expanded(flex: 1, child: Text('Angle', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
-                      Expanded(flex: 1, child: Text('Thick', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
-                      Expanded(flex: 2, child: Text('Length', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
-                      Expanded(flex: 1, child: Text('Weight', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
+                      Expanded(
+                        flex: 1,
+                        child: Text(
+                          'QTY',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 1,
+                        child: Text(
+                          'Mark',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 2,
+                        child: Text(
+                          'Description',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 2,
+                        child: Text(
+                          'Part',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 1,
+                        child: Text(
+                          'Color',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 1,
+                        child: Text(
+                          'Angle',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 1,
+                        child: Text(
+                          'Thick',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 2,
+                        child: Text(
+                          'Length',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 1,
+                        child: Text(
+                          'Weight',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),
                 const Divider(height: 1, color: AppColors.divider),
                 ...List.generate(10, (index) {
-                  final marks = ['S-1', 'S-2', 'S-3', 'S-4', 'S-5', 'S-6', 'S-7', 'S-8', 'S-9', 'S-10'];
+                  final marks = [
+                    'S-1',
+                    'S-2',
+                    'S-3',
+                    'S-4',
+                    'S-5',
+                    'S-6',
+                    'S-7',
+                    'S-8',
+                    'S-9',
+                    'S-10',
+                  ];
                   final qtys = [5, 8, 6, 5, 8, 6, 3, 4, 2, 4];
                   return Column(
                     children: [
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 8,
+                        ),
                         child: Row(
                           children: [
-                            Expanded(flex: 1, child: Text('${qtys[index]}', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
-                            Expanded(flex: 1, child: Text(marks[index], style: const TextStyle(fontSize: 11))),
-                            const Expanded(flex: 2, child: Text('STUD', style: TextStyle(fontSize: 11, color: AppColors.textSecondary))),
-                            const Expanded(flex: 2, child: Text('C42516', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
-                            const Expanded(flex: 1, child: Text('RO', style: TextStyle(fontSize: 11, color: AppColors.textSecondary))),
-                            const Expanded(flex: 1, child: Text('-', style: TextStyle(fontSize: 11, color: AppColors.textSecondary))),
-                            const Expanded(flex: 1, child: Text('16 GA', style: TextStyle(fontSize: 11, color: AppColors.textSecondary))),
-                            const Expanded(flex: 2, child: Text("8'-7 1/4\"", style: TextStyle(fontSize: 11, color: AppColors.textSecondary))),
-                            const Expanded(flex: 1, child: Text('16.00', style: TextStyle(fontSize: 11, color: AppColors.textSecondary))),
+                            Expanded(
+                              flex: 1,
+                              child: Text(
+                                '${qtys[index]}',
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              flex: 1,
+                              child: Text(
+                                marks[index],
+                                style: const TextStyle(fontSize: 11),
+                              ),
+                            ),
+                            const Expanded(
+                              flex: 2,
+                              child: Text(
+                                'STUD',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                            ),
+                            const Expanded(
+                              flex: 2,
+                              child: Text(
+                                'C42516',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            const Expanded(
+                              flex: 1,
+                              child: Text(
+                                'RO',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                            ),
+                            const Expanded(
+                              flex: 1,
+                              child: Text(
+                                '-',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                            ),
+                            const Expanded(
+                              flex: 1,
+                              child: Text(
+                                '16 GA',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                            ),
+                            const Expanded(
+                              flex: 2,
+                              child: Text(
+                                "8'-7 1/4\"",
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                            ),
+                            const Expanded(
+                              flex: 1,
+                              child: Text(
+                                '16.00',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                            ),
                           ],
                         ),
                       ),
-                      if (index < 9) const Divider(height: 1, color: AppColors.divider),
+                      if (index < 9)
+                        const Divider(height: 1, color: AppColors.divider),
                     ],
                   );
                 }),
                 const Divider(height: 1, color: AppColors.divider),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
                   child: Row(
                     children: const [
-                      Expanded(flex: 2, child: Text('QTY Total', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
-                      Expanded(flex: 2, child: Text('Total Tons:  1.71', style: TextStyle(fontSize: 11, color: AppColors.textSecondary))),
-                      Expanded(flex: 1, child: Text('RO', style: TextStyle(fontSize: 11, color: AppColors.textSecondary))),
-                      Expanded(flex: 1, child: Text('-', style: TextStyle(fontSize: 11, color: AppColors.textSecondary))),
-                      Expanded(flex: 2, child: Text('Total Weight (lbs)', style: TextStyle(fontSize: 11, color: AppColors.textSecondary))),
-                      Expanded(flex: 1, child: Text('3423', style: TextStyle(fontSize: 11, color: AppColors.textSecondary))),
+                      Expanded(
+                        flex: 2,
+                        child: Text(
+                          'QTY Total',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 2,
+                        child: Text(
+                          'Total Tons:  1.71',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 1,
+                        child: Text(
+                          'RO',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 1,
+                        child: Text(
+                          '-',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 2,
+                        child: Text(
+                          'Total Weight (lbs)',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 1,
+                        child: Text(
+                          '3423',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -406,8 +745,18 @@ class PdfViewScreen extends GetView<PdfViewController> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-        Text(val, style: TextStyle(fontSize: 11, fontWeight: isBold ? FontWeight.bold : FontWeight.w500, color: AppColors.textPrimary)),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+        ),
+        Text(
+          val,
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: isBold ? FontWeight.bold : FontWeight.w500,
+            color: AppColors.textPrimary,
+          ),
+        ),
       ],
     );
   }

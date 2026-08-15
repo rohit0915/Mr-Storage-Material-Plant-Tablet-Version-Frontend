@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../app/widgets/common_loader.dart';
+import '../../../app/widgets/common_snackbar.dart';
 import '../../home/widgets/app_drawer.dart';
 import '../../home/widgets/dashboard_app_bar.dart';
 import '../../item_cost_list/widgets/success_dialog.dart';
@@ -195,7 +196,7 @@ class _AddFreightCarrierViewState extends State<AddFreightCarrierView> {
     final controller = Get.find<FreightCarriersController>();
     if (_nameController.text.trim().isEmpty ||
         _emailController.text.trim().isEmpty) {
-      Get.snackbar('Required fields', 'Carrier name and email are required.');
+      CommonSnackbar.showWarning(title: 'Required fields', message: 'Carrier name and email are required.');
       return;
     }
     try {
@@ -224,7 +225,7 @@ class _AddFreightCarrierViewState extends State<AddFreightCarrierView> {
             .toList(),
       );
     } catch (error) {
-      Get.snackbar('Unable to save carrier', error.toString());
+      CommonSnackbar.showError(title: 'Unable to save carrier', message: error.toString());
       return;
     }
     final title = widget.isEdit

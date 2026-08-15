@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:file_saver/file_saver.dart';
 import 'package:get/get.dart';
 
 import '../../../app/routes/app_routes.dart';
@@ -170,11 +171,16 @@ class ItemCostController extends GetxController {
   );
   Future<void> exportFile(BuildContext context) async {
     try {
-      final url = await repository.export();
-      if (url.isEmpty) throw Exception('Download URL was not returned.');
+      final bytes = await repository.export(search: searchQuery.value);
+      await FileSaver.instance.saveFile(
+        name: 'smdt-cost-list',
+        bytes: bytes,
+        fileExtension: 'xlsx',
+        mimeType: MimeType.microsoftExcel,
+      );
       CommonSnackbar.showSuccess(
-        title: 'Export ready',
-        message: url,
+        title: 'Excel exported successfully',
+        message: 'smdt-cost-list.xlsx was downloaded.',
       );
     } catch (error) {
       CommonSnackbar.showError(

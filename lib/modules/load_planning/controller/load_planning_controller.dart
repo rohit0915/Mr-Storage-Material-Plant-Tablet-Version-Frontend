@@ -1,6 +1,8 @@
 import 'package:get/get.dart';
 import '../../../app/routes/app_routes.dart';
 import '../../../app/repositories/workflow_repository.dart';
+import '../../../app/services/file_export_service.dart';
+import '../../../app/widgets/common_snackbar.dart';
 import '../model/load_planning_model.dart';
 import '../repository/bundle_plan_repository.dart';
 import '../repository/load_planning_repository.dart';
@@ -195,7 +197,7 @@ class LoadPlanningController extends GetxController {
     if (bundlePlanId.value.isEmpty) return;
     await bundlePlanRepository.confirm(bundlePlanId.value);
     await loadProjectLoadPlans(selectedProjectId.value);
-    Get.snackbar('Bundle plan confirmed', 'Load planning is ready.');
+    CommonSnackbar.showSuccess(title: 'Bundle plan confirmed', message: 'Load planning is ready.');
   }
 
   void showLoadDetails(LoadPlanItemModel item) {
@@ -208,6 +210,66 @@ class LoadPlanningController extends GetxController {
       onConfirm: Get.back,
     );
   }
+
+  Future<void> exportProjects() async => _export(
+    fileName: 'load_planning_projects',
+    rows: [
+      const ['Project Name', 'File Received', 'Total Load Plans'],
+      ...projectsList.map(
+        (item) => [item.projectName, item.fileReceived, item.totalLoadPlanning],
+      ),
+    ],
+  );
+
+  Future<void> exportLoadPlans() async => _export(
+    fileName: 'load_plans_${_safeName(selectedProjectName.value)}',
+    rows: [
+      const [
+        'Load Plan ID',
+        'Shipper Reference',
+        'Vendor',
+        'Bundles',
+        'Loads',
+        'Weight',
+        'Status',
+        'Date',
+      ],
+      ...loadPlansList.map(
+        (item) => [
+          item.loadPlanId,
+          item.shipperReference,
+          item.vendorName,
+          item.bundles,
+          item.loads,
+          item.weight,
+          item.status,
+          item.date,
+        ],
+      ),
+    ],
+  );
+
+  Future<void> _export({
+    required String fileName,
+    required List<List<dynamic>> rows,
+  }) async {
+    try {
+      await FileExportService.saveCsv(fileName: fileName, rows: rows);
+      CommonSnackbar.showSuccess(
+        title: 'Export complete',
+        message: '$fileName.csv was downloaded.',
+      );
+    } catch (error) {
+      CommonSnackbar.showError(
+        title: 'Export failed',
+        message: error.toString(),
+      );
+    }
+  }
+
+  String _safeName(String value) => value.trim().isEmpty
+      ? 'export'
+      : value.trim().toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_');
 
   Map<String, dynamic> _map(dynamic value) =>
       value is Map ? Map<String, dynamic>.from(value) : {};

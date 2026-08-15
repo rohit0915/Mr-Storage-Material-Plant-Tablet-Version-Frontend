@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../app/routes/app_routes.dart';
 import '../../../app/utils/app_colors.dart';
 import '../controller/project_details_controller.dart';
 import 'bom_uploaded_success_dialog.dart';
@@ -18,7 +19,7 @@ class UploadBomDialog extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       backgroundColor: Colors.white,
       child: Container(
-        width: 540,
+        width: 580,
         padding: const EdgeInsets.all(28),
         child: Obx(
           () => Column(
@@ -33,7 +34,7 @@ class UploadBomDialog extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Upload BOM File',
+                          'Building BOM Files',
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
@@ -42,7 +43,7 @@ class UploadBomDialog extends StatelessWidget {
                         ),
                         SizedBox(height: 4),
                         Text(
-                          'Select a building to replace or upload up to 5 BOM files.',
+                          'View BOM status per building or upload/replace files.',
                           style: TextStyle(
                             fontSize: 13,
                             color: AppColors.textSecondary,
@@ -66,8 +67,9 @@ class UploadBomDialog extends StatelessWidget {
                     : () {
                         if (controller.selectedBuildingId.value.isEmpty &&
                             controller.buildings.isNotEmpty) {
-                          final firstId = controller
-                              .buildingId(controller.buildings.first);
+                          final firstId = controller.buildingId(
+                            controller.buildings.first,
+                          );
                           controller.selectBuildingForUpload(firstId);
                         }
                         controller.pickUploadFiles(isBom: true);
@@ -75,7 +77,7 @@ class UploadBomDialog extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
                 child: Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 28),
+                  padding: const EdgeInsets.symmetric(vertical: 24),
                   decoration: BoxDecoration(
                     color: const Color(0xFFF8FAFC),
                     borderRadius: BorderRadius.circular(12),
@@ -195,27 +197,40 @@ class UploadBomDialog extends StatelessWidget {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
+                        horizontal: 24,
                         vertical: 10,
                       ),
                     ),
-                    child: const Text('Cancel'),
+                    child: const Text('Close'),
                   ),
                   const SizedBox(width: 12),
                   ElevatedButton(
                     onPressed: controller.isUploading.value
                         ? null
                         : () async {
-                            final success = await controller
-                                .uploadSelectedFiles(isBom: true);
-                            if (success) {
-                              await onUploaded?.call();
+                            if (controller.selectedUploadFiles.isNotEmpty) {
+                              final success = await controller
+                                  .uploadSelectedFiles(isBom: true);
+                              if (success) {
+                                await onUploaded?.call();
+                                Get.back();
+                                Get.dialog(
+                                  BomUploadedSuccessDialog(
+                                    projectId: controller.projectId,
+                                    projectName: controller.projectName.value,
+                                  ),
+                                );
+                              }
+                            } else {
                               Get.back();
-                              Get.dialog(const BomUploadedSuccessDialog());
+                              Get.toNamed(
+                                AppRoutes.bomFilesDetails,
+                                parameters: {'id': controller.projectId},
+                              );
                             }
                           },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF2563EB),
+                      backgroundColor: const Color(0xFF1E56B9),
                       elevation: 0,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -235,7 +250,7 @@ class UploadBomDialog extends StatelessWidget {
                             ),
                           )
                         : const Text(
-                            'Upload',
+                            'Consolidate',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
@@ -252,31 +267,74 @@ class UploadBomDialog extends StatelessWidget {
   }
 
   Widget _existingFiles(ProjectDetailsController controller) {
-    if (controller.buildings.isEmpty) {
-      return const Text(
-        'No buildings are available for this project.',
-        style: TextStyle(color: AppColors.textSecondary),
+    final buildingList = controller.buildings;
+
+    if (buildingList.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 20),
+        child: Center(child: Text('No buildings found for this project.')),
       );
     }
+
     return ConstrainedBox(
-      constraints: const BoxConstraints(maxHeight: 220),
+      constraints: const BoxConstraints(maxHeight: 260),
       child: ListView.separated(
         shrinkWrap: true,
-        itemCount: controller.buildings.length,
-        separatorBuilder: (_, _) => const SizedBox(height: 8),
+        itemCount: buildingList.length,
+        separatorBuilder: (_, _) => const SizedBox(height: 10),
         itemBuilder: (_, index) {
-          final building = controller.buildings[index];
+          final building = buildingList[index];
           final id = controller.buildingId(building);
           final existing = controller.existingFileForBuilding(id, isBom: true);
+
+          final buildingTitle = controller.buildingName(building).isNotEmpty
+              ? controller.buildingName(building)
+              : 'Building ${index + 1}';
+
           final fileName =
-              (existing?['fileName'] ?? existing?['name'] ?? 'No BOM uploaded')
+              (existing?['fileName'] ??
+                      existing?['name'] ??
+                      existing?['originalName'] ??
+                      'No BOM uploaded')
                   .toString();
-          final itemCount = existing?['itemCount'] ??
+
+          final itemCount =
+              existing?['itemCount'] ??
               existing?['totalItems'] ??
               (existing?['items'] is List
                   ? (existing!['items'] as List).length
-                  : null);
-          final status = _status(existing?['status'] ?? existing?['bomStatus']);
+                  : 0);
+
+          final rawDate =
+              existing?['uploadedAt'] ??
+              existing?['createdAt'] ??
+              existing?['date'];
+          final parsedDate = DateTime.tryParse((rawDate ?? '').toString());
+          final formattedDate = parsedDate == null
+              ? '-'
+              : '${_month(parsedDate.month)} ${parsedDate.day}';
+
+          final hasFile = existing != null;
+          final jobStatus =
+              (existing?['status'] ?? existing?['bomJobStatus'] ?? '')
+                  .toString()
+                  .toLowerCase();
+          final isCompleted = jobStatus == 'completed';
+          final isConfirmed = existing?['isConfirmed'] == true;
+          final status = isCompleted
+              ? (isConfirmed ? 'BOM Confirmed' : 'BOM Extracted')
+              : _status(
+                  existing?['bomJobStatus'] ??
+                      existing?['status'] ??
+                      'Processing',
+                );
+          final bomJobId =
+              (existing?['bomJobId'] ??
+                      existing?['jobId'] ??
+                      existing?['_id'] ??
+                      '')
+                  .toString();
+
           return Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             decoration: BoxDecoration(
@@ -284,84 +342,111 @@ class UploadBomDialog extends StatelessWidget {
               border: Border.all(color: const Color(0xFFE2E8F0)),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFDBEAFE),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(
-                    Icons.description_outlined,
-                    color: Color(0xFF2563EB),
-                    size: 20,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Flexible(
-                            child: Text(
-                              controller.buildingName(building),
-                              style: const TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.textPrimary,
-                              ),
-                            ),
-                          ),
-                          if (existing != null) ...[
-                            const SizedBox(width: 8),
-                            _statusBadge(status),
-                          ],
-                        ],
+                Row(
+                  children: [
+                    Text(
+                      buildingTitle,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
                       ),
-                      const SizedBox(height: 3),
-                      Text(
-                        itemCount == null
-                            ? fileName
-                            : '$fileName  •  Items: $itemCount',
+                    ),
+                    const SizedBox(width: 8),
+                    _statusBadge(hasFile ? status : 'No BOM uploaded'),
+                    const Spacer(),
+                    OutlinedButton(
+                      onPressed: controller.isUploading.value
+                          ? null
+                          : () async {
+                              controller.selectBuildingForUpload(id);
+                              await controller.pickUploadFiles(isBom: true);
+                            },
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: const Color(0xFF2563EB),
+                        side: const BorderSide(color: Color(0xFF2563EB)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                      ),
+                      child: Text(
+                        hasFile ? 'Replace file' : 'Upload file',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    OutlinedButton(
+                      onPressed: !hasFile || bomJobId.isEmpty
+                          ? null
+                          : () {
+                              Get.back();
+                              Get.toNamed(
+                                AppRoutes.bomFilesDetails,
+                                parameters: {
+                                  'id': bomJobId,
+                                  'projectId': controller.projectId,
+                                  'buildingId': id,
+                                  'buildingName': buildingTitle,
+                                  'name': controller.projectName.value,
+                                  'customer': controller.customerName.value,
+                                  'projectJobId': controller.jobId.value,
+                                  'date': controller.createdOn.value,
+                                },
+                              );
+                            },
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.textPrimary,
+                        side: const BorderSide(color: Color(0xFFCBD5E1)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 6,
+                        ),
+                      ),
+                      child: Text(
+                        isCompleted && !isConfirmed
+                            ? 'View and Confirm'
+                            : 'View',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.description_outlined,
+                      size: 16,
+                      color: AppColors.textSecondary,
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        '$fileName  •  Items: $itemCount  •  $formattedDate',
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           fontSize: 12,
                           color: AppColors.textSecondary,
                         ),
                       ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 10),
-                OutlinedButton(
-                  onPressed: controller.isUploading.value
-                      ? null
-                      : () async {
-                          controller.selectBuildingForUpload(id);
-                          await controller.pickUploadFiles(isBom: true);
-                        },
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFF2563EB),
-                    side: const BorderSide(color: Color(0xFF2563EB)),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
                     ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 8,
-                    ),
-                  ),
-                  child: Text(
-                    existing == null ? 'Upload file' : 'Replace file',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  ],
                 ),
               ],
             ),
@@ -371,28 +456,47 @@ class UploadBomDialog extends StatelessWidget {
     );
   }
 
+  String _month(int month) => const [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ][month - 1];
+
   Widget _statusBadge(String status) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-        decoration: BoxDecoration(
-          color: status.toLowerCase().contains('confirmed')
-              ? const Color(0xFFDBEAFE)
-              : const Color(0xFFFEF3C7),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Text(
-          status,
-          style: TextStyle(
-            fontSize: 10,
-            fontWeight: FontWeight.bold,
-            color: status.toLowerCase().contains('confirmed')
-                ? const Color(0xFF1D4ED8)
-                : const Color(0xFFD97706),
-          ),
-        ),
-      );
+    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+    decoration: BoxDecoration(
+      color:
+          status.toLowerCase().contains('confirmed') ||
+              status.toLowerCase().contains('uploaded')
+          ? const Color(0xFFDBEAFE)
+          : const Color(0xFFFEF3C7),
+      borderRadius: BorderRadius.circular(20),
+    ),
+    child: Text(
+      status,
+      style: TextStyle(
+        fontSize: 10,
+        fontWeight: FontWeight.bold,
+        color:
+            status.toLowerCase().contains('confirmed') ||
+                status.toLowerCase().contains('uploaded')
+            ? const Color(0xFF1D4ED8)
+            : const Color(0xFFD97706),
+      ),
+    ),
+  );
 
   String _status(dynamic value) {
-    final text = (value ?? 'Pending').toString().replaceAll('_', ' ');
+    final text = (value ?? 'BOM Confirmed').toString().replaceAll('_', ' ');
     return text
         .split(' ')
         .map(

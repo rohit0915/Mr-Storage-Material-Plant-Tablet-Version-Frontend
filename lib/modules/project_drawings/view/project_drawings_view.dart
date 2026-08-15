@@ -400,7 +400,7 @@ class ProjectDrawingsView extends GetView<ProjectDrawingsController> {
               const SizedBox(width: 4),
               // Action Icons: Download (↓) & Eye (👁️)
               IconButton(
-                onPressed: () {},
+                onPressed: () => controller.downloadFile(item),
                 icon: const Icon(
                   Icons.arrow_downward,
                   size: 16,
@@ -492,7 +492,7 @@ class ProjectDrawingsView extends GetView<ProjectDrawingsController> {
               const SizedBox(width: 4),
               // Action Icons: Download (↓) & Eye (👁️)
               IconButton(
-                onPressed: () {},
+                onPressed: () => controller.downloadFile(item),
                 icon: const Icon(
                   Icons.arrow_downward,
                   size: 16,

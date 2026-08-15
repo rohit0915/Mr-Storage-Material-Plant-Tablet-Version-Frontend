@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import '../../../app/routes/app_routes.dart';
+import '../../../app/widgets/common_snackbar.dart';
 import '../../shipper_files/repository/shipper_request_workflow_repository.dart';
 import '../../shipper_files/widgets/ready_for_planning_dialog.dart';
 
@@ -68,7 +69,7 @@ class ShipperFileDetailsController extends GetxController {
         ),
       );
     } catch (error) {
-      Get.snackbar('Unable to load document', error.toString());
+      CommonSnackbar.showError(title: 'Unable to load document', message: error.toString());
     } finally {
       isLoading.value = false;
     }
@@ -88,7 +89,7 @@ class ShipperFileDetailsController extends GetxController {
       }
       Get.dialog(const ReadyForPlanningDialog());
     } catch (error) {
-      Get.snackbar('Unable to generate bundle plan', error.toString());
+      CommonSnackbar.showError(title: 'Unable to generate bundle plan', message: error.toString());
     } finally {
       isLoading.value = false;
     }

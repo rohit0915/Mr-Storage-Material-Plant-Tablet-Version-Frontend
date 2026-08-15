@@ -144,6 +144,65 @@ class ShipperFilesView extends GetView<ShipperFilesController> {
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           ),
         ),
+
+        const Spacer(),
+
+        // Select Status Dropdown
+        PopupMenuButton<String>(
+          onSelected: (val) {
+            controller.selectedStatus.value = val;
+          },
+          itemBuilder: (context) => const [
+            PopupMenuItem(
+              value: 'Select Status',
+              child: Text('Select Status'),
+            ),
+            PopupMenuItem(
+              value: 'Pending Comparison',
+              child: Text('Pending Comparison'),
+            ),
+            PopupMenuItem(value: 'Approved', child: Text('Approved')),
+            PopupMenuItem(
+              value: 'File Received',
+              child: Text('File Received'),
+            ),
+          ],
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: AppColors.inputBorder),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.sort,
+                  size: 14,
+                  color: AppColors.textSecondary,
+                ),
+                const SizedBox(width: 6),
+                Obx(
+                  () => Text(
+                    controller.selectedStatus.value,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 4),
+                const Icon(
+                  Icons.keyboard_arrow_down,
+                  size: 16,
+                  color: AppColors.textSecondary,
+                ),
+              ],
+            ),
+          ),
+        ),
       ],
     );
   }

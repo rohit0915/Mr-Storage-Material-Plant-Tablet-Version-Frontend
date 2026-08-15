@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
 
 class UploadBomFileDialog extends StatefulWidget {
   final VoidCallback onUploadSuccess;
@@ -10,9 +11,39 @@ class UploadBomFileDialog extends StatefulWidget {
 }
 
 class _UploadBomFileDialogState extends State<UploadBomFileDialog> {
-  bool _hasFile = true;
-  final String _fileName = 'BOM-Project 001';
-  final String _fileSize = '5.3MB';
+  bool _hasFile = false;
+  bool _isPicking = false;
+  String _fileName = '';
+  String _fileSize = '';
+
+  Future<void> _pickFile() async {
+    setState(() => _isPicking = true);
+    try {
+      final file = await FilePicker.pickFile(
+        type: FileType.custom,
+        allowedExtensions: [
+          'jpg',
+          'jpeg',
+          'png',
+          'svg',
+          'zip',
+          'pdf',
+          'csv',
+          'xlsx',
+        ],
+      );
+      if (file == null || !mounted) return;
+      final size = await file.length();
+      if (!mounted) return;
+      setState(() {
+        _hasFile = true;
+        _fileName = file.name;
+        _fileSize = '${(size / (1024 * 1024)).toStringAsFixed(2)} MB';
+      });
+    } finally {
+      if (mounted) setState(() => _isPicking = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -99,7 +130,7 @@ class _UploadBomFileDialogState extends State<UploadBomFileDialog> {
                   ),
                   const SizedBox(height: 8),
                   OutlinedButton(
-                    onPressed: () {},
+                    onPressed: _isPicking ? null : _pickFile,
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 16,
@@ -226,10 +257,12 @@ class _UploadBomFileDialogState extends State<UploadBomFileDialog> {
                 ),
                 const SizedBox(width: 12),
                 ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    widget.onUploadSuccess();
-                  },
+                  onPressed: !_hasFile
+                      ? null
+                      : () {
+                          Navigator.of(context).pop();
+                          widget.onUploadSuccess();
+                        },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF2563EB),
                     padding: const EdgeInsets.symmetric(

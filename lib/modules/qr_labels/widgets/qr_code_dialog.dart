@@ -1,5 +1,10 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:qr_flutter/qr_flutter.dart';
+import '../../../app/services/file_export_service.dart';
+import '../../../app/widgets/common_snackbar.dart';
 import '../../../app/utils/app_colors.dart';
 import '../model/qr_labels_model.dart';
 
@@ -12,6 +17,68 @@ class QrCodeDialog extends StatelessWidget {
     required this.item,
     this.projectName = 'RiversideComplex',
   });
+
+  String get payload =>
+      'project=$projectName&shipper=${item.shipper}&load_id=${item.loadId}&bundle_id=${item.bundleId}&parts=${item.parts}&weight=${item.weight}&length=${item.length}';
+
+  Future<List<int>> _labelBytes() => FileExportService.tablePdf(
+    title: 'QR Label — ${item.bundleId}',
+    subtitle: payload,
+    headers: const [
+      'Project',
+      'Shipper',
+      'Load',
+      'Bundle',
+      'Parts',
+      'Weight',
+      'Length',
+    ],
+    rows: [
+      [
+        projectName,
+        item.shipper,
+        item.loadId,
+        item.bundleId,
+        item.parts,
+        item.weight,
+        item.length,
+      ],
+    ],
+  );
+
+  Future<void> _export() async {
+    try {
+      final bytes = Uint8List.fromList(await _labelBytes());
+      await FileExportService.savePdf(
+        fileName: 'qr_label_${item.bundleId}',
+        bytes: bytes,
+      );
+      CommonSnackbar.showSuccess(
+        title: 'Export complete',
+        message: 'QR label PDF was downloaded.',
+      );
+    } catch (error) {
+      CommonSnackbar.showError(
+        title: 'Export failed',
+        message: error.toString(),
+      );
+    }
+  }
+
+  Future<void> _print() async {
+    try {
+      final bytes = Uint8List.fromList(await _labelBytes());
+      await FileExportService.printPdf(
+        name: 'QR label ${item.bundleId}',
+        bytes: bytes,
+      );
+    } catch (error) {
+      CommonSnackbar.showError(
+        title: 'Print failed',
+        message: error.toString(),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -80,9 +147,10 @@ class QrCodeDialog extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: Colors.grey.shade200, width: 1.5),
                   ),
-                  child: CustomPaint(
-                    size: const Size(164, 164),
-                    painter: QrPainter(),
+                  child: QrImageView(
+                    data: payload,
+                    size: 164,
+                    backgroundColor: Colors.white,
                   ),
                 ),
                 const SizedBox(width: 32),
@@ -133,13 +201,7 @@ class QrCodeDialog extends StatelessWidget {
                   child: SizedBox(
                     height: 48,
                     child: ElevatedButton(
-                      onPressed: () {
-                        Get.snackbar(
-                          'Export',
-                          'Exporting PDF for ${item.bundleId}',
-                          snackPosition: SnackPosition.BOTTOM,
-                        );
-                      },
+                      onPressed: _export,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF3B82F6),
                         elevation: 0,
@@ -163,13 +225,7 @@ class QrCodeDialog extends StatelessWidget {
                   child: SizedBox(
                     height: 52,
                     child: ElevatedButton(
-                      onPressed: () {
-                        Get.snackbar(
-                          'Print',
-                          'Printing label for ${item.bundleId}',
-                          snackPosition: SnackPosition.BOTTOM,
-                        );
-                      },
+                      onPressed: _print,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF4F46E5),
                         elevation: 0,

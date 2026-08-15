@@ -84,7 +84,7 @@ class LoadPlanningView extends GetView<LoadPlanningController> {
           ],
         ),
         OutlinedButton.icon(
-          onPressed: () {},
+          onPressed: controller.exportProjects,
           icon: const Icon(
             Icons.ios_share,
             size: 14,
@@ -145,7 +145,7 @@ class LoadPlanningView extends GetView<LoadPlanningController> {
         ),
         const SizedBox(width: 12),
         OutlinedButton.icon(
-          onPressed: () {},
+          onPressed: controller.loadProjectsData,
           icon: const Icon(
             Icons.filter_list,
             size: 14,

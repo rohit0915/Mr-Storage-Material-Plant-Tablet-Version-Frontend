@@ -5,7 +5,6 @@ import '../../../app/widgets/common_loader.dart';
 import '../../home/widgets/app_drawer.dart';
 import '../../home/widgets/dashboard_app_bar.dart';
 import '../controller/freight_loads_controller.dart';
-import '../../awarded_loads/widgets/freight_filter_dialog.dart';
 
 class FreightLoadsView extends GetView<FreightLoadsController> {
   const FreightLoadsView({super.key});
@@ -79,7 +78,7 @@ class FreightLoadsView extends GetView<FreightLoadsController> {
         Row(
           children: [
             OutlinedButton.icon(
-              onPressed: () {},
+              onPressed: controller.showFilterDialog,
               icon: const Icon(
                 Icons.filter_list,
                 size: 14,
@@ -107,7 +106,7 @@ class FreightLoadsView extends GetView<FreightLoadsController> {
             ),
             const SizedBox(width: 10),
             OutlinedButton.icon(
-              onPressed: () {},
+              onPressed: controller.exportLoads,
               icon: const Icon(
                 Icons.download,
                 size: 14,
@@ -240,7 +239,7 @@ class FreightLoadsView extends GetView<FreightLoadsController> {
           ),
           const SizedBox(width: 16),
           ElevatedButton(
-            onPressed: () => Get.dialog(const FreightFilterDialog()),
+            onPressed: controller.showFilterDialog,
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF3B82F6),
               elevation: 0,

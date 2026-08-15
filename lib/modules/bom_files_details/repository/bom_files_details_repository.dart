@@ -4,15 +4,44 @@ import '../../../app/network/api_endpoints.dart';
 class BomFilesDetailsRepository {
   final ApiClient apiClient;
   BomFilesDetailsRepository({required this.apiClient});
+
+  Future<Map<String, dynamic>> fetchJob(
+    String jobId, {
+    required String filter,
+    int page = 1,
+    int limit = 50,
+  }) async {
+    final response = await apiClient.get(
+      ApiEndpoints.plantBomDetails(jobId),
+      queryParameters: {'filter': filter, 'page': page, 'limit': limit},
+    );
+    final data = _data(response.data);
+    if (data.isEmpty) throw Exception('BOM details were not returned.');
+    return data;
+  }
+
+  Future<void> confirmBuilding(String buildingId) async {
+    final response = await apiClient.post(
+      ApiEndpoints.plantConfirmBuildingBom(buildingId),
+    );
+    if (response.data is Map && response.data['success'] == false) {
+      throw Exception(response.data['message'] ?? 'Unable to confirm BOM.');
+    }
+  }
+
   Future<Map<String, dynamic>> fetch(String leadId) async {
     final responses = await Future.wait([
-      apiClient.get(ApiEndpoints.plantProjectBomFiles(leadId)),
       apiClient.get(ApiEndpoints.plantConsolidatedBom(leadId)),
+      apiClient.get(ApiEndpoints.plantProjectDetail(leadId)),
     ]);
-    final buildingData = _data(responses[0].data);
-    final consolidated = _data(responses[1].data);
-    buildingData['consolidatedBom'] = consolidated;
-    return buildingData;
+    final consolidated = _data(responses[0].data);
+    final projectDetail = _data(responses[1].data);
+
+    return {
+      'bomFiles': <String, dynamic>{},
+      'consolidatedBom': consolidated,
+      'projectDetail': projectDetail,
+    };
   }
 
   Map<String, dynamic> _data(dynamic body) =>

@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import '../../../app/widgets/common_snackbar.dart';
 import '../../freight_carriers/repository/freight_carriers_repository.dart';
 import '../model/delivery_details_model.dart';
 import '../repository/delivery_details_repository.dart';
@@ -205,7 +206,7 @@ class DeliveryDetailsController extends GetxController {
 
   Future<void> sendBids() async {
     if (rawDeliveryId.value.isEmpty || selectedCarrierIds.isEmpty) {
-      Get.snackbar('Select carriers', 'Choose at least one freight carrier.');
+      CommonSnackbar.showWarning(title: 'Select carriers', message: 'Choose at least one freight carrier.');
       return;
     }
     isLoading.value = true;
@@ -216,12 +217,12 @@ class DeliveryDetailsController extends GetxController {
         bidDeadline: DateTime.now().add(const Duration(days: 3)),
       );
       Get.back();
-      Get.snackbar(
-        'Bids sent',
-        'Sent to ${data['sentTo'] ?? selectedCarrierIds.length} carriers.',
+      CommonSnackbar.showSuccess(
+        title: 'Bids sent',
+        message: 'Sent to ${data['sentTo'] ?? selectedCarrierIds.length} carriers.',
       );
     } catch (error) {
-      Get.snackbar('Unable to send bids', error.toString());
+      CommonSnackbar.showError(title: 'Unable to send bids', message: error.toString());
     } finally {
       isLoading.value = false;
     }

@@ -2,13 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../app/routes/app_routes.dart';
 import '../../../app/utils/app_colors.dart';
-import '../../../app/utils/app_icons.dart';
-import '../../../app/widgets/common_loader.dart';
 import '../../../app/widgets/common_error_widget.dart';
+import '../../../app/widgets/common_loader.dart';
 import '../../../app/widgets/common_pagination.dart';
 import '../../home/widgets/app_drawer.dart';
 import '../../home/widgets/dashboard_app_bar.dart';
-import '../../project_details/widgets/upload_bom_dialog.dart';
 import '../controller/uploaded_bom_files_controller.dart';
 
 class UploadedBomFilesView extends GetView<UploadedBomFilesController> {
@@ -38,19 +36,19 @@ class UploadedBomFilesView extends GetView<UploadedBomFilesController> {
                 return SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 16,
+                    horizontal: 20.0,
+                    vertical: 16.0,
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildHeaderToolbar(),
+                      _buildTopHeaderRow(),
                       const SizedBox(height: 20),
                       _buildSummaryCardsRow(),
                       const SizedBox(height: 20),
                       _buildFilterControlsRow(),
-                      const SizedBox(height: 16),
-                      _buildBomFilesTableCard(),
+                      const SizedBox(height: 20),
+                      _buildDataTableCard(),
                       const SizedBox(height: 16),
                       _buildPaginationFooter(),
                       const SizedBox(height: 32),
@@ -65,7 +63,7 @@ class UploadedBomFilesView extends GetView<UploadedBomFilesController> {
     );
   }
 
-  Widget _buildHeaderToolbar() {
+  Widget _buildTopHeaderRow() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -77,17 +75,10 @@ class UploadedBomFilesView extends GetView<UploadedBomFilesController> {
             color: AppColors.textPrimary,
           ),
         ),
-        ElevatedButton(
-          onPressed: () => Get.dialog(const UploadBomDialog()),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF2563EB),
-            elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          ),
-          child: const Text(
+        ElevatedButton.icon(
+          onPressed: () {},
+          icon: const Icon(Icons.upload_file, size: 16, color: Colors.white),
+          label: const Text(
             'Upload BOM File',
             style: TextStyle(
               fontSize: 13,
@@ -95,50 +86,60 @@ class UploadedBomFilesView extends GetView<UploadedBomFilesController> {
               color: Colors.white,
             ),
           ),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF2563EB),
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+          ),
         ),
       ],
     );
   }
 
   Widget _buildSummaryCardsRow() {
-    return Row(
-      children: [
-        Expanded(
-          child: _buildMetricCard(
-            title: 'Total BOM Files',
-            value: '${controller.totalProjects.value} Files',
-            backgroundColor: const Color(0xFF1D51A4),
-            iconAsset: AppIcons.totalProject,
+    return Obx(
+      () => Row(
+        children: [
+          Expanded(
+            child: _buildMetricCard(
+              title: 'Total BOM Files',
+              value: '${controller.totalProjects.value} Files',
+              backgroundColor: const Color(0xFF1D51A4),
+              icon: Icons.build_outlined,
+            ),
           ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: _buildMetricCard(
-            title: 'Pending Upload',
-            value: '${controller.pendingExtraction.value} Files',
-            backgroundColor: const Color(0xFF22C55E),
-            iconAsset: AppIcons.pendingApproval,
+          const SizedBox(width: 16),
+          Expanded(
+            child: _buildMetricCard(
+              title: 'Pending Upload',
+              value: '${controller.pendingUpload.value}',
+              backgroundColor: const Color(0xFF22C55E),
+              icon: Icons.verified_user_outlined,
+            ),
           ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: _buildMetricCard(
-            title: 'Ready for Shipper',
-            value: '${controller.readyForReview.value} Files',
-            backgroundColor: const Color(0xFFEAB308),
-            iconAsset: AppIcons.producedTonnage,
+          const SizedBox(width: 16),
+          Expanded(
+            child: _buildMetricCard(
+              title: 'Ready for Shipper',
+              value: '${controller.readyForShipper.value}',
+              backgroundColor: const Color(0xFFEAB308),
+              icon: Icons.monetization_on_outlined,
+            ),
           ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: _buildMetricCard(
-            title: 'All Confirmed',
-            value: '${controller.allConfirmed.value} Files',
-            backgroundColor: const Color(0xFFF97316),
-            iconAsset: AppIcons.utilization,
+          const SizedBox(width: 16),
+          Expanded(
+            child: _buildMetricCard(
+              title: 'Issues Detected',
+              value: '${controller.issuesDetected.value}',
+              backgroundColor: const Color(0xFFF97316),
+              icon: Icons.insert_chart_outlined,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -146,7 +147,7 @@ class UploadedBomFilesView extends GetView<UploadedBomFilesController> {
     required String title,
     required String value,
     required Color backgroundColor,
-    required String iconAsset,
+    required IconData icon,
   }) {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -182,17 +183,11 @@ class UploadedBomFilesView extends GetView<UploadedBomFilesController> {
           Container(
             width: 38,
             height: 38,
-            padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Image.asset(
-              iconAsset,
-              fit: BoxFit.contain,
-              errorBuilder: (context, error, stackTrace) =>
-                  Icon(Icons.build_outlined, color: backgroundColor, size: 20),
-            ),
+            child: Icon(icon, color: backgroundColor, size: 20),
           ),
         ],
       ),
@@ -202,6 +197,7 @@ class UploadedBomFilesView extends GetView<UploadedBomFilesController> {
   Widget _buildFilterControlsRow() {
     return Row(
       children: [
+        // Search bar
         Container(
           width: 220,
           padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -232,63 +228,103 @@ class UploadedBomFilesView extends GetView<UploadedBomFilesController> {
           ),
         ),
         const SizedBox(width: 12),
-        OutlinedButton.icon(
-          onPressed: () {},
-          icon: const Icon(
-            Icons.filter_list,
-            size: 14,
-            color: AppColors.textSecondary,
-          ),
-          label: const Text(
-            'Filter',
-            style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
-          ),
-          style: OutlinedButton.styleFrom(
-            backgroundColor: Colors.white,
-            side: const BorderSide(color: AppColors.inputBorder),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
+
+        // Filter All Projects Dropdown
+        PopupMenuButton<String>(
+          onSelected: (val) {
+            controller.selectedFilterProject.value = val;
+          },
+          itemBuilder: (context) => const [
+            PopupMenuItem(value: 'Filter All Projects', child: Text('Filter All Projects')),
+            PopupMenuItem(value: 'Another Project', child: Text('Another Project')),
+            PopupMenuItem(value: 'Wood Workshop', child: Text('Wood Workshop')),
+            PopupMenuItem(value: 'Lucas project', child: Text('Lucas project')),
+          ],
+          child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: AppColors.inputBorder),
+            ),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.filter_list,
+                  size: 14,
+                  color: AppColors.textSecondary,
+                ),
+                const SizedBox(width: 8),
+                Obx(
+                  () => Text(
+                    controller.selectedFilterProject.value,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 6),
+                const Icon(
+                  Icons.keyboard_arrow_down,
+                  size: 16,
+                  color: AppColors.textSecondary,
+                ),
+              ],
+            ),
           ),
         ),
+
         const Spacer(),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: AppColors.inputBorder),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: const [
-              Icon(Icons.sort, size: 14, color: AppColors.textSecondary),
-              SizedBox(width: 6),
-              Text(
-                'Sort by : Latest',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: AppColors.textSecondary,
-                  fontWeight: FontWeight.w500,
+
+        // Sort Dropdown
+        PopupMenuButton<String>(
+          onSelected: (val) {
+            controller.selectedSort.value = val;
+          },
+          itemBuilder: (context) => const [
+            PopupMenuItem(value: 'Latest', child: Text('Latest')),
+            PopupMenuItem(value: 'Oldest', child: Text('Oldest')),
+          ],
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: AppColors.inputBorder),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.sort, size: 14, color: AppColors.textSecondary),
+                const SizedBox(width: 6),
+                Obx(
+                  () => Text(
+                    'Sort by : ${controller.selectedSort.value}',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                 ),
-              ),
-              SizedBox(width: 4),
-              Icon(
-                Icons.keyboard_arrow_down,
-                size: 16,
-                color: AppColors.textSecondary,
-              ),
-            ],
+                const SizedBox(width: 4),
+                const Icon(
+                  Icons.keyboard_arrow_down,
+                  size: 16,
+                  color: AppColors.textSecondary,
+                ),
+              ],
+            ),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildBomFilesTableCard() {
+  Widget _buildDataTableCard() {
     return Container(
-      width: double.infinity,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -296,96 +332,44 @@ class UploadedBomFilesView extends GetView<UploadedBomFilesController> {
       ),
       child: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          // Header Row
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: const BoxDecoration(
+              color: Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+            ),
             child: Row(
               children: [
                 SizedBox(
                   width: 32,
-                  child: Checkbox(
-                    value:
-                        controller.bomFilesList.isNotEmpty &&
-                        controller.bomFilesList.every(
-                          (item) => item.isSelected,
-                        ),
-                    onChanged: (val) => controller.toggleSelectAll(val),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ),
+                  child: Obx(() {
+                    final allSelected = controller.bomFilesList.isNotEmpty &&
+                        controller.bomFilesList.every((e) => e.isSelected);
+                    return Checkbox(
+                      value: allSelected,
+                      onChanged: controller.toggleSelectAll,
+                      activeColor: const Color(0xFF2563EB),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    );
+                  }),
                 ),
                 const SizedBox(width: 12),
-                const Expanded(
-                  flex: 3,
-                  child: Text(
-                    'Project',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                ),
-                const Expanded(
-                  flex: 3,
-                  child: Row(
-                    children: [
-                      Text(
-                        'Upload Date',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      SizedBox(width: 4),
-                      Icon(
-                        Icons.swap_vert,
-                        size: 14,
-                        color: AppColors.textSecondary,
-                      ),
-                    ],
-                  ),
-                ),
-                const Expanded(
-                  flex: 2,
-                  child: Row(
-                    children: [
-                      Text(
-                        'Items',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      SizedBox(width: 4),
-                      Icon(
-                        Icons.swap_vert,
-                        size: 14,
-                        color: AppColors.textSecondary,
-                      ),
-                    ],
-                  ),
-                ),
-                const Expanded(
-                  flex: 3,
-                  child: Text(
-                    'File Status',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 44),
+                _buildTh('Project', flex: 3, sortable: true),
+                _buildTh('Upload Date', flex: 2, sortable: true),
+                _buildTh('Items', flex: 2, sortable: true),
+                _buildTh('File Status', flex: 3),
+                const SizedBox(width: 40), // Action button space
               ],
             ),
           ),
           const Divider(height: 1, color: AppColors.divider),
-          Obx(() {
-            return ListView.separated(
+
+          // Data Rows
+          Obx(
+            () => ListView.separated(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: controller.bomFilesList.length,
@@ -406,7 +390,7 @@ class UploadedBomFilesView extends GetView<UploadedBomFilesController> {
                           value: item.isSelected,
                           onChanged: (val) =>
                               controller.toggleSelectItem(index, val),
-                          activeColor: const Color(0xFF6366F1),
+                          activeColor: const Color(0xFF2563EB),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(4),
                           ),
@@ -419,12 +403,13 @@ class UploadedBomFilesView extends GetView<UploadedBomFilesController> {
                           item.project,
                           style: const TextStyle(
                             fontSize: 13,
-                            color: AppColors.textSecondary,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textPrimary,
                           ),
                         ),
                       ),
                       Expanded(
-                        flex: 3,
+                        flex: 2,
                         child: Text(
                           item.uploadDate,
                           style: const TextStyle(
@@ -456,16 +441,17 @@ class UploadedBomFilesView extends GetView<UploadedBomFilesController> {
                           AppRoutes.bomFilesDetails,
                           parameters: {'id': item.id},
                         ),
-                        icon: Container(
-                          padding: const EdgeInsets.all(6),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF2563EB),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: const Icon(
-                            Icons.visibility_outlined,
-                            size: 16,
-                            color: Colors.white,
+                        icon: const Icon(
+                          Icons.visibility,
+                          size: 18,
+                          color: Colors.white,
+                        ),
+                        style: IconButton.styleFrom(
+                          backgroundColor: const Color(0xFF2563EB),
+                          padding: const EdgeInsets.all(8),
+                          minimumSize: const Size(34, 34),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
                           ),
                         ),
                       ),
@@ -473,108 +459,77 @@ class UploadedBomFilesView extends GetView<UploadedBomFilesController> {
                   ),
                 );
               },
-            );
-          }),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTh(String label, {int flex = 1, bool sortable = false}) {
+    return Expanded(
+      flex: flex,
+      child: Row(
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          if (sortable) ...[
+            const SizedBox(width: 4),
+            const Icon(
+              Icons.swap_vert,
+              size: 14,
+              color: AppColors.textSecondary,
+            ),
+          ],
         ],
       ),
     );
   }
 
   Widget _buildStatusBadge(String status) {
-    if (status == 'Pending') {
-      return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-        decoration: BoxDecoration(
-          color: const Color(0xFFFEF9C3),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: const [
-            Text(
-              'Pending',
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFFD97706),
-              ),
-            ),
-            SizedBox(width: 4),
-            Icon(
-              Icons.check_circle_outline,
-              size: 12,
-              color: Color(0xFFD97706),
-            ),
-          ],
-        ),
-      );
-    } else if (status == 'Shared to Shippers') {
-      return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-        decoration: BoxDecoration(
-          color: const Color(0xFFDCFCE7),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: const [
-            Icon(Icons.check, size: 12, color: Color(0xFF16A34A)),
-            SizedBox(width: 4),
-            Text(
-              'Shared to Shippers',
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF16A34A),
-              ),
-            ),
-            SizedBox(width: 4),
-            Icon(
-              Icons.check_circle_outline,
-              size: 12,
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF0FDF4),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFDCFCE7)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            status.toLowerCase(),
+            style: const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
               color: Color(0xFF16A34A),
             ),
-          ],
-        ),
-      );
-    } else {
-      return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-        decoration: BoxDecoration(
-          color: const Color(0xFFDCFCE7),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: const [
-            Icon(Icons.lock_outline, size: 12, color: Color(0xFF16A34A)),
-            SizedBox(width: 4),
-            Text(
-              'Locked',
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF16A34A),
-              ),
-            ),
-            SizedBox(width: 4),
-            Icon(
-              Icons.check_circle_outline,
-              size: 12,
-              color: Color(0xFF16A34A),
-            ),
-          ],
-        ),
-      );
-    }
+          ),
+          const SizedBox(width: 4),
+          const Icon(
+            Icons.check_circle_outline,
+            size: 13,
+            color: Color(0xFF16A34A),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildPaginationFooter() {
     return CommonPaginationFooter(
       currentPage: controller.currentPage.value,
-      totalPages: (controller.totalItems.value / controller.selectedRowsPerPage.value).ceil().clamp(1, 999),
+      totalPages:
+          (controller.totalItems.value / controller.selectedRowsPerPage.value)
+              .ceil()
+              .clamp(1, 999),
       rowsPerPage: controller.selectedRowsPerPage.value,
-      totalEntries: controller.totalItems.value,
       onPageChanged: (page) {
         controller.currentPage.value = page;
         controller.loadBomFiles();

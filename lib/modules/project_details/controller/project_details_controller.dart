@@ -1,5 +1,8 @@
 import 'package:get/get.dart';
 import 'package:file_picker/file_picker.dart';
+import 'dart:typed_data';
+import '../../../app/services/file_export_service.dart';
+import '../../../app/widgets/common_snackbar.dart';
 import '../model/project_details_model.dart';
 import '../repository/project_details_repository.dart';
 
@@ -259,11 +262,22 @@ class ProjectDetailsController extends GetxController {
       _mapExistingFiles(
         optionalResults[5] as Map<String, dynamic>?,
         target: existingBomFiles,
-        keys: const ['bomFiles', 'files', 'versions', 'bom'],
+        keys: const ['latestBomJob', 'bomFiles', 'files', 'versions', 'bom'],
       );
+      // Some API versions include latestBomJob directly in the buildings list.
+      // Merge that shape as well so an already-uploaded BOM is never hidden.
+      if (buildingData != null) {
+        final directBuildings = <String, dynamic>{'buildings': buildingData};
+        final directlyMapped = <String, Map<String, dynamic>>{}.obs;
+        _mapExistingFiles(
+          directBuildings,
+          target: directlyMapped,
+          keys: const ['latestBomJob'],
+        );
+        existingBomFiles.addAll(directlyMapped);
+      }
       if (buildings.isNotEmpty && selectedBuildingId.value.isEmpty) {
-        selectedBuildingId.value =
-            (buildings.first['_id'] ?? buildings.first['id'] ?? '').toString();
+        selectedBuildingId.value = buildingId(buildings.first);
       }
 
       final historyList =
@@ -317,6 +331,85 @@ class ProjectDetailsController extends GetxController {
     }
   }
 
+  List<List<dynamic>> get _invoiceRows => [
+    const [
+      'Invoice Number',
+      'Due Date',
+      'Amount',
+      'Paid',
+      'Amount Due',
+      'Status',
+    ],
+    ...invoices.map(
+      (item) => [
+        item.invoiceNumber,
+        item.dueDate,
+        item.amount,
+        item.paid,
+        item.amountDue,
+        item.isPaid ? 'Paid' : 'Pending',
+      ],
+    ),
+  ];
+
+  Future<Uint8List> _invoicePdf() => FileExportService.tablePdf(
+    title: 'Invoice List',
+    subtitle: projectName.value,
+    headers: _invoiceRows.first.cast<String>(),
+    rows: _invoiceRows.skip(1).toList(),
+  );
+
+  Future<void> downloadInvoicesPdf() async {
+    try {
+      final bytes = await _invoicePdf();
+      await FileExportService.savePdf(
+        fileName: 'invoices_${projectId.isEmpty ? 'project' : projectId}',
+        bytes: bytes,
+      );
+      CommonSnackbar.showSuccess(
+        title: 'Download complete',
+        message: 'Invoice PDF was downloaded.',
+      );
+    } catch (error) {
+      CommonSnackbar.showError(
+        title: 'Download failed',
+        message: error.toString(),
+      );
+    }
+  }
+
+  Future<void> downloadInvoicesExcel() async {
+    try {
+      await FileExportService.saveExcel(
+        fileName: 'invoices_${projectId.isEmpty ? 'project' : projectId}',
+        rows: _invoiceRows,
+      );
+      CommonSnackbar.showSuccess(
+        title: 'Download complete',
+        message: 'Invoice Excel was downloaded.',
+      );
+    } catch (error) {
+      CommonSnackbar.showError(
+        title: 'Download failed',
+        message: error.toString(),
+      );
+    }
+  }
+
+  Future<void> printInvoices() async {
+    try {
+      await FileExportService.printPdf(
+        name: 'Invoice List',
+        bytes: await _invoicePdf(),
+      );
+    } catch (error) {
+      CommonSnackbar.showError(
+        title: 'Print failed',
+        message: error.toString(),
+      );
+    }
+  }
+
   Future<void> pickUploadFiles({required bool isBom}) async {
     uploadError.value = '';
     final result = await FilePicker.pickFiles(
@@ -360,7 +453,12 @@ class ProjectDetailsController extends GetxController {
       _nestedId(building['_id'] ?? building['id'] ?? building['buildingId']);
 
   String buildingName(Map<String, dynamic> building) =>
-      (building['name'] ?? building['buildingName'] ?? 'Building').toString();
+      (building['name'] ??
+              building['buildingName'] ??
+              (building['buildingNumber'] != null
+                  ? 'Building ${building['buildingNumber']}'
+                  : 'Building'))
+          .toString();
 
   Future<bool> uploadSelectedFiles({required bool isBom}) async {
     if (repository == null || projectId.isEmpty) {
@@ -493,7 +591,7 @@ class ProjectDetailsController extends GetxController {
     _mapExistingFiles(
       results[1],
       target: existingBomFiles,
-      keys: const ['bomFiles', 'files', 'versions', 'bom'],
+      keys: const ['latestBomJob', 'bomFiles', 'files', 'versions', 'bom'],
     );
   }
 

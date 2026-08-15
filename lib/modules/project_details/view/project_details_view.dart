@@ -214,7 +214,10 @@ class ProjectDetailsView extends GetView<ProjectDetailsController> {
               if (b['route'] != null) {
                 Get.toNamed(
                   b['route']!,
-                  parameters: {'id': controller.projectId},
+                  parameters: {
+                    'id': controller.projectId,
+                    'name': controller.projectName.value,
+                  },
                 );
               }
             },
@@ -984,7 +987,7 @@ class ProjectDetailsView extends GetView<ProjectDetailsController> {
                         color: Colors.red,
                         size: 18,
                       ),
-                      onPressed: () {},
+                      onPressed: controller.downloadInvoicesPdf,
                     ),
                     IconButton(
                       icon: const Icon(
@@ -992,7 +995,7 @@ class ProjectDetailsView extends GetView<ProjectDetailsController> {
                         color: Colors.green,
                         size: 18,
                       ),
-                      onPressed: () {},
+                      onPressed: controller.downloadInvoicesExcel,
                     ),
                     IconButton(
                       icon: const Icon(
@@ -1000,7 +1003,7 @@ class ProjectDetailsView extends GetView<ProjectDetailsController> {
                         color: Colors.black54,
                         size: 18,
                       ),
-                      onPressed: () {},
+                      onPressed: controller.printInvoices,
                     ),
                   ],
                 ),

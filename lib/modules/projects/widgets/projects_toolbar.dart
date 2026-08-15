@@ -19,13 +19,13 @@ class ProjectsToolbar extends GetView<ProjectsController> {
               _buildActionButton(
                 icon: Icons.north,
                 label: 'Import CSV',
-                onTap: () {},
+                onTap: controller.importCsv,
               ),
               const SizedBox(width: 8),
               _buildActionButton(
                 icon: Icons.south,
                 label: 'Export Data',
-                onTap: () {},
+                onTap: controller.exportProjectsData,
               ),
             ],
           ),

@@ -1,5 +1,7 @@
 import 'package:get/get.dart';
 import '../../../app/routes/app_routes.dart';
+import '../../../app/services/file_export_service.dart';
+import '../../../app/widgets/common_snackbar.dart';
 import '../model/packing_list_model.dart';
 import '../repository/packing_list_repository.dart';
 
@@ -187,6 +189,134 @@ class PackingListController extends GetxController {
       parameters: {'id': item.packingId, 'name': selectedProjectName.value},
     );
   }
+
+  Future<void> exportProjects() async {
+    await _saveCsv(
+      fileName: 'packing_list_projects',
+      rows: [
+        const ['Project Name', 'Generated Date', 'Total Packing Lists'],
+        ...projectsList.map(
+          (item) => [
+            item.projectName,
+            item.listGeneratedDate,
+            item.totalPackingList,
+          ],
+        ),
+      ],
+    );
+  }
+
+  Future<void> exportPackingLists() async {
+    await _saveCsv(
+      fileName: 'packing_list_${_safeName(selectedProjectName.value)}',
+      rows: [
+        const [
+          'Packing ID',
+          'Load ID',
+          'Truck',
+          'Bundles',
+          'Weight',
+          'Destination',
+          'Date',
+          'Status',
+        ],
+        ...packingItemsList.map(
+          (item) => [
+            item.packingId,
+            item.loadId,
+            item.truck,
+            item.bundles,
+            item.weight,
+            item.destination,
+            item.date,
+            item.status,
+          ],
+        ),
+      ],
+    );
+  }
+
+  Future<void> exportBundlesCsv() async {
+    await _saveCsv(
+      fileName: 'bundle_list_${_safeName(selectedProjectName.value)}',
+      rows: [
+        const ['Bundle ID', 'Profile', 'Items', 'Length', 'Unit Weight'],
+        ...bundleListItems.map(
+          (item) => [
+            item.bundleId,
+            item.profile,
+            item.items,
+            item.length,
+            item.unitWeight,
+          ],
+        ),
+      ],
+    );
+  }
+
+  Future<void> downloadPackingPdf() async {
+    try {
+      final bytes = await FileExportService.tablePdf(
+        title: 'Packing List',
+        subtitle: selectedProjectName.value,
+        headers: const [
+          'Load ID',
+          'Truck',
+          'Bundles',
+          'Weight',
+          'Destination',
+          'Status',
+        ],
+        rows: packingListTableItems
+            .map(
+              (item) => [
+                item.loadId,
+                item.truck,
+                item.bundles,
+                item.weight,
+                item.destination,
+                item.status,
+              ],
+            )
+            .toList(),
+      );
+      await FileExportService.savePdf(
+        fileName: 'packing_list_${_safeName(selectedProjectName.value)}',
+        bytes: bytes,
+      );
+      CommonSnackbar.showSuccess(
+        title: 'Download complete',
+        message: 'Packing list PDF was created.',
+      );
+    } catch (error) {
+      CommonSnackbar.showError(
+        title: 'Download failed',
+        message: error.toString(),
+      );
+    }
+  }
+
+  Future<void> _saveCsv({
+    required String fileName,
+    required List<List<dynamic>> rows,
+  }) async {
+    try {
+      await FileExportService.saveCsv(fileName: fileName, rows: rows);
+      CommonSnackbar.showSuccess(
+        title: 'Export complete',
+        message: '$fileName.csv was downloaded.',
+      );
+    } catch (error) {
+      CommonSnackbar.showError(
+        title: 'Export failed',
+        message: error.toString(),
+      );
+    }
+  }
+
+  String _safeName(String value) => value.trim().isEmpty
+      ? 'export'
+      : value.trim().toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_');
 
   Map<String, dynamic> _map(dynamic value) =>
       value is Map ? Map<String, dynamic>.from(value) : {};

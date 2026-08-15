@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:steel_building_plant_panel/app/utils/app_icons.dart';
 import '../../../app/routes/app_routes.dart';
 import '../../../app/utils/app_colors.dart';
+import '../controller/generate_shipper_order_controller.dart';
 
 class OrderSentSuccessDialog extends StatelessWidget {
   const OrderSentSuccessDialog({super.key});
@@ -60,13 +61,22 @@ class OrderSentSuccessDialog extends StatelessWidget {
               height: 42,
               child: ElevatedButton(
                 onPressed: () {
+                  final controller = Get.find<GenerateShipperOrderController>();
                   Get.back();
-                  Get.offAllNamed(AppRoutes.uploadedBomFiles);
+                  Get.offNamed(
+                    AppRoutes.projectShipperFiles,
+                    parameters: {
+                      'id': controller.projectId.value,
+                      'name': controller.projectName.value,
+                    },
+                  );
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF3B82F6),
                   elevation: 0,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
                 child: const Text(
                   'Ok',

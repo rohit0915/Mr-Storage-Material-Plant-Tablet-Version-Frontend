@@ -11,9 +11,9 @@ class AddShipperMailDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = Get.find<GenerateShipperOrderController>();
 
-    final nameController = TextEditingController(text: 'Steel Investment');
-    final emailController = TextEditingController(text: 'steelinvestment@gmail.com');
-    final phoneController = TextEditingController(text: '0987654321');
+    final nameController = TextEditingController();
+    final emailController = TextEditingController();
+    final phoneController = TextEditingController();
 
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -52,8 +52,13 @@ class AddShipperMailDialog extends StatelessWidget {
                   onPressed: () => Get.back(),
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: AppColors.inputBorder),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
                   ),
                   child: const Text(
                     'Cancel',
@@ -66,20 +71,26 @@ class AddShipperMailDialog extends StatelessWidget {
                 ),
                 const Spacer(),
                 ElevatedButton(
-                  onPressed: () {
-                    controller.addNewShipperEmail(
+                  onPressed: () async {
+                    final added = await controller.addNewShipperEmail(
                       nameController.text,
                       emailController.text,
                       phoneController.text,
                     );
-                    Get.back(); // close dialog
-                    Get.dialog(const ShipperMailAddedDialog()); // open success modal
+                    if (!added) return;
+                    Get.back();
+                    Get.dialog(const ShipperMailAddedDialog());
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF6366F1),
                     elevation: 0,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
                   ),
                   child: const Text(
                     'Select & Add',

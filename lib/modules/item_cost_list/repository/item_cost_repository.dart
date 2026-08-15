@@ -1,3 +1,7 @@
+import 'dart:typed_data';
+
+import 'package:dio/dio.dart';
+
 import '../../../app/network/api_client.dart';
 import '../../../app/network/api_endpoints.dart';
 
@@ -27,9 +31,19 @@ class ItemCostRepository {
     return _data(response.data);
   }
 
-  Future<String> export() async {
-    final data = await _get(ApiEndpoints.smdtExport);
-    return (data['downloadUrl'] ?? '').toString();
+  Future<Uint8List> export({String search = '', String category = ''}) async {
+    final response = await apiClient.get(
+      ApiEndpoints.smdtExport,
+      queryParameters: {
+        if (search.trim().isNotEmpty) 'search': search.trim(),
+        if (category.trim().isNotEmpty) 'category': category.trim(),
+      },
+      options: Options(responseType: ResponseType.bytes),
+    );
+    final data = response.data;
+    if (data is Uint8List) return data;
+    if (data is List<int>) return Uint8List.fromList(data);
+    throw Exception('Excel file was not returned.');
   }
 
   Future<Map<String, dynamic>> _get(

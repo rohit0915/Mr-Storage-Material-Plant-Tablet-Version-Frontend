@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:toastification/toastification.dart';
 
 import 'app/bindings/initial_binding.dart';
 import 'app/routes/app_pages.dart';
@@ -40,13 +41,15 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GetMaterialApp(
-      title: AppConstants.appName,
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      initialBinding: InitialBinding(),
-      initialRoute: initialRoute,
-      getPages: AppPages.routes,
+    return ToastificationWrapper(
+      child: GetMaterialApp(
+        title: AppConstants.appName,
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.lightTheme,
+        initialBinding: InitialBinding(),
+        initialRoute: initialRoute,
+        getPages: AppPages.routes,
+      ),
     );
   }
 }

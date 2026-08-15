@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../app/services/file_export_service.dart';
+import '../../../app/widgets/common_snackbar.dart';
 import '../../item_cost_list/widgets/success_dialog.dart';
 import '../model/savings_model.dart';
 import '../widgets/custom_date_picker_dialog.dart';
@@ -8,8 +10,18 @@ class SavingsController extends GetxController {
   final RxBool isLoading = false.obs;
 
   static const List<String> _months = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
   ];
 
   final Rx<SavingsSummaryModel> summary = SavingsSummaryModel(
@@ -134,7 +146,9 @@ class SavingsController extends GetxController {
 
     if (searchQuery.isNotEmpty) {
       final q = searchQuery.value.toLowerCase();
-      result = result.where((e) => e.projectName.toLowerCase().contains(q)).toList();
+      result = result
+          .where((e) => e.projectName.toLowerCase().contains(q))
+          .toList();
     }
 
     if (selectedStatusFilter.value == 'Status : Good') {
@@ -159,14 +173,46 @@ class SavingsController extends GetxController {
     );
   }
 
-  void exportFile(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (ctx) => SuccessDialog(
-        title: 'File Exported Successfully',
-        buttonText: 'Ok',
-        onPressed: () => Navigator.of(ctx).pop(),
-      ),
-    );
+  Future<void> exportFile(BuildContext context) async {
+    try {
+      await FileExportService.saveCsv(
+        fileName:
+            'savings_${selectedDate.value.toIso8601String().split('T').first}',
+        rows: [
+          const [
+            'Project Name',
+            'SMDT Cost',
+            'Actual Cost',
+            'Savings',
+            'Savings Percentage',
+            'Status',
+          ],
+          ...filteredSavingsList.map(
+            (item) => [
+              item.projectName,
+              item.smdtCost,
+              item.actualCost,
+              item.savings,
+              item.savingsPercentage,
+              item.status,
+            ],
+          ),
+        ],
+      );
+      if (!context.mounted) return;
+      showDialog(
+        context: context,
+        builder: (ctx) => SuccessDialog(
+          title: 'File Exported Successfully',
+          buttonText: 'Ok',
+          onPressed: () => Navigator.of(ctx).pop(),
+        ),
+      );
+    } catch (error) {
+      CommonSnackbar.showError(
+        title: 'Export failed',
+        message: error.toString(),
+      );
+    }
   }
 }

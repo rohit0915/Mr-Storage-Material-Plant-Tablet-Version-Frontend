@@ -106,7 +106,7 @@ class ProjectPackingListView extends GetView<PackingListController> {
               ],
             ),
             OutlinedButton.icon(
-              onPressed: () {},
+              onPressed: controller.exportPackingLists,
               icon: const Icon(
                 Icons.ios_share,
                 size: 14,

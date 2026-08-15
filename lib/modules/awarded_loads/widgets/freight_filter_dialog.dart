@@ -3,7 +3,9 @@ import 'package:get/get.dart';
 import '../../../app/utils/app_colors.dart';
 
 class FreightFilterDialog extends StatefulWidget {
-  const FreightFilterDialog({super.key});
+  final ValueChanged<String?>? onApplyStatus;
+
+  const FreightFilterDialog({super.key, this.onApplyStatus});
 
   @override
   State<FreightFilterDialog> createState() => _FreightFilterDialogState();
@@ -67,7 +69,7 @@ class _FreightFilterDialogState extends State<FreightFilterDialog> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       InkWell(
-                        onTap: () {},
+                        onTap: () => _changeMonth(-1),
                         child: const Icon(
                           Icons.chevron_left,
                           size: 18,
@@ -85,7 +87,7 @@ class _FreightFilterDialogState extends State<FreightFilterDialog> {
                       ),
                       const SizedBox(width: 6),
                       InkWell(
-                        onTap: () {},
+                        onTap: () => _changeMonth(1),
                         child: const Icon(
                           Icons.chevron_right,
                           size: 18,
@@ -255,7 +257,12 @@ class _FreightFilterDialogState extends State<FreightFilterDialog> {
               width: 140,
               height: 42,
               child: ElevatedButton(
-                onPressed: () => Get.back(),
+                onPressed: () {
+                  widget.onApplyStatus?.call(
+                    selectedStatus ?? selectedAllDeliveries,
+                  );
+                  Get.back();
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF2563EB),
                   elevation: 0,
@@ -277,6 +284,29 @@ class _FreightFilterDialogState extends State<FreightFilterDialog> {
         ),
       ),
     );
+  }
+
+  void _changeMonth(int offset) {
+    final parts = selectedMonth.split(' ');
+    const months = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ];
+    final currentMonth = months.indexOf(parts.first);
+    final currentYear =
+        int.tryParse(parts.length > 1 ? parts[1] : '') ?? DateTime.now().year;
+    final next = DateTime(currentYear, currentMonth + 1 + offset);
+    setState(() => selectedMonth = '${months[next.month - 1]} ${next.year}');
   }
 
   Widget _buildFilterDropdown(

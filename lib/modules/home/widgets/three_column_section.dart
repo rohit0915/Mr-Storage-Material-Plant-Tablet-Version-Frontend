@@ -18,17 +18,19 @@ class ThreeColumnSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      physics: const BouncingScrollPhysics(),
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: IntrinsicHeight(
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Expanded(child: _buildShipperFilesCard()),
+            SizedBox(width: 310, child: _buildShipperFilesCard()),
             const SizedBox(width: 14),
-            Expanded(child: _buildPlantAlertsCard()),
+            SizedBox(width: 310, child: _buildPlantAlertsCard()),
             const SizedBox(width: 14),
-            Expanded(child: _buildFreightCarriersCard()),
+            SizedBox(width: 310, child: _buildFreightCarriersCard()),
           ],
         ),
       ),

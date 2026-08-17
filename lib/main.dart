@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:toastification/toastification.dart';
@@ -7,11 +8,30 @@ import 'app/routes/app_pages.dart';
 import 'app/routes/app_routes.dart';
 import 'app/services/shared_pref_service.dart';
 import 'app/utils/app_constants.dart';
+import 'app/utils/app_logger.dart';
 import 'app/utils/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
+  // Setup global error handling
+  FlutterError.onError = (FlutterErrorDetails details) {
+    FlutterError.presentError(details);
+    AppLogger.error(
+      'Uncaught Flutter Error: ${details.exceptionAsString()}',
+      details.exception,
+      details.stack,
+    );
+  };
+
+  PlatformDispatcher.instance.onError = (Object error, StackTrace stack) {
+    AppLogger.error('Uncaught Platform Async Error: $error', error, stack);
+    return true;
+  };
+
+  AppLogger.info('--- Application Launching ---');
+  AppLogger.info('Base API URL: ${AppConstants.baseUrl}');
+
   // Initialize core services
   final prefService = await Get.putAsync(() => SharedPrefService().init());
 
@@ -27,6 +47,8 @@ void main() async {
   } else {
     initialRoute = AppRoutes.login;
   }
+
+  AppLogger.info('Initial Route Selected: $initialRoute');
 
   runApp(MyApp(initialRoute: initialRoute));
 }

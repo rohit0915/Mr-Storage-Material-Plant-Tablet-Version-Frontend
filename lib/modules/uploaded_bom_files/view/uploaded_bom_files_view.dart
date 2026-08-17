@@ -437,10 +437,17 @@ class UploadedBomFilesView extends GetView<UploadedBomFilesController> {
                         ),
                       ),
                       IconButton(
-                        onPressed: () => Get.toNamed(
-                          AppRoutes.bomFilesDetails,
-                          parameters: {'id': item.id},
-                        ),
+                        onPressed: item.id.isEmpty
+                            ? null
+                            : () => Get.toNamed(
+                                AppRoutes.bomFilesDetails,
+                                parameters: {
+                                  'id': item.id,
+                                  'projectId': item.projectId,
+                                  'name': item.project,
+                                  'date': item.uploadDate,
+                                },
+                              ),
                         icon: const Icon(
                           Icons.visibility,
                           size: 18,

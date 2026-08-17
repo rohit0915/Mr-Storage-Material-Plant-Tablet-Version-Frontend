@@ -6,6 +6,7 @@ import '../../../app/network/api_endpoints.dart';
 import '../../../app/network/exceptions.dart';
 import '../../../app/routes/app_routes.dart';
 import '../../../app/services/shared_pref_service.dart';
+import '../../../app/services/plant_socket_service.dart';
 import '../../../app/widgets/common_snackbar.dart';
 
 class LoginController extends GetxController {
@@ -24,9 +25,11 @@ class LoginController extends GetxController {
   }
 
   void _validateForm() {
-    final emailValid = emailController.text.trim().isNotEmpty &&
+    final emailValid =
+        emailController.text.trim().isNotEmpty &&
         emailController.text.contains('@');
-    final passwordValid = passwordController.text.trim().isNotEmpty &&
+    final passwordValid =
+        passwordController.text.trim().isNotEmpty &&
         passwordController.text.trim().length >= 5;
     isFormValid.value = emailValid && passwordValid;
   }
@@ -75,24 +78,19 @@ class LoginController extends GetxController {
           message: responseData['message'] ?? 'Logged in successfully!',
         );
 
+        if (Get.isRegistered<PlantSocketService>()) {
+          Get.find<PlantSocketService>().connect();
+        }
+
         Get.offAllNamed(AppRoutes.home);
       } else {
         final msg = responseData?['message'] ?? 'Login failed';
-        CommonSnackbar.showError(
-          title: 'Login Error',
-          message: msg.toString(),
-        );
+        CommonSnackbar.showError(title: 'Login Error', message: msg.toString());
       }
     } on AppException catch (e) {
-      CommonSnackbar.showError(
-        title: 'Login Error',
-        message: e.message,
-      );
+      CommonSnackbar.showError(title: 'Login Error', message: e.message);
     } catch (e) {
-      CommonSnackbar.showError(
-        title: 'Login Error',
-        message: e.toString(),
-      );
+      CommonSnackbar.showError(title: 'Login Error', message: e.toString());
     } finally {
       isLoading.value = false;
     }

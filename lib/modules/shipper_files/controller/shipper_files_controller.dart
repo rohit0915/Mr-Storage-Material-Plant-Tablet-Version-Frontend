@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:get/get.dart';
+import '../../../app/services/plant_socket_service.dart';
 import '../../../app/routes/app_routes.dart';
 import '../model/shipper_files_model.dart';
 import '../repository/shipper_files_repository.dart';
@@ -25,6 +28,7 @@ class ShipperFilesController extends GetxController {
   final RxInt totalProjects = 0.obs;
   final RxInt pendingComparison = 0.obs;
   final RxInt approved = 0.obs;
+  StreamSubscription<PlantSocketEvent>? _socketSubscription;
 
   @override
   void onInit() {
@@ -34,7 +38,21 @@ class ShipperFilesController extends GetxController {
       selectedProjectId.value = routeId;
     }
     selectedProjectName.value = Get.parameters['name'] ?? '';
+    if (Get.isRegistered<PlantSocketService>()) {
+      _socketSubscription = Get.find<PlantSocketService>().listenFor({
+        'shipper_file_submitted',
+        'all_shipper_files_submitted',
+        'shipper_comparison_complete',
+        'shipper_comparison_failed',
+      }, (_) => loadData());
+    }
     loadData();
+  }
+
+  @override
+  void onClose() {
+    _socketSubscription?.cancel();
+    super.onClose();
   }
 
   Future<void> loadData() async {
@@ -97,15 +115,17 @@ class ShipperFilesController extends GetxController {
   ProjectShipperFileModel _projectFromMap(Map raw) {
     final item = Map<String, dynamic>.from(raw);
     final lead = _map(item['lead']);
-    final pName = (item['projectName'] ?? lead['projectName'] ?? 'Project').toString();
-
-    String pId = (item['jobId'] ??
-            item['job_id'] ??
-            lead['jobId'] ??
-            lead['job_id'] ??
-            item['projectCode'] ??
-            '')
+    final pName = (item['projectName'] ?? lead['projectName'] ?? 'Project')
         .toString();
+
+    String pId =
+        (item['jobId'] ??
+                item['job_id'] ??
+                lead['jobId'] ??
+                lead['job_id'] ??
+                item['projectCode'] ??
+                '')
+            .toString();
 
     if (pId.isEmpty || pId.length > 20) {
       if (pName.contains('Wood')) {
@@ -119,7 +139,8 @@ class ShipperFilesController extends GetxController {
       }
     }
 
-    final rawDate = item['fileReceivedAt'] ??
+    final rawDate =
+        item['fileReceivedAt'] ??
         item['uploadedAt'] ??
         item['updatedAt'] ??
         item['createdAt'] ??
@@ -139,17 +160,40 @@ class ShipperFilesController extends GetxController {
   }
 
   String _formatReceivedDate(dynamic value, String pName) {
-    if (value != null && value.toString().isNotEmpty && value.toString() != 'null') {
+    if (value != null &&
+        value.toString().isNotEmpty &&
+        value.toString() != 'null') {
       final raw = value.toString();
       final dt = DateTime.tryParse(raw)?.toLocal();
       if (dt != null) {
         const months = [
-          'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-          'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+          'Jan',
+          'Feb',
+          'Mar',
+          'Apr',
+          'May',
+          'Jun',
+          'Jul',
+          'Aug',
+          'Sep',
+          'Oct',
+          'Nov',
+          'Dec',
         ];
         return '${dt.day.toString().padLeft(2, '0')} ${months[dt.month - 1]} ${dt.year}';
       }
-      if (raw.contains('Aug') || raw.contains('Jul') || raw.contains('Jan') || raw.contains('Feb') || raw.contains('Mar') || raw.contains('Apr') || raw.contains('May') || raw.contains('Jun') || raw.contains('Sep') || raw.contains('Oct') || raw.contains('Nov') || raw.contains('Dec')) {
+      if (raw.contains('Aug') ||
+          raw.contains('Jul') ||
+          raw.contains('Jan') ||
+          raw.contains('Feb') ||
+          raw.contains('Mar') ||
+          raw.contains('Apr') ||
+          raw.contains('May') ||
+          raw.contains('Jun') ||
+          raw.contains('Sep') ||
+          raw.contains('Oct') ||
+          raw.contains('Nov') ||
+          raw.contains('Dec')) {
         return raw;
       }
     }

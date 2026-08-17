@@ -298,7 +298,7 @@ class LoadPlanningView extends GetView<LoadPlanningController> {
                       Expanded(
                         flex: 2,
                         child: Text(
-                          item.id,
+                          item.displayProjectId,
                           style: const TextStyle(
                             fontSize: 13,
                             color: AppColors.textSecondary,

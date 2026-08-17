@@ -21,7 +21,10 @@ class ChatThreadView extends GetView<ChatController> {
             InkWell(
               onTap: controller.toggleSidePanel,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 14,
+                ),
                 decoration: const BoxDecoration(
                   color: Colors.white,
                   border: Border(
@@ -82,10 +85,14 @@ class ChatThreadView extends GetView<ChatController> {
             Expanded(
               child: ListView.separated(
                 controller: controller.messageScrollController,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 20,
+                ),
                 physics: const BouncingScrollPhysics(),
                 itemCount: chat.messages.length,
-                separatorBuilder: (context, index) => const SizedBox(height: 20),
+                separatorBuilder: (context, index) =>
+                    const SizedBox(height: 20),
                 itemBuilder: (context, index) {
                   final message = chat.messages[index];
                   return _buildMessageItem(message);
@@ -115,10 +122,17 @@ class ChatThreadView extends GetView<ChatController> {
                       ),
                       child: TextField(
                         controller: controller.messageInputController,
-                        onSubmitted: (_) => controller.sendMessage(),
+                        onChanged: controller.handleTypingChanged,
+                        onSubmitted: (_) {
+                          controller.setTyping(false);
+                          controller.sendMessage();
+                        },
                         decoration: const InputDecoration(
                           hintText: 'Type your message...',
-                          hintStyle: TextStyle(fontSize: 13, color: AppColors.textHint),
+                          hintStyle: TextStyle(
+                            fontSize: 13,
+                            color: AppColors.textHint,
+                          ),
                           border: InputBorder.none,
                           contentPadding: EdgeInsets.symmetric(vertical: 10),
                         ),
@@ -139,7 +153,11 @@ class ChatThreadView extends GetView<ChatController> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: const [
-                          Icon(Icons.send_rounded, color: Colors.white, size: 16),
+                          Icon(
+                            Icons.send_rounded,
+                            color: Colors.white,
+                            size: 16,
+                          ),
                           SizedBox(width: 8),
                           Text(
                             'Send',
@@ -187,7 +205,11 @@ class ChatThreadView extends GetView<ChatController> {
                   shape: BoxShape.circle,
                   color: Color(0xFFE2E8F0),
                 ),
-                child: const Icon(Icons.person, size: 18, color: Color(0xFF64748B)),
+                child: const Icon(
+                  Icons.person,
+                  size: 18,
+                  color: Color(0xFF64748B),
+                ),
               ),
             ],
           ),
@@ -218,10 +240,7 @@ class ChatThreadView extends GetView<ChatController> {
           const SizedBox(height: 4),
           Text(
             message.timestamp,
-            style: const TextStyle(
-              fontSize: 11,
-              color: AppColors.textHint,
-            ),
+            style: const TextStyle(fontSize: 11, color: AppColors.textHint),
           ),
         ],
       );
@@ -241,7 +260,11 @@ class ChatThreadView extends GetView<ChatController> {
                   shape: BoxShape.circle,
                   color: Colors.amber.shade100,
                 ),
-                child: const Icon(Icons.smart_toy_rounded, size: 18, color: Color(0xFFD97706)),
+                child: const Icon(
+                  Icons.smart_toy_rounded,
+                  size: 18,
+                  color: Color(0xFFD97706),
+                ),
               )
             else
               Container(
@@ -251,7 +274,11 @@ class ChatThreadView extends GetView<ChatController> {
                   shape: BoxShape.circle,
                   color: Color(0xFFE2E8F0),
                 ),
-                child: const Icon(Icons.person, size: 18, color: Color(0xFF64748B)),
+                child: const Icon(
+                  Icons.person,
+                  size: 18,
+                  color: Color(0xFF64748B),
+                ),
               ),
             const SizedBox(width: 8),
             Text(
@@ -291,10 +318,7 @@ class ChatThreadView extends GetView<ChatController> {
         const SizedBox(height: 4),
         Text(
           message.timestamp,
-          style: const TextStyle(
-            fontSize: 11,
-            color: AppColors.textHint,
-          ),
+          style: const TextStyle(fontSize: 11, color: AppColors.textHint),
         ),
       ],
     );

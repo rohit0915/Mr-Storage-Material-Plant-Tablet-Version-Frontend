@@ -1,5 +1,6 @@
 class UploadedBomFileModel {
   final String id;
+  final String projectId;
   final String project;
   final String uploadDate;
   final int items;
@@ -8,6 +9,7 @@ class UploadedBomFileModel {
 
   UploadedBomFileModel({
     required this.id,
+    required this.projectId,
     required this.project,
     required this.uploadDate,
     required this.items,

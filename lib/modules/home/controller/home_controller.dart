@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:get/get.dart';
+import '../../../app/services/plant_socket_service.dart';
 import '../../../app/utils/app_colors.dart';
 import '../../../app/utils/app_icons.dart';
 import '../model/dashboard_models.dart';
@@ -8,6 +11,7 @@ class HomeController extends GetxController {
   final HomeRepository repository;
 
   HomeController({required this.repository});
+  StreamSubscription<PlantSocketEvent>? _socketSubscription;
 
   final RxBool isLoading = false.obs;
   final RxString errorMessage = ''.obs;
@@ -35,24 +39,54 @@ class HomeController extends GetxController {
 
   // Rx Data Lists
   final RxList<TopMetricModel> topMetrics = <TopMetricModel>[].obs;
-  final RxList<ProductionOverviewModel> productionOverviewItems = <ProductionOverviewModel>[].obs;
-  final RxList<ShipperFileReceivedModel> shipperFiles = <ShipperFileReceivedModel>[].obs;
+  final RxList<ProductionOverviewModel> productionOverviewItems =
+      <ProductionOverviewModel>[].obs;
+  final RxList<ShipperFileReceivedModel> shipperFiles =
+      <ShipperFileReceivedModel>[].obs;
   final RxList<PlantAlertModel> plantAlerts = <PlantAlertModel>[].obs;
-  final RxList<FreightCarrierModel> freightCarriers = <FreightCarrierModel>[].obs;
-  final RxList<RecentShipperFileCardModel> recentShipperCards = <RecentShipperFileCardModel>[].obs;
-  final RxList<DrawingApprovalStatusModel> drawingApprovalItems = <DrawingApprovalStatusModel>[].obs;
+  final RxList<FreightCarrierModel> freightCarriers =
+      <FreightCarrierModel>[].obs;
+  final RxList<RecentShipperFileCardModel> recentShipperCards =
+      <RecentShipperFileCardModel>[].obs;
+  final RxList<DrawingApprovalStatusModel> drawingApprovalItems =
+      <DrawingApprovalStatusModel>[].obs;
 
   @override
   void onInit() {
     super.onInit();
+    if (Get.isRegistered<PlantSocketService>()) {
+      _socketSubscription = Get.find<PlantSocketService>().listenFor(
+        PlantSocketService.plantEvents,
+        (_) => loadDashboardData(silent: true),
+      );
+    }
     loadDashboardData();
+  }
+
+  @override
+  void onClose() {
+    _socketSubscription?.cancel();
+    super.onClose();
   }
 
   String _formatDate(String? isoString) {
     if (isoString == null || isoString.isEmpty) return 'Recent';
     try {
       final dt = DateTime.parse(isoString).toLocal();
-      final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      final months = [
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'May',
+        'Jun',
+        'Jul',
+        'Aug',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Dec',
+      ];
       return '${months[dt.month - 1]} ${dt.day}, ${dt.year}';
     } catch (_) {
       return 'Recent';
@@ -72,8 +106,8 @@ class HomeController extends GetxController {
     }
   }
 
-  Future<void> loadDashboardData() async {
-    isLoading.value = true;
+  Future<void> loadDashboardData({bool silent = false}) async {
+    if (!silent) isLoading.value = true;
     errorMessage.value = '';
 
     final currentFilter = selectedTimeFilter.value;
@@ -96,11 +130,16 @@ class HomeController extends GetxController {
       final notificationsData = results[5];
 
       // 1. Top Metrics
-      final totalPrj = projectStats?['totalProjects'] ?? projectsData?['total'] ?? 0;
+      final totalPrj =
+          projectStats?['totalProjects'] ?? projectsData?['total'] ?? 0;
       final activePrj = projectStats?['activeProjects'] ?? 0;
       final pendingAppr = projectStats?['pendingCustomerApproval'] ?? 0;
-      final readyDispatch = deliveriesStats?['scheduledCount'] ?? (shipperStats?['ordersSent'] ?? 0);
-      final dispatched = deliveriesStats?['deliveredCount'] ?? (bomStats?['readyForShipper'] ?? 0);
+      final readyDispatch =
+          deliveriesStats?['scheduledCount'] ??
+          (shipperStats?['ordersSent'] ?? 0);
+      final dispatched =
+          deliveriesStats?['deliveredCount'] ??
+          (bomStats?['readyForShipper'] ?? 0);
 
       topMetrics.assignAll([
         TopMetricModel(
@@ -170,11 +209,14 @@ class HomeController extends GetxController {
 
         // Recent Shipper Cards
         final mappedCards = list.map((item) {
-          final jobId = (item['jobId'] ?? item['projectId'] ?? 'PRJ-000').toString();
+          final jobId = (item['jobId'] ?? item['projectId'] ?? 'PRJ-000')
+              .toString();
           final name = (item['projectName'] ?? 'Project').toString();
           final loc = (item['location'] ?? 'Site').toString();
           final drawingStatus = (item['drawingStatus'] ?? 'pending').toString();
-          final quoteVal = item['quoteValue'] != null ? '\$${item['quoteValue']}' : '\$0';
+          final quoteVal = item['quoteValue'] != null
+              ? '\$${item['quoteValue']}'
+              : '\$0';
           final dateStr = _formatDate(item['createdAt']);
 
           BadgeStatusType statusType;
@@ -205,7 +247,9 @@ class HomeController extends GetxController {
 
         // Drawing Approval Items
         final mappedDrawings = list.map((item) {
-          final clientName = (item['clientName'] ?? item['customer']?['firstName'] ?? 'Client').toString();
+          final clientName =
+              (item['clientName'] ?? item['customer']?['firstName'] ?? 'Client')
+                  .toString();
           final projectName = (item['projectName'] ?? 'Project').toString();
           final drawingStatus = (item['drawingStatus'] ?? 'pending').toString();
           final dateStr = _formatDate(item['createdAt']);
@@ -233,7 +277,9 @@ class HomeController extends GetxController {
             sentDate: dateStr,
             status: statusText,
             statusType: statusType,
-            avatarInitial: clientName.isNotEmpty ? clientName[0].toUpperCase() : 'C',
+            avatarInitial: clientName.isNotEmpty
+                ? clientName[0].toUpperCase()
+                : 'C',
           );
         }).toList();
         drawingApprovalItems.assignAll(mappedDrawings);
@@ -283,35 +329,41 @@ class HomeController extends GetxController {
         final List<PlantAlertModel> alerts = [];
         final pendingCount = projectStats?['pendingCustomerApproval'] ?? 0;
         if (pendingCount > 0) {
-          alerts.add(PlantAlertModel(
-            title: '$pendingCount Project(s) pending customer approval',
-            actionText: 'View Projects',
-            iconAsset: AppIcons.file,
-            iconBgColor: AppColors.badgeBlueBg,
-            iconColor: AppColors.badgeBlueText,
-          ));
+          alerts.add(
+            PlantAlertModel(
+              title: '$pendingCount Project(s) pending customer approval',
+              actionText: 'View Projects',
+              iconAsset: AppIcons.file,
+              iconBgColor: AppColors.badgeBlueBg,
+              iconColor: AppColors.badgeBlueText,
+            ),
+          );
         }
 
         final issues = bomStats?['issuesDetected'] ?? 0;
         if (issues > 0) {
-          alerts.add(PlantAlertModel(
-            title: '$issues BOM issue(s) detected',
-            actionText: 'Resolve',
-            iconAsset: AppIcons.shipperFile,
-            iconBgColor: AppColors.badgeRedBg,
-            iconColor: AppColors.badgeRedText,
-          ));
+          alerts.add(
+            PlantAlertModel(
+              title: '$issues BOM issue(s) detected',
+              actionText: 'Resolve',
+              iconAsset: AppIcons.shipperFile,
+              iconBgColor: AppColors.badgeRedBg,
+              iconColor: AppColors.badgeRedText,
+            ),
+          );
         }
 
         final totalDeliveries = deliveriesStats?['totalCount'] ?? 0;
         if (totalDeliveries > 0) {
-          alerts.add(PlantAlertModel(
-            title: '$totalDeliveries total deliveries recorded',
-            timeText: 'Active',
-            iconAsset: AppIcons.truckDelivery,
-            iconBgColor: AppColors.badgeGreenBg,
-            iconColor: AppColors.badgeGreenText,
-          ));
+          alerts.add(
+            PlantAlertModel(
+              title: '$totalDeliveries total deliveries recorded',
+              timeText: 'Active',
+              iconAsset: AppIcons.truckDelivery,
+              iconBgColor: AppColors.badgeGreenBg,
+              iconColor: AppColors.badgeGreenText,
+            ),
+          );
         }
         plantAlerts.assignAll(alerts);
       }
@@ -326,7 +378,9 @@ class HomeController extends GetxController {
         FreightCarrierModel(
           title: 'Active Freight Shipments',
           loadsCount: '$totalLoads Total Loads',
-          status: inTransitLoads > 0 ? 'In Transit ($inTransitLoads)' : 'Active',
+          status: inTransitLoads > 0
+              ? 'In Transit ($inTransitLoads)'
+              : 'Active',
           isOnTime: true,
           iconAsset: AppIcons.roadkingLogistics,
         ),
@@ -345,7 +399,6 @@ class HomeController extends GetxController {
           iconAsset: AppIcons.globalFreightLines,
         ),
       ]);
-
     } catch (e) {
       errorMessage.value = e.toString();
     } finally {

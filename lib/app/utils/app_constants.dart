@@ -4,7 +4,9 @@ class AppConstants {
   static const String appName = 'Steel Building Depot Plant Panel';
 
   // API Base URL
-  static const String baseUrl = 'https://mr-storage-backend-025k.onrender.com/api/';
+  static const String baseUrl =
+      'https://mr-storage-backend-025k.onrender.com/api/';
+  static String get serverOrigin => Uri.parse(baseUrl).origin;
 
   // Timeout
   static const int connectionTimeout = 30000;

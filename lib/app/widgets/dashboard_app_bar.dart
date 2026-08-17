@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:steel_building_plant_panel/app/utils/app_icons.dart';
 import '../routes/app_routes.dart';
 import '../services/shared_pref_service.dart';
+import '../services/plant_socket_service.dart';
 import '../utils/app_colors.dart';
 import '../../modules/home/controller/home_controller.dart';
 
@@ -23,10 +24,12 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
       if (userJson != null && userJson.isNotEmpty) {
         try {
           final Map<String, dynamic> userMap = jsonDecode(userJson);
-          if (userMap['name'] != null && userMap['name'].toString().isNotEmpty) {
+          if (userMap['name'] != null &&
+              userMap['name'].toString().isNotEmpty) {
             userName = userMap['name'].toString();
           }
-          if (userMap['email'] != null && userMap['email'].toString().isNotEmpty) {
+          if (userMap['email'] != null &&
+              userMap['email'].toString().isNotEmpty) {
             userEmail = userMap['email'].toString();
           }
         } catch (_) {}
@@ -58,7 +61,11 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
               borderRadius: BorderRadius.circular(10),
             ),
             child: IconButton(
-              icon: Image.asset(AppIcons.icMenu, color: Colors.white, fit: BoxFit.contain),
+              icon: Image.asset(
+                AppIcons.icMenu,
+                color: Colors.white,
+                fit: BoxFit.contain,
+              ),
               onPressed: () => Scaffold.of(context).openDrawer(),
             ),
           ),
@@ -100,7 +107,11 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
               decoration: InputDecoration(
                 hintText: 'Search...',
                 hintStyle: TextStyle(fontSize: 13, color: AppColors.textHint),
-                prefixIcon: Icon(Icons.search, size: 18, color: AppColors.textSecondary),
+                prefixIcon: Icon(
+                  Icons.search,
+                  size: 18,
+                  color: AppColors.textSecondary,
+                ),
                 border: InputBorder.none,
                 contentPadding: EdgeInsets.symmetric(vertical: 8),
               ),
@@ -112,11 +123,15 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
           PopupMenuButton<void>(
             offset: const Offset(0, 50),
             elevation: 8,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
             color: Colors.white,
             padding: EdgeInsets.zero,
             itemBuilder: (context) {
-              final homeController = Get.isRegistered<HomeController>() ? Get.find<HomeController>() : null;
+              final homeController = Get.isRegistered<HomeController>()
+                  ? Get.find<HomeController>()
+                  : null;
               final alerts = homeController?.plantAlerts ?? [];
 
               return [
@@ -182,18 +197,22 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
                             time: '05:00:14 PM',
                           ),
                         ] else ...[
-                          ...alerts.take(5).map((item) => _buildNotificationItem(
-                                icon: Icons.notifications_active_outlined,
-                                iconBg: item.iconBgColor,
-                                iconFg: item.iconColor,
-                                title: item.title,
-                                action: item.actionText,
-                                time: item.timeText,
-                                onTap: () {
-                                  Navigator.pop(context);
-                                  Get.toNamed(AppRoutes.notificationHistory);
-                                },
-                              )),
+                          ...alerts
+                              .take(5)
+                              .map(
+                                (item) => _buildNotificationItem(
+                                  icon: Icons.notifications_active_outlined,
+                                  iconBg: item.iconBgColor,
+                                  iconFg: item.iconColor,
+                                  title: item.title,
+                                  action: item.actionText,
+                                  time: item.timeText,
+                                  onTap: () {
+                                    Navigator.pop(context);
+                                    Get.toNamed(AppRoutes.notificationHistory);
+                                  },
+                                ),
+                              ),
                         ],
                         const SizedBox(height: 12),
                         SizedBox(
@@ -205,7 +224,9 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
                             },
                             style: OutlinedButton.styleFrom(
                               side: const BorderSide(color: Color(0xFF155DFC)),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
                               padding: const EdgeInsets.symmetric(vertical: 11),
                             ),
                             child: const Text(
@@ -234,7 +255,11 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
               ),
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
-                child: Image.asset(AppIcons.notification, color: AppColors.white, fit: BoxFit.contain),
+                child: Image.asset(
+                  AppIcons.notification,
+                  color: AppColors.white,
+                  fit: BoxFit.contain,
+                ),
               ),
             ),
           ),
@@ -244,10 +269,15 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
           PopupMenuButton<String>(
             offset: const Offset(0, 50),
             elevation: 8,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
             color: Colors.white,
             onSelected: (value) async {
               if (value == 'signout') {
+                if (Get.isRegistered<PlantSocketService>()) {
+                  Get.find<PlantSocketService>().disconnect();
+                }
                 if (Get.isRegistered<SharedPrefService>()) {
                   await Get.find<SharedPrefService>().clearSession();
                 }
@@ -259,11 +289,18 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
                 value: 'profile',
                 child: Row(
                   children: const [
-                    Icon(Icons.person_outline, size: 18, color: AppColors.textSecondary),
+                    Icon(
+                      Icons.person_outline,
+                      size: 18,
+                      color: AppColors.textSecondary,
+                    ),
                     SizedBox(width: 12),
                     Text(
                       'My profile',
-                      style: TextStyle(fontSize: 13, color: AppColors.textPrimary),
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: AppColors.textPrimary,
+                      ),
                     ),
                   ],
                 ),
@@ -272,11 +309,18 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
                 value: 'settings',
                 child: Row(
                   children: const [
-                    Icon(Icons.settings_outlined, size: 18, color: AppColors.textSecondary),
+                    Icon(
+                      Icons.settings_outlined,
+                      size: 18,
+                      color: AppColors.textSecondary,
+                    ),
                     SizedBox(width: 12),
                     Text(
                       'Settings',
-                      style: TextStyle(fontSize: 13, color: AppColors.textPrimary),
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: AppColors.textPrimary,
+                      ),
                     ),
                   ],
                 ),
@@ -286,11 +330,19 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
                 value: 'signout',
                 child: Row(
                   children: const [
-                    Icon(Icons.logout_rounded, size: 18, color: AppColors.error),
+                    Icon(
+                      Icons.logout_rounded,
+                      size: 18,
+                      color: AppColors.error,
+                    ),
                     SizedBox(width: 12),
                     Text(
                       'Sign out',
-                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.error),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.error,
+                      ),
                     ),
                   ],
                 ),
@@ -305,7 +357,11 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
               ),
               child: Padding(
                 padding: const EdgeInsets.all(6.0),
-                child: Image.asset(AppIcons.profile, color: Colors.white, fit: BoxFit.contain),
+                child: Image.asset(
+                  AppIcons.profile,
+                  color: Colors.white,
+                  fit: BoxFit.contain,
+                ),
               ),
             ),
           ),
@@ -365,10 +421,7 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
           else if (time != null)
             Text(
               time,
-              style: const TextStyle(
-                fontSize: 11,
-                color: Color(0xFF637381),
-              ),
+              style: const TextStyle(fontSize: 11, color: Color(0xFF637381)),
             ),
         ],
       ),

@@ -139,56 +139,61 @@ class FreightLoadsView extends GetView<FreightLoadsController> {
   }
 
   Widget _buildSummaryStatsRow() {
-    return Row(
-      children: controller.summaryStats.map((stat) {
-        return Expanded(
-          child: Container(
-            margin: const EdgeInsets.only(right: 10),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border(
-                left: BorderSide(color: stat.themeColor, width: 4.5),
-                top: BorderSide(color: stat.themeColor, width: 1.5),
-                right: BorderSide(color: stat.themeColor, width: 1.5),
-                bottom: BorderSide(color: stat.themeColor, width: 1.5),
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      physics: const BouncingScrollPhysics(),
+      child: Row(
+        children: controller.summaryStats.map((stat) {
+          return SizedBox(
+            width: 165,
+            child: Container(
+              margin: const EdgeInsets.only(right: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border(
+                  left: BorderSide(color: stat.themeColor, width: 4.5),
+                  top: BorderSide(color: stat.themeColor, width: 1.5),
+                  right: BorderSide(color: stat.themeColor, width: 1.5),
+                  bottom: BorderSide(color: stat.themeColor, width: 1.5),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    stat.label,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppColors.textSecondary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        stat.value,
+                        style: const TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      Icon(stat.icon, size: 26, color: stat.themeColor),
+                    ],
+                  ),
+                ],
               ),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  stat.label,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: AppColors.textSecondary,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      stat.value,
-                      style: const TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    Icon(stat.icon, size: 26, color: stat.themeColor),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        );
-      }).toList(),
+          );
+        }).toList(),
+      ),
     );
   }
 
@@ -222,7 +227,7 @@ class FreightLoadsView extends GetView<FreightLoadsController> {
                     child: TextField(
                       onChanged: (val) => controller.searchQuery.value = val,
                       decoration: const InputDecoration(
-                        hintText: 'Search notifications...',
+                        hintText: 'Search freight loads...',
                         hintStyle: TextStyle(
                           fontSize: 12,
                           color: AppColors.textHint,
@@ -263,14 +268,22 @@ class FreightLoadsView extends GetView<FreightLoadsController> {
   }
 
   Widget _buildFreightLoadsTableCard() {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.inputBorder),
-      ),
-      child: Column(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final double tableWidth =
+            constraints.maxWidth < 1050 ? 1050 : constraints.maxWidth;
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          physics: const BouncingScrollPhysics(),
+          child: SizedBox(
+            width: tableWidth,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.inputBorder),
+              ),
+              child: Column(
         children: [
           // Table Header
           Padding(
@@ -365,6 +378,17 @@ class FreightLoadsView extends GetView<FreightLoadsController> {
                     ),
                   ),
                 ),
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    'LOAD SIZE / WEIGHT',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -372,14 +396,24 @@ class FreightLoadsView extends GetView<FreightLoadsController> {
 
           // Table Rows
           Obx(() {
+            final items = controller.freightLoadsList;
+            if (items.isEmpty) {
+              return const Padding(
+                padding: EdgeInsets.symmetric(vertical: 48),
+                child: Text(
+                  'No freight loads found.',
+                  style: TextStyle(color: AppColors.textSecondary),
+                ),
+              );
+            }
             return ListView.separated(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              itemCount: controller.filteredFreightLoads.length,
+              itemCount: items.length,
               separatorBuilder: (context, index) =>
                   const Divider(height: 1, color: AppColors.divider),
               itemBuilder: (context, index) {
-                final item = controller.filteredFreightLoads[index];
+                final item = items[index];
                 return Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
@@ -549,15 +583,83 @@ class FreightLoadsView extends GetView<FreightLoadsController> {
                           ),
                         ),
                       ),
+                      Expanded(
+                        flex: 2,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              item.loadWeight,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                            if (item.packageCount.isNotEmpty)
+                              Text(
+                                item.packageCount,
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                 );
               },
             );
           }),
+          Obx(() {
+            if (controller.totalResults.value <=
+                FreightLoadsController.pageSize) {
+              return const SizedBox.shrink();
+            }
+            final start =
+                (controller.currentPage.value - 1) *
+                    FreightLoadsController.pageSize +
+                1;
+            final end =
+                (controller.currentPage.value * FreightLoadsController.pageSize)
+                    .clamp(0, controller.totalResults.value);
+            return Padding(
+              padding: const EdgeInsets.all(14),
+              child: Row(
+                children: [
+                  Text(
+                    'Showing $start to $end of ${controller.totalResults.value} results',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                  const Spacer(),
+                  OutlinedButton(
+                    onPressed: controller.hasPreviousPage
+                        ? controller.previousPage
+                        : null,
+                    child: const Text('Previous'),
+                  ),
+                  const SizedBox(width: 8),
+                  OutlinedButton(
+                    onPressed: controller.hasNextPage
+                        ? controller.nextPage
+                        : null,
+                    child: const Text('Next'),
+                  ),
+                ],
+              ),
+            );
+          }),
         ],
       ),
+    ),
+    ),
     );
+        },
+      );
   }
 
   Widget _buildStatusBadge(String status) {

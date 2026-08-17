@@ -145,56 +145,61 @@ class AwardedLoadsView extends GetView<AwardedLoadsController> {
   }
 
   Widget _buildSummaryStatsRow() {
-    return Row(
-      children: controller.summaryStats.map((stat) {
-        return Expanded(
-          child: Container(
-            margin: const EdgeInsets.only(right: 12),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border(
-                left: BorderSide(color: stat.themeColor, width: 4.5),
-                top: BorderSide(color: stat.themeColor, width: 1.5),
-                right: BorderSide(color: stat.themeColor, width: 1.5),
-                bottom: BorderSide(color: stat.themeColor, width: 1.5),
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      physics: const BouncingScrollPhysics(),
+      child: Row(
+        children: controller.summaryStats.map((stat) {
+          return SizedBox(
+            width: 165,
+            child: Container(
+              margin: const EdgeInsets.only(right: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border(
+                  left: BorderSide(color: stat.themeColor, width: 4.5),
+                  top: BorderSide(color: stat.themeColor, width: 1.5),
+                  right: BorderSide(color: stat.themeColor, width: 1.5),
+                  bottom: BorderSide(color: stat.themeColor, width: 1.5),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    stat.label,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppColors.textSecondary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        stat.value,
+                        style: const TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      Icon(stat.icon, size: 26, color: stat.themeColor),
+                    ],
+                  ),
+                ],
               ),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  stat.label,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: AppColors.textSecondary,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      stat.value,
-                      style: const TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    Icon(stat.icon, size: 26, color: stat.themeColor),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        );
-      }).toList(),
+          );
+        }).toList(),
+      ),
     );
   }
 
@@ -269,14 +274,22 @@ class AwardedLoadsView extends GetView<AwardedLoadsController> {
   }
 
   Widget _buildAwardedLoadsTableCard() {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.inputBorder),
-      ),
-      child: Column(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final double tableWidth =
+            constraints.maxWidth < 1100 ? 1100 : constraints.maxWidth;
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          physics: const BouncingScrollPhysics(),
+          child: SizedBox(
+            width: tableWidth,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.inputBorder),
+              ),
+              child: Column(
         children: [
           // Table Header
           Padding(
@@ -625,8 +638,12 @@ class AwardedLoadsView extends GetView<AwardedLoadsController> {
               },
             );
           }),
-        ],
+          ],
+        ),
       ),
+    ),
     );
+        },
+      );
   }
 }

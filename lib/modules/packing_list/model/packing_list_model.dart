@@ -1,5 +1,6 @@
 class ProjectPackingListSummaryModel {
   final String id;
+  final String displayProjectId;
   final String projectName;
   final String listGeneratedDate;
   final int totalPackingList;
@@ -7,6 +8,7 @@ class ProjectPackingListSummaryModel {
 
   ProjectPackingListSummaryModel({
     required this.id,
+    required this.displayProjectId,
     required this.projectName,
     required this.listGeneratedDate,
     required this.totalPackingList,

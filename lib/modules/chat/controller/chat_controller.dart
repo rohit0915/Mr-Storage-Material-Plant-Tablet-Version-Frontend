@@ -1,5 +1,10 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../app/services/plant_socket_service.dart';
+import '../../../app/services/shared_pref_service.dart';
 import '../model/chat_model.dart';
 
 class ChatController extends GetxController {
@@ -7,6 +12,11 @@ class ChatController extends GetxController {
   final Rx<SidePanelTab> activeSidePanelTab = SidePanelTab.members.obs;
   final Rxn<ChatChannel> selectedChat = Rxn<ChatChannel>();
   final RxBool isSidePanelOpen = false.obs;
+  final RxBool isTeamTyping = false.obs;
+  final RxString typingUserName = ''.obs;
+  StreamSubscription<PlantSocketEvent>? _socketSubscription;
+  Timer? _typingTimer;
+  bool _typingSent = false;
 
   final RxString searchQuery = ''.obs;
   final RxString selectedProject = 'All Projects'.obs;
@@ -28,6 +38,12 @@ class ChatController extends GetxController {
   void onInit() {
     super.onInit();
     _loadInitialData();
+    if (Get.isRegistered<PlantSocketService>()) {
+      _socketSubscription = Get.find<PlantSocketService>().listenFor(
+        PlantSocketService.teamEvents,
+        _handleSocketEvent,
+      );
+    }
   }
 
   void _loadInitialData() {
@@ -218,8 +234,10 @@ class ChatController extends GetxController {
     }
 
     return list
-        .where((chat) =>
-            chat.name.toLowerCase().contains(searchQuery.value.toLowerCase()))
+        .where(
+          (chat) =>
+              chat.name.toLowerCase().contains(searchQuery.value.toLowerCase()),
+        )
         .toList();
   }
 
@@ -228,9 +246,24 @@ class ChatController extends GetxController {
   }
 
   void selectChat(ChatChannel chat) {
+    final previous = selectedChat.value;
+    if (previous != null && Get.isRegistered<PlantSocketService>()) {
+      Get.find<PlantSocketService>().leaveTeamChannel(
+        _channelType(previous),
+        _channelId(previous),
+      );
+    }
     selectedChat.value = chat;
+    if (Get.isRegistered<PlantSocketService>()) {
+      Get.find<PlantSocketService>().joinTeamChannel(
+        _channelType(chat),
+        _channelId(chat),
+      );
+    }
     // Mark as read when selected
-    final list = chat.type == ChatTab.departments ? departmentChannels : directChats;
+    final list = chat.type == ChatTab.departments
+        ? departmentChannels
+        : directChats;
     final index = list.indexWhere((c) => c.id == chat.id);
     if (index != -1 && list[index].unreadCount > 0) {
       list[index] = list[index].copyWith(unreadCount: 0);
@@ -271,6 +304,18 @@ class ChatController extends GetxController {
     if (text.isEmpty || selectedChat.value == null) return;
 
     final current = selectedChat.value!;
+    if (Get.isRegistered<PlantSocketService>()) {
+      final sent = Get.find<PlantSocketService>().sendTeamMessage(
+        _channelType(current),
+        _channelId(current),
+        text,
+      );
+      if (sent) {
+        messageInputController.clear();
+        setTyping(false);
+        return;
+      }
+    }
     final now = DateTime.now();
     final timeStr =
         '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')} ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')} ${now.hour >= 12 ? 'pm' : 'am'}';
@@ -284,7 +329,8 @@ class ChatController extends GetxController {
       isMe: true,
     );
 
-    final updatedMessages = List<ChatMessage>.from(current.messages)..add(newMessage);
+    final updatedMessages = List<ChatMessage>.from(current.messages)
+      ..add(newMessage);
     final updatedChat = current.copyWith(messages: updatedMessages);
 
     selectedChat.value = updatedChat;
@@ -311,6 +357,97 @@ class ChatController extends GetxController {
     });
   }
 
+  void setTyping(bool typing) {
+    final chat = selectedChat.value;
+    if (chat == null || !Get.isRegistered<PlantSocketService>()) return;
+    Get.find<PlantSocketService>().setTeamTyping(
+      _channelType(chat),
+      _channelId(chat),
+      typing,
+    );
+  }
+
+  void handleTypingChanged(String value) {
+    if (!_typingSent && value.trim().isNotEmpty) {
+      _typingSent = true;
+      setTyping(true);
+    }
+    _typingTimer?.cancel();
+    _typingTimer = Timer(const Duration(milliseconds: 900), () {
+      if (_typingSent) setTyping(false);
+      _typingSent = false;
+    });
+  }
+
+  void _handleSocketEvent(PlantSocketEvent event) {
+    if (event.name == 'team_typing') {
+      isTeamTyping.value = event.payload['isTyping'] == true;
+      typingUserName.value = event.payload['name']?.toString() ?? '';
+      return;
+    }
+    if (event.name != 'new_team_message') return;
+    final chat = selectedChat.value;
+    if (chat == null || !_matchesChannel(chat, event.payload)) return;
+    final message = ChatMessage(
+      id:
+          event.payload['_id']?.toString() ??
+          'socket_${DateTime.now().microsecondsSinceEpoch}',
+      senderId: event.payload['senderId']?.toString() ?? '',
+      senderName: event.payload['senderName']?.toString() ?? 'Team member',
+      text: event.payload['content']?.toString() ?? '',
+      timestamp: event.payload['createdAt']?.toString() ?? '',
+      isMe: event.payload['senderId']?.toString() == _currentUserId(),
+    );
+    if (chat.messages.any((item) => item.id == message.id)) return;
+    final updated = chat.copyWith(
+      messages: List<ChatMessage>.from(chat.messages)..add(message),
+    );
+    selectedChat.value = updated;
+    final list = chat.type == ChatTab.departments
+        ? departmentChannels
+        : directChats;
+    final index = list.indexWhere((item) => item.id == chat.id);
+    if (index != -1) list[index] = updated;
+  }
+
+  bool _matchesChannel(ChatChannel chat, Map<String, dynamic> payload) {
+    if (chat.type == ChatTab.departments) {
+      return payload['channelType'] == 'department' &&
+          payload['department']?.toString() == _channelId(chat);
+    }
+    final participants = payload['participants'];
+    return payload['channelType'] == 'direct' &&
+        participants is List &&
+        participants.map((item) => item.toString()).contains(_channelId(chat));
+  }
+
+  String _channelType(ChatChannel chat) =>
+      chat.type == ChatTab.departments ? 'department' : 'direct';
+
+  String _channelId(ChatChannel chat) {
+    if (chat.type == ChatTab.direct) {
+      return chat.members.isEmpty ? chat.id : chat.members.first.id;
+    }
+    final name = chat.name.toLowerCase();
+    if (name.contains('finance') || name.contains('account')) return 'account';
+    if (name.contains('construction')) return 'construction';
+    if (name.contains('sales')) return 'sales';
+    if (name.contains('admin')) return 'admin';
+    return 'plant';
+  }
+
+  String _currentUserId() {
+    if (!Get.isRegistered<SharedPrefService>()) return '';
+    final raw = Get.find<SharedPrefService>().getUserData();
+    if (raw == null || raw.isEmpty) return '';
+    try {
+      final user = jsonDecode(raw);
+      return user is Map ? (user['_id'] ?? user['id'] ?? '').toString() : '';
+    } catch (_) {
+      return '';
+    }
+  }
+
   void addMemberToSelectedChat(String name, String role, bool isAdmin) {
     final current = selectedChat.value;
     if (current == null) return;
@@ -323,7 +460,8 @@ class ChatController extends GetxController {
       isAdmin: isAdmin,
     );
 
-    final updatedMembers = List<ChatMember>.from(current.members)..add(newMember);
+    final updatedMembers = List<ChatMember>.from(current.members)
+      ..add(newMember);
     final updatedChat = current.copyWith(members: updatedMembers);
 
     selectedChat.value = updatedChat;
@@ -376,6 +514,15 @@ class ChatController extends GetxController {
 
   @override
   void onClose() {
+    final chat = selectedChat.value;
+    if (chat != null && Get.isRegistered<PlantSocketService>()) {
+      Get.find<PlantSocketService>().leaveTeamChannel(
+        _channelType(chat),
+        _channelId(chat),
+      );
+    }
+    _socketSubscription?.cancel();
+    _typingTimer?.cancel();
     messageInputController.dispose();
     messageScrollController.dispose();
     super.onClose();

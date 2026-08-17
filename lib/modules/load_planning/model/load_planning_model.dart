@@ -1,5 +1,6 @@
 class ProjectLoadPlanningSummaryModel {
   final String id;
+  final String displayProjectId;
   final String projectName;
   final String fileReceived;
   final int totalLoadPlanning;
@@ -7,6 +8,7 @@ class ProjectLoadPlanningSummaryModel {
 
   ProjectLoadPlanningSummaryModel({
     required this.id,
+    required this.displayProjectId,
     required this.projectName,
     required this.fileReceived,
     required this.totalLoadPlanning,

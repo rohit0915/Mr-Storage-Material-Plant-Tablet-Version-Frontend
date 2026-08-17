@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../app/routes/app_routes.dart';
 import '../../../app/services/file_export_service.dart';
+import '../../../app/services/plant_socket_service.dart';
 import '../../../app/widgets/common_snackbar.dart';
 import '../../awarded_loads/widgets/freight_filter_dialog.dart';
 import '../model/freight_loads_model.dart';
@@ -25,15 +28,37 @@ class FreightLoadsController extends GetxController {
   final RxString selectedLoadId = ''.obs;
   final RxString searchQuery = ''.obs;
   final RxString selectedStatus = ''.obs;
+  final RxInt currentPage = 1.obs;
+  final RxInt totalResults = 0.obs;
+  static const int pageSize = 20;
+  Worker? _searchWorker;
+  StreamSubscription<PlantSocketEvent>? _socketSubscription;
 
   @override
   void onInit() {
     super.onInit();
     selectedLoadId.value = Get.parameters['id'] ?? '';
+    _searchWorker = debounce<String>(searchQuery, (_) {
+      currentPage.value = 1;
+      loadData();
+    }, time: const Duration(milliseconds: 450));
+    if (Get.isRegistered<PlantSocketService>()) {
+      _socketSubscription = Get.find<PlantSocketService>().listenFor({
+        'freight_bid_submitted',
+        'all_freight_bids_submitted',
+      }, (_) => loadData());
+    }
     loadData();
     if (selectedLoadId.value.isNotEmpty) {
       loadCarrierBidsData(selectedLoadId.value);
     }
+  }
+
+  @override
+  void onClose() {
+    _searchWorker?.dispose();
+    _socketSubscription?.cancel();
+    super.onClose();
   }
 
   Future<void> loadData() async {
@@ -43,6 +68,8 @@ class FreightLoadsController extends GetxController {
       final results = await Future.wait([
         repository.freightStats(),
         repository.freightLoads(
+          page: currentPage.value,
+          limit: pageSize,
           search: searchQuery.value,
           status: selectedStatus.value,
         ),
@@ -62,6 +89,7 @@ class FreightLoadsController extends GetxController {
     FreightFilterDialog(
       onApplyStatus: (status) {
         selectedStatus.value = status ?? '';
+        currentPage.value = 1;
         loadData();
       },
     ),
@@ -150,7 +178,7 @@ class FreightLoadsController extends GetxController {
     summaryStats.assignAll([
       _stat(
         'Total Loads',
-        stats['total'],
+        stats['totalLoads'] ?? stats['total'],
         const Color(0xFF22C55E),
         Icons.local_shipping_outlined,
       ),
@@ -174,13 +202,13 @@ class FreightLoadsController extends GetxController {
       ),
       _stat(
         'Requested Loads',
-        stats['requested'] ?? stats['total'],
+        stats['requestedLoads'] ?? stats['requested'] ?? stats['total'],
         const Color(0xFFEC4899),
         Icons.local_shipping_outlined,
       ),
       _stat(
         'Bids Pending',
-        stats['pending'],
+        stats['bidsPending'] ?? stats['pending'],
         const Color(0xFF3B82F6),
         Icons.info_outline,
       ),
@@ -200,14 +228,18 @@ class FreightLoadsController extends GetxController {
   );
 
   void _mapLoads(Map<String, dynamic> data) {
-    final raw = data['deliveries'] is List
+    final raw = data['requests'] is List
+        ? data['requests'] as List
+        : data['deliveries'] is List
         ? data['deliveries'] as List
         : const [];
+    totalResults.value = _integer(data['total'], fallback: raw.length);
     freightLoadsList.assignAll(
       raw.whereType<Map>().map((entry) {
         final item = Map<String, dynamic>.from(entry);
         final project = _map(item['project'] ?? item['lead']);
         final route = _map(item['route']);
+        final loadSize = _map(item['loadSize']);
         return FreightLoadItemModel(
           id: _text(item['_id'] ?? item['id']),
           requestId: _text(
@@ -222,13 +254,36 @@ class FreightLoadsController extends GetxController {
           ),
           pickupDate: _date(item['pickupDate']),
           deliveryDate: _date(item['deliveryDate']),
-          bids: item['bidCount'] == null
-              ? _money(item['awardedAmount'] ?? item['price'])
-              : '${item['bidCount']}',
+          bids: item['awardedBidAmount'] == null
+              ? item['bidCount'] == null
+                    ? '-'
+                    : '${item['bidCount']}'
+              : _money(item['awardedBidAmount']),
           status: _status(item['status']),
+          loadWeight: loadSize['weight'] == null
+              ? '-'
+              : '${_number(loadSize['weight'])} lbs',
+          packageCount: loadSize['packageCount'] == null
+              ? ''
+              : '${loadSize['packageCount']} packages',
         );
       }),
     );
+  }
+
+  bool get hasPreviousPage => currentPage.value > 1;
+  bool get hasNextPage => currentPage.value * pageSize < totalResults.value;
+
+  Future<void> previousPage() async {
+    if (!hasPreviousPage) return;
+    currentPage.value--;
+    await loadData();
+  }
+
+  Future<void> nextPage() async {
+    if (!hasNextPage) return;
+    currentPage.value++;
+    await loadData();
   }
 
   List<FreightLoadItemModel> get filteredFreightLoads {
@@ -295,7 +350,10 @@ class FreightLoadsController extends GetxController {
                 await loadData();
                 return true;
               } catch (error) {
-                CommonSnackbar.showError(title: 'Award failed', message: error.toString());
+                CommonSnackbar.showError(
+                  title: 'Award failed',
+                  message: error.toString(),
+                );
                 return false;
               }
             },
@@ -318,7 +376,10 @@ class FreightLoadsController extends GetxController {
                 await loadCarrierBidsData(selectedLoadId.value);
                 return true;
               } catch (error) {
-                CommonSnackbar.showError(title: 'Revision request failed', message: error.toString());
+                CommonSnackbar.showError(
+                  title: 'Revision request failed',
+                  message: error.toString(),
+                );
                 return false;
               }
             },
@@ -331,6 +392,20 @@ class FreightLoadsController extends GetxController {
   String _money(dynamic value) {
     final amount = value is num ? value : num.tryParse('$value');
     return amount == null ? '-' : '\$${amount.toStringAsFixed(0)}';
+  }
+
+  int _integer(dynamic value, {required int fallback}) =>
+      value is num ? value.toInt() : int.tryParse('$value') ?? fallback;
+
+  String _number(dynamic value) {
+    final number = value is num ? value : num.tryParse('$value');
+    if (number == null) return '-';
+    final parts = number.toStringAsFixed(number % 1 == 0 ? 0 : 1).split('.');
+    final formatted = parts.first.replaceAllMapped(
+      RegExp(r'\B(?=(\d{3})+(?!\d))'),
+      (_) => ',',
+    );
+    return parts.length == 1 ? formatted : '$formatted.${parts.last}';
   }
 
   String _date(dynamic value) {

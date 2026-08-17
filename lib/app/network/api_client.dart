@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:get/get.dart' as getx;
 import '../routes/app_routes.dart';
 import '../services/shared_pref_service.dart';
+import '../services/plant_socket_service.dart';
 import '../utils/app_constants.dart';
 import '../utils/app_logger.dart';
 import 'api_endpoints.dart';
@@ -54,6 +55,10 @@ class ApiClient {
         },
         onError: (DioException error, handler) async {
           final requestPath = error.requestOptions.path;
+          AppLogger.error(
+            'API Error [${error.type}] - Method: ${error.requestOptions.method} | URL: ${error.requestOptions.baseUrl}${error.requestOptions.path} | Error: ${error.message}',
+            error,
+          );
 
           if (error.response?.statusCode == 401) {
             // Avoid infinite retry loops on auth endpoints
@@ -103,6 +108,10 @@ class ApiClient {
                         'Token refreshed successfully! Updating session and retrying request...',
                       );
                       await prefService.setToken(newAccessToken);
+                      if (getx.Get.isRegistered<PlantSocketService>()) {
+                        getx.Get.find<PlantSocketService>()
+                            .reconnectWithLatestToken();
+                      }
 
                       final newRefreshToken = refreshResponse
                           .data['data']?['refreshToken']
@@ -138,6 +147,9 @@ class ApiClient {
   }
 
   Future<void> _logoutAndRedirect() async {
+    if (getx.Get.isRegistered<PlantSocketService>()) {
+      getx.Get.find<PlantSocketService>().disconnect();
+    }
     if (getx.Get.isRegistered<SharedPrefService>()) {
       await getx.Get.find<SharedPrefService>().clearSession();
     }

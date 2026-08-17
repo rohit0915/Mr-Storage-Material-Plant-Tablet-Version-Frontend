@@ -2,11 +2,13 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../app/widgets/common_snackbar.dart';
+import '../../../app/widgets/log_viewer_dialog.dart';
 import 'package:steel_building_plant_panel/app/utils/app_icons.dart';
 import '../../../app/routes/app_routes.dart';
 import '../../../app/network/api_client.dart';
 import '../../../app/repositories/workflow_repository.dart';
 import '../../../app/services/shared_pref_service.dart';
+import '../../../app/services/plant_socket_service.dart';
 import '../../../app/utils/app_colors.dart';
 import '../controller/home_controller.dart';
 
@@ -277,6 +279,9 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
             color: Colors.white,
             onSelected: (value) async {
               if (value == 'signout') {
+                if (Get.isRegistered<PlantSocketService>()) {
+                  Get.find<PlantSocketService>().disconnect();
+                }
                 if (Get.isRegistered<SharedPrefService>()) {
                   await Get.find<SharedPrefService>().clearSession();
                 }
@@ -290,6 +295,8 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
                     ),
                   ),
                 );
+              } else if (value == 'logs') {
+                LogViewerDialog.show();
               }
             },
             itemBuilder: (context) => [
@@ -325,6 +332,26 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
                     SizedBox(width: 12),
                     Text(
                       'Settings',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              PopupMenuItem<String>(
+                value: 'logs',
+                child: Row(
+                  children: const [
+                    Icon(
+                      Icons.bug_report_outlined,
+                      size: 18,
+                      color: AppColors.textSecondary,
+                    ),
+                    SizedBox(width: 12),
+                    Text(
+                      'App Logs',
                       style: TextStyle(
                         fontSize: 13,
                         color: AppColors.textPrimary,
@@ -465,7 +492,8 @@ class _ChangePasswordDialogState extends State<_ChangePasswordDialog> {
         next.text != confirm.text) {
       CommonSnackbar.showWarning(
         title: 'Check password',
-        message: 'Enter the current password and matching new password (minimum 8 characters).',
+        message:
+            'Enter the current password and matching new password (minimum 8 characters).',
       );
       return;
     }
@@ -482,7 +510,10 @@ class _ChangePasswordDialogState extends State<_ChangePasswordDialog> {
         message: 'Your password was updated successfully.',
       );
     } catch (error) {
-      CommonSnackbar.showError(title: 'Unable to change password', message: error.toString());
+      CommonSnackbar.showError(
+        title: 'Unable to change password',
+        message: error.toString(),
+      );
     } finally {
       if (mounted) setState(() => loading = false);
     }

@@ -54,9 +54,7 @@ class DeliveryCalendarView extends GetView<DeliveryCalendarController> {
                       }),
                       const SizedBox(height: 20),
 
-                      // Status Legend Bar
-                      _buildStatusLegendCard(),
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 12),
                     ],
                   ),
                 );
@@ -91,28 +89,6 @@ class DeliveryCalendarView extends GetView<DeliveryCalendarController> {
         ),
         const Spacer(),
 
-        // Filters Button
-        ElevatedButton(
-          onPressed: () => controller.openFilterDialog(),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF3B82F6),
-            elevation: 0,
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-          child: const Text(
-            'Filters',
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-        ),
-        const SizedBox(width: 12),
-
         // Date Range Selector
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -123,6 +99,16 @@ class DeliveryCalendarView extends GetView<DeliveryCalendarController> {
           ),
           child: Row(
             children: [
+              Obx(
+                () => IconButton(
+                  tooltip: 'Previous range',
+                  onPressed: controller.canMovePrevious
+                      ? () => controller.moveRange(-1)
+                      : null,
+                  icon: const Icon(Icons.chevron_left, size: 18),
+                  visualDensity: VisualDensity.compact,
+                ),
+              ),
               Obx(
                 () => Text(
                   controller.selectedDateRange.value,
@@ -138,6 +124,12 @@ class DeliveryCalendarView extends GetView<DeliveryCalendarController> {
                 Icons.calendar_today_outlined,
                 size: 14,
                 color: AppColors.textSecondary,
+              ),
+              IconButton(
+                tooltip: 'Next range',
+                onPressed: () => controller.moveRange(1),
+                icon: const Icon(Icons.chevron_right, size: 18),
+                visualDensity: VisualDensity.compact,
               ),
             ],
           ),
@@ -215,31 +207,14 @@ class DeliveryCalendarView extends GetView<DeliveryCalendarController> {
                   color: const Color(0xFFDBEAFE),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Text(
-                  "Today's Deliveries: 4 deliveries",
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1E40AF),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFDBEAFE),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Text(
-                  "Weather: ☀️ Clear",
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1E40AF),
+                child: Obx(
+                  () => Text(
+                    'Total Deliveries: ${controller.totalDeliveries.value} deliveries',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1E40AF),
+                    ),
                   ),
                 ),
               ),
@@ -248,30 +223,70 @@ class DeliveryCalendarView extends GetView<DeliveryCalendarController> {
           const SizedBox(height: 20),
 
           // Date Header
-          const Text(
-            'Tuesday, March 25, 2024',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
+          Obx(
+            () => Text(
+              _fullDate(controller.selectedDate.value),
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
             ),
           ),
           const SizedBox(height: 16),
 
           // Cards List
-          ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: controller.deliveriesList.length,
-            separatorBuilder: (context, index) => const SizedBox(height: 16),
-            itemBuilder: (context, index) {
-              final item = controller.deliveriesList[index];
-              return _buildDeliveryCard(item);
-            },
-          ),
+          if (controller.deliveriesList.isEmpty)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 42),
+              child: Center(
+                child: Text(
+                  'No deliveries found for this date.',
+                  style: TextStyle(color: AppColors.textSecondary),
+                ),
+              ),
+            )
+          else
+            ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: controller.deliveriesList.length,
+              separatorBuilder: (context, index) => const SizedBox(height: 16),
+              itemBuilder: (context, index) {
+                final item = controller.deliveriesList[index];
+                return _buildDeliveryCard(item);
+              },
+            ),
         ],
       ),
     );
+  }
+
+  String _fullDate(DateTime date) {
+    const weekdays = [
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday',
+    ];
+    const months = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ];
+    return '${weekdays[date.weekday - 1]}, ${months[date.month - 1]} ${date.day}, ${date.year}';
   }
 
   Widget _buildDeliveryCard(DeliveryCalendarItemModel item) {
@@ -590,15 +605,9 @@ class DeliveryCalendarView extends GetView<DeliveryCalendarController> {
 
   // WEEK VIEW CONTENT (Image 2)
   Widget _buildWeekView() {
-    final days = [
-      {'day': 'MON', 'date': '24', 'month': 'Mar', 'isToday': false},
-      {'day': 'TUE', 'date': '25', 'month': 'Mar', 'isToday': true},
-      {'day': 'WED', 'date': '26', 'month': 'Mar', 'isToday': false},
-      {'day': 'THU', 'date': '27', 'month': 'Mar', 'isToday': false},
-      {'day': 'FRI', 'date': '28', 'month': 'Mar', 'isToday': false},
-      {'day': 'SAT', 'date': '29', 'month': 'Mar', 'isToday': false},
-      {'day': 'SUN', 'date': '30', 'month': 'Mar', 'isToday': false},
-    ];
+    final selected = controller.selectedDate.value;
+    final start = selected.subtract(Duration(days: selected.weekday % 7));
+    final days = List.generate(7, (index) => start.add(Duration(days: index)));
 
     return Container(
       width: double.infinity,
@@ -608,46 +617,57 @@ class DeliveryCalendarView extends GetView<DeliveryCalendarController> {
         border: Border.all(color: AppColors.inputBorder),
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Days Header Row
+          _buildTotalBadge(),
+          const SizedBox(height: 18),
           Row(
-            children: days.map((d) {
-              final isToday = d['isToday'] as bool;
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: days.map((day) {
+              final isSelected = _sameDay(day, selected);
+              final items = controller.deliveriesList
+                  .where((item) => _sameDay(item.date, day))
+                  .toList();
               return Expanded(
                 child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  constraints: const BoxConstraints(minHeight: 440),
                   decoration: BoxDecoration(
+                    color: isSelected ? const Color(0xFFF8FAFC) : Colors.white,
                     border: Border(
                       right: const BorderSide(color: AppColors.divider),
+                      left: days.first == day
+                          ? const BorderSide(color: AppColors.divider)
+                          : BorderSide.none,
+                      top: const BorderSide(color: AppColors.divider),
                       bottom: const BorderSide(color: AppColors.divider),
                     ),
                   ),
                   child: Column(
                     children: [
-                      Text(
-                        d['day'].toString(),
-                        style: const TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textSecondary,
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        decoration: const BoxDecoration(
+                          border: Border(
+                            bottom: BorderSide(color: AppColors.divider),
+                          ),
+                        ),
+                        child: Text(
+                          '${_shortWeekday(day.weekday)}, ${_shortMonth(day.month)} ${day.day}',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: isSelected
+                                ? const Color(0xFF2563EB)
+                                : AppColors.textPrimary,
+                          ),
                         ),
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        d['date'].toString(),
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: isToday
-                              ? const Color(0xFF2563EB)
-                              : AppColors.textPrimary,
-                        ),
-                      ),
-                      Text(
-                        d['month'].toString(),
-                        style: const TextStyle(
-                          fontSize: 10,
-                          color: AppColors.textSecondary,
+                      ...items.map(
+                        (item) => Padding(
+                          padding: const EdgeInsets.fromLTRB(7, 8, 7, 0),
+                          child: _buildWeekCard(item),
                         ),
                       ),
                     ],
@@ -656,122 +676,15 @@ class DeliveryCalendarView extends GetView<DeliveryCalendarController> {
               );
             }).toList(),
           ),
-
-          // Days Content Grid Columns
-          SizedBox(
-            height: 450,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(child: Container()), // Mon 24
-                Expanded(
-                  child: Container(
-                    decoration: const BoxDecoration(
-                      border: Border(
-                        right: BorderSide(color: AppColors.divider),
-                      ),
-                    ),
-                    padding: const EdgeInsets.all(8),
-                    child: Column(
-                      children: [
-                        _buildWeekCard(
-                          'Industrial Complex A',
-                          'Acme Corp',
-                          'Scheduled',
-                          Colors.blue,
-                        ),
-                        const SizedBox(height: 8),
-                        _buildWeekCard(
-                          'Storage Facility B',
-                          'BuildTech LLC',
-                          'Confirmed',
-                          Colors.green,
-                        ),
-                      ],
-                    ),
-                  ),
-                ), // Tue 25
-                Expanded(
-                  child: Container(
-                    decoration: const BoxDecoration(
-                      border: Border(
-                        right: BorderSide(color: AppColors.divider),
-                      ),
-                    ),
-                    padding: const EdgeInsets.all(8),
-                    child: Column(
-                      children: [
-                        _buildWeekCard(
-                          'Warehouse Complex',
-                          'Steel Masters',
-                          'Scheduled',
-                          Colors.blue,
-                        ),
-                      ],
-                    ),
-                  ),
-                ), // Wed 26
-                Expanded(
-                  child: Container(
-                    decoration: const BoxDecoration(
-                      border: Border(
-                        right: BorderSide(color: AppColors.divider),
-                      ),
-                    ),
-                    padding: const EdgeInsets.all(8),
-                    child: Column(
-                      children: [
-                        _buildWeekCard(
-                          'Industrial Park C',
-                          'Metro Build',
-                          'Confirmed',
-                          Colors.green,
-                        ),
-                      ],
-                    ),
-                  ),
-                ), // Thu 27
-                Expanded(
-                  child: Container(
-                    decoration: const BoxDecoration(
-                      border: Border(
-                        right: BorderSide(color: AppColors.divider),
-                      ),
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: Container(
-                    decoration: const BoxDecoration(
-                      border: Border(
-                        right: BorderSide(color: AppColors.divider),
-                      ),
-                    ),
-                  ),
-                ),
-                Expanded(child: Container()),
-              ],
-            ),
-          ),
         ],
       ),
     );
   }
 
-  Widget _buildWeekCard(
-    String project,
-    String customer,
-    String status,
-    Color color,
-  ) {
+  Widget _buildWeekCard(DeliveryCalendarItemModel item) {
+    final color = _statusColor(item.status);
     return InkWell(
-      onTap: () {
-        if (controller.deliveriesList.isNotEmpty) {
-          Get.dialog(
-            DeliveryCalendarDetailDialog(item: controller.deliveriesList.first),
-          );
-        }
-      },
+      onTap: () => Get.dialog(DeliveryCalendarDetailDialog(item: item)),
       borderRadius: BorderRadius.circular(8),
       child: Container(
         width: double.infinity,
@@ -797,7 +710,7 @@ class DeliveryCalendarView extends GetView<DeliveryCalendarController> {
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
-                    project,
+                    item.title,
                     style: const TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
@@ -810,7 +723,7 @@ class DeliveryCalendarView extends GetView<DeliveryCalendarController> {
             ),
             const SizedBox(height: 2),
             Text(
-              customer,
+              item.customer,
               style: const TextStyle(
                 fontSize: 10,
                 color: AppColors.textSecondary,
@@ -818,7 +731,7 @@ class DeliveryCalendarView extends GetView<DeliveryCalendarController> {
             ),
             const SizedBox(height: 6),
             Text(
-              status,
+              item.status,
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.bold,
@@ -833,6 +746,13 @@ class DeliveryCalendarView extends GetView<DeliveryCalendarController> {
 
   // MONTH VIEW CONTENT (Image 3)
   Widget _buildMonthView() {
+    final selected = controller.selectedDate.value;
+    final first = DateTime(selected.year, selected.month, 1);
+    final gridStart = first.subtract(Duration(days: first.weekday % 7));
+    final days = List.generate(
+      42,
+      (index) => gridStart.add(Duration(days: index)),
+    );
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -844,91 +764,61 @@ class DeliveryCalendarView extends GetView<DeliveryCalendarController> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Month Selector Row
-          Row(
-            children: [
-              const Text(
-                'March 2024',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              const Spacer(),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: AppColors.inputBorder),
-                ),
-                child: Row(
-                  children: const [
-                    Text(
-                      'Select Month',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                    SizedBox(width: 6),
-                    Icon(
-                      Icons.keyboard_arrow_down,
-                      size: 14,
-                      color: AppColors.textSecondary,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+          _buildTotalBadge(),
           const SizedBox(height: 20),
 
           // Days Header
           Row(
-            children: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((
-              day,
-            ) {
-              return Expanded(
-                child: Center(
-                  child: Text(
-                    day,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textSecondary,
+            children:
+                [
+                  'Sunday',
+                  'Monday',
+                  'Tuesday',
+                  'Wednesday',
+                  'Thursday',
+                  'Friday',
+                  'Saturday',
+                ].map((day) {
+                  return Expanded(
+                    child: Center(
+                      child: Text(
+                        day,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-              );
-            }).toList(),
+                  );
+                }).toList(),
           ),
           const SizedBox(height: 12),
 
-          // Calendar Days Grid (31 Days)
+          // Six complete calendar weeks, including adjacent-month days.
           GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 7,
-              childAspectRatio: 1.2,
-              crossAxisSpacing: 8,
-              mainAxisSpacing: 8,
+              childAspectRatio: 1.35,
+              crossAxisSpacing: 0,
+              mainAxisSpacing: 0,
             ),
-            itemCount: 31,
+            itemCount: days.length,
             itemBuilder: (context, index) {
-              final dayNum = index + 1;
-              final hasEvents = dayNum >= 23 && dayNum <= 25;
+              final day = days[index];
+              final inMonth = day.month == selected.month;
+              final items = controller.deliveriesList
+                  .where((item) => _sameDay(item.date, day))
+                  .toList();
 
               return InkWell(
                 onTap: () {
                   Get.dialog(
                     DayDeliveriesDialog(
-                      dateTitle: 'Tuesday, March $dayNum, 2024',
-                      items: controller.deliveriesList,
+                      dateTitle: _fullDate(day),
+                      items: items,
                     ),
                   );
                 },
@@ -937,39 +827,59 @@ class DeliveryCalendarView extends GetView<DeliveryCalendarController> {
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(8),
                     border: Border.all(color: AppColors.inputBorder),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '$dayNum',
-                        style: const TextStyle(
+                        '${day.day}',
+                        style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
+                          color: inMonth
+                              ? AppColors.textPrimary
+                              : AppColors.textHint,
                         ),
                       ),
-                      if (hasEvents) ...[
+                      if (items.isNotEmpty) ...[
                         const SizedBox(height: 4),
-                        Container(height: 2, color: const Color(0xFF2563EB)),
-                        const SizedBox(height: 4),
-                        const Text(
-                          '2 Deliveries',
-                          style: TextStyle(
-                            fontSize: 9,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF2563EB),
+                        ...items
+                            .take(2)
+                            .map(
+                              (item) => Container(
+                                width: double.infinity,
+                                margin: const EdgeInsets.only(bottom: 3),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 4,
+                                  vertical: 3,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: _statusColor(
+                                    item.status,
+                                  ).withValues(alpha: .1),
+                                  borderRadius: BorderRadius.circular(3),
+                                ),
+                                child: Text(
+                                  item.title,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 8,
+                                    fontWeight: FontWeight.w600,
+                                    color: _statusColor(item.status),
+                                  ),
+                                ),
+                              ),
+                            ),
+                        if (items.length > 2)
+                          Text(
+                            '+${items.length - 2} more',
+                            style: const TextStyle(
+                              fontSize: 8,
+                              color: AppColors.textSecondary,
+                            ),
                           ),
-                        ),
-                        const Text(
-                          '* Steel',
-                          style: TextStyle(
-                            fontSize: 8,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
                       ],
                     ],
                   ),
@@ -982,67 +892,58 @@ class DeliveryCalendarView extends GetView<DeliveryCalendarController> {
     );
   }
 
-  // STATUS LEGEND CARD (Image 1, 2, 3)
-  Widget _buildStatusLegendCard() {
-    final legendItems = [
-      {'label': 'Draft', 'color': const Color(0xFFCBD5E1)},
-      {'label': 'Scheduled', 'color': const Color(0xFF2563EB)},
-      {'label': 'Confirmed', 'color': const Color(0xFF16A34A)},
-      {'label': 'In Transit', 'color': const Color(0xFFF59E0B)},
-      {'label': 'Delivered', 'color': const Color(0xFF059669)},
-      {'label': 'Delayed', 'color': const Color(0xFFEA580C)},
-      {'label': 'Cancelled', 'color': const Color(0xFFDC2626)},
-    ];
+  Widget _buildTotalBadge() => Container(
+    margin: const EdgeInsets.all(16),
+    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+    decoration: BoxDecoration(
+      color: const Color(0xFF4169B8).withValues(alpha: .18),
+      borderRadius: BorderRadius.circular(8),
+    ),
+    child: Text(
+      'Total Deliveries: ${controller.totalDeliveries.value} deliveries',
+      style: const TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.w600,
+        color: Color(0xFF02318C),
+      ),
+    ),
+  );
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.inputBorder),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Status Legend',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: legendItems.map((item) {
-              return Padding(
-                padding: const EdgeInsets.only(right: 20),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 10,
-                      height: 10,
-                      decoration: BoxDecoration(
-                        color: item['color'] as Color,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      item['label'] as String,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            }).toList(),
-          ),
-        ],
-      ),
-    );
+  bool _sameDay(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
+
+  String _shortWeekday(int weekday) =>
+      const ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'][weekday - 1];
+
+  String _shortMonth(int month) => const [
+    'JAN',
+    'FEB',
+    'MAR',
+    'APR',
+    'MAY',
+    'JUN',
+    'JUL',
+    'AUG',
+    'SEP',
+    'OCT',
+    'NOV',
+    'DEC',
+  ][month - 1];
+
+  Color _statusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'confirmed':
+        return const Color(0xFF16A34A);
+      case 'in transit':
+        return const Color(0xFFF59E0B);
+      case 'delivered':
+        return const Color(0xFF059669);
+      case 'delayed':
+      case 'cancelled':
+        return const Color(0xFFDC2626);
+      default:
+        return const Color(0xFF2563EB);
+    }
   }
+
 }

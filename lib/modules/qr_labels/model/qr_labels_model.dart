@@ -1,5 +1,6 @@
 class ProjectQrLabelsSummaryModel {
   final String id;
+  final String displayProjectId;
   final String projectName;
   final String qrGeneratedDate;
   final int totalQrLabels;
@@ -7,6 +8,7 @@ class ProjectQrLabelsSummaryModel {
 
   ProjectQrLabelsSummaryModel({
     required this.id,
+    required this.displayProjectId,
     required this.projectName,
     required this.qrGeneratedDate,
     required this.totalQrLabels,

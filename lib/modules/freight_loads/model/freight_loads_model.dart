@@ -26,6 +26,8 @@ class FreightLoadItemModel {
   final String deliveryDate;
   final String bids;
   final String status; // 'Awarded', 'Requested', 'Bids Received'
+  final String loadWeight;
+  final String packageCount;
   bool isSelected;
 
   FreightLoadItemModel({
@@ -40,6 +42,8 @@ class FreightLoadItemModel {
     required this.deliveryDate,
     required this.bids,
     required this.status,
+    this.loadWeight = '-',
+    this.packageCount = '',
     this.isSelected = false,
   });
 }

@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../app/routes/app_routes.dart';
+import '../../../app/services/plant_socket_service.dart';
 import '../../freight_loads/model/freight_loads_model.dart';
 import '../../freight_loads/repository/delivery_repository.dart';
 import '../model/awarded_loads_model.dart';
@@ -19,11 +22,24 @@ class AwardedLoadsController extends GetxController {
       <AwardedLoadItemModel>[].obs;
   final RxString searchQuery = ''.obs;
   final RxString selectedStatus = ''.obs;
+  StreamSubscription<PlantSocketEvent>? _socketSubscription;
 
   @override
   void onInit() {
     super.onInit();
+    if (Get.isRegistered<PlantSocketService>()) {
+      _socketSubscription = Get.find<PlantSocketService>().listenFor({
+        'freight_bid_submitted',
+        'all_freight_bids_submitted',
+      }, (_) => loadData());
+    }
     loadData();
+  }
+
+  @override
+  void onClose() {
+    _socketSubscription?.cancel();
+    super.onClose();
   }
 
   Future<void> loadData() async {
@@ -41,7 +57,7 @@ class AwardedLoadsController extends GetxController {
       summaryStats.assignAll([
         _stat(
           'Total Awarded',
-          stats['total'],
+          stats['totalAwarded'] ?? stats['total'],
           const Color(0xFF16A34A),
           Icons.workspace_premium_outlined,
         ),
@@ -75,7 +91,9 @@ class AwardedLoadsController extends GetxController {
   }
 
   void _mapLoads(Map<String, dynamic> data) {
-    final raw = data['deliveries'] is List
+    final raw = data['requests'] is List
+        ? data['requests'] as List
+        : data['deliveries'] is List
         ? data['deliveries'] as List
         : const [];
     awardedLoadsList.assignAll(
@@ -102,7 +120,9 @@ class AwardedLoadsController extends GetxController {
           ),
           carrierPhone: _text(item['carrierPhone'] ?? carrier['phone']),
           budget: _money(item['budget'] ?? item['price']),
-          awardedAmount: _money(item['awardedAmount'] ?? item['price']),
+          awardedAmount: _money(
+            item['awardedBidAmount'] ?? item['awardedAmount'] ?? item['price'],
+          ),
           bidsCount: _int(item['bidCount'] ?? item['bidsCount']),
           status: _status(item['status']),
         );

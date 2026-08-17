@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:get/get.dart';
 import 'package:file_saver/file_saver.dart';
 import '../../../app/widgets/common_snackbar.dart';
+import '../../../app/services/plant_socket_service.dart';
 import '../model/bom_files_details_model.dart';
 import '../repository/bom_files_details_repository.dart';
 
@@ -34,6 +37,7 @@ class BomFilesDetailsController extends GetxController {
   final RxInt currentPage = 1.obs;
   final RxInt rowsPerPage = 50.obs;
   final RxInt totalEntries = 0.obs;
+  StreamSubscription<PlantSocketEvent>? _socketSubscription;
 
   int get totalPages =>
       (totalEntries.value / rowsPerPage.value).ceil().clamp(1, 999);
@@ -48,7 +52,31 @@ class BomFilesDetailsController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    if (Get.isRegistered<PlantSocketService>()) {
+      _socketSubscription = Get.find<PlantSocketService>().listenFor(
+        {
+          'bom_extraction_complete',
+          'bom_extraction_failed',
+          'bom_review_complete',
+        },
+        (event) {
+          final eventJobId = event.payload['jobId']?.toString();
+          if (eventJobId == null ||
+              eventJobId.isEmpty ||
+              eventJobId == jobId.value ||
+              eventJobId == Get.parameters['id']) {
+            loadBomData();
+          }
+        },
+      );
+    }
     loadBomData();
+  }
+
+  @override
+  void onClose() {
+    _socketSubscription?.cancel();
+    super.onClose();
   }
 
   Future<void> loadBomData() async {

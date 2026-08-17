@@ -4,6 +4,7 @@ import 'package:steel_building_plant_panel/app/utils/app_images.dart';
 import '../../../app/utils/app_colors.dart';
 import '../../../app/utils/app_text_styles.dart';
 import '../../../app/widgets/common_button.dart';
+import '../../../app/widgets/log_viewer_dialog.dart';
 import '../controller/login_controller.dart';
 
 class LoginView extends GetView<LoginController> {
@@ -24,6 +25,18 @@ class LoginView extends GetView<LoginController> {
             ),
           ),
           
+          // Log Viewer Quick Trigger Icon at top-right
+          Positioned(
+            top: 16,
+            right: 16,
+            child: SafeArea(
+              child: IconButton(
+                icon: const Icon(Icons.bug_report_outlined, color: AppColors.textSecondary),
+                tooltip: 'View App Logs',
+                onPressed: () => LogViewerDialog.show(),
+              ),
+            ),
+          ),
 
           SafeArea(
             child: Center(
@@ -32,13 +45,16 @@ class LoginView extends GetView<LoginController> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Logo Placeholder
-                    Image.asset(
-                      AppImages.logo,
-                      height: 60,
-                      fit: BoxFit.contain,
-                      errorBuilder: (context, error, stackTrace) =>
-                      const Icon(Icons.business, size: 60, color: AppColors.primary),
+                    // Logo with Long-Press Log Trigger
+                    GestureDetector(
+                      onLongPress: () => LogViewerDialog.show(),
+                      child: Image.asset(
+                        AppImages.logo,
+                        height: 60,
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) =>
+                        const Icon(Icons.business, size: 60, color: AppColors.primary),
+                      ),
                     ),
                     const SizedBox(height: 32),
                     

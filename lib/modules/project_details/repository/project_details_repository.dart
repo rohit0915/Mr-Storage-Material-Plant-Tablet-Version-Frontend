@@ -118,6 +118,19 @@ class ProjectDetailsRepository {
     }
   }
 
+  Future<Map<String, dynamic>> generateConsolidatedBom(String leadId) async {
+    final response = await apiClient.post(
+      ApiEndpoints.plantGenerateConsolidatedBom(leadId),
+    );
+    final data = response.data?['data'];
+    if (response.data?['success'] != true || data is! Map) {
+      throw Exception(
+        response.data?['message'] ?? 'Unable to generate consolidated BOM.',
+      );
+    }
+    return Map<String, dynamic>.from(data);
+  }
+
   Future<List<dynamic>?> fetchInvoices(String leadId) async {
     final response = await apiClient.get(
       ApiEndpoints.plantProjectInvoices(leadId),

@@ -15,6 +15,8 @@ import '../../modules/onboarding/binding/onboarding_binding.dart';
 import '../../modules/onboarding/view/onboarding_view.dart';
 import '../../modules/login/binding/login_binding.dart';
 import '../../modules/login/view/login_view.dart';
+import '../../modules/forgot_password/binding/forgot_password_binding.dart';
+import '../../modules/forgot_password/view/forgot_password_view.dart';
 import '../../modules/pdf_view/binding/pdf_view_binding.dart';
 import '../../modules/pdf_view/view/pdf_view_screen.dart';
 import '../../modules/project_details/binding/project_details_binding.dart';
@@ -39,6 +41,7 @@ import '../../modules/comparison_result/view/comparison_result_view.dart';
 import '../../modules/load_planning/binding/load_planning_binding.dart';
 import '../../modules/load_planning/view/load_planning_view.dart';
 import '../../modules/load_planning/view/project_load_planning_view.dart';
+import '../../modules/load_planning/view/load_plan_details_view.dart';
 import '../../modules/packing_list/binding/packing_list_binding.dart';
 import '../../modules/packing_list/view/packing_list_view.dart';
 import '../../modules/packing_list/view/project_packing_list_view.dart';
@@ -157,6 +160,11 @@ class AppPages {
       binding: LoginBinding(),
     ),
     GetPage(
+      name: AppRoutes.forgotPassword,
+      page: () => const ForgotPasswordView(),
+      binding: ForgotPasswordBinding(),
+    ),
+    GetPage(
       name: AppRoutes.additionalMaterialRequest,
       page: () => const AdditionalMaterialRequestView(),
       binding: AdditionalMaterialRequestBinding(),
@@ -184,6 +192,11 @@ class AppPages {
     GetPage(
       name: AppRoutes.projectLoadPlanning,
       page: () => const ProjectLoadPlanningView(),
+      binding: LoadPlanningBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.loadPlanDetails,
+      page: () => const LoadPlanDetailsView(),
       binding: LoadPlanningBinding(),
     ),
     GetPage(

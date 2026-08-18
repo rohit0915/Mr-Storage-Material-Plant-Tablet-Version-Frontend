@@ -7,6 +7,8 @@ class ShipperRequestWorkflowRepository {
 
   Future<Map<String, dynamic>> document(String requestId) =>
       _get(ApiEndpoints.plantShipperRequestDocument(requestId));
+  Future<Map<String, dynamic>> consolidatedBomUrl(String projectId) =>
+      _get(ApiEndpoints.plantConsolidatedBomUrl(projectId));
   Future<Map<String, dynamic>> startComparison(String requestId) =>
       _post(ApiEndpoints.plantShipperRequestCompare(requestId));
   Future<Map<String, dynamic>> jobStatus(String jobId) =>
@@ -36,6 +38,8 @@ class ShipperRequestWorkflowRepository {
   );
   Future<Map<String, dynamic>> generateBundlePlan(String requestId) =>
       _post(ApiEndpoints.plantGenerateBundlePlan(requestId));
+  Future<Map<String, dynamic>> projectBundlePlan(String leadId) =>
+      _get(ApiEndpoints.plantProjectBundlePlan(leadId));
 
   Future<Map<String, dynamic>> _get(
     String path, {

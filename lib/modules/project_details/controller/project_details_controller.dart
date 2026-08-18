@@ -534,6 +534,38 @@ class ProjectDetailsController extends GetxController {
     }
   }
 
+  final RxBool isConsolidatingBom = false.obs;
+
+  bool get canConsolidateBom {
+    if (buildings.isEmpty) return false;
+    return buildings.every((building) {
+      final file = existingBomFiles[buildingId(building)];
+      return file != null && file['isConfirmed'] == true;
+    });
+  }
+
+  Future<bool> generateConsolidatedBom() async {
+    if (repository == null || projectId.isEmpty || isConsolidatingBom.value) {
+      return false;
+    }
+    if (!canConsolidateBom) {
+      uploadError.value =
+          'All building BOM files must finish extraction and be confirmed before consolidation.';
+      return false;
+    }
+    isConsolidatingBom.value = true;
+    uploadError.value = '';
+    try {
+      await repository!.generateConsolidatedBom(projectId);
+      return true;
+    } catch (error) {
+      uploadError.value = error.toString().replaceFirst('Exception: ', '');
+      return false;
+    } finally {
+      isConsolidatingBom.value = false;
+    }
+  }
+
   String _contentType(String? extension) {
     switch ((extension ?? '').toLowerCase()) {
       case 'pdf':

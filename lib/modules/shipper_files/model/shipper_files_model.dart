@@ -1,4 +1,5 @@
 class ProjectShipperFileModel {
+  final String leadId;
   final String projectId;
   final String projectName;
   final String fileReceived;
@@ -6,6 +7,7 @@ class ProjectShipperFileModel {
   bool isSelected;
 
   ProjectShipperFileModel({
+    required this.leadId,
     required this.projectId,
     required this.projectName,
     required this.fileReceived,

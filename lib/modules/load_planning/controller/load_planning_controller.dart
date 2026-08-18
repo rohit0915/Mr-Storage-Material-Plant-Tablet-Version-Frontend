@@ -30,6 +30,8 @@ class LoadPlanningController extends GetxController {
   final RxMap<String, dynamic> bundlePlan = <String, dynamic>{}.obs;
   final RxMap<String, dynamic> bundleCoverage = <String, dynamic>{}.obs;
   final RxMap<String, dynamic> freightAutofill = <String, dynamic>{}.obs;
+  final RxMap<String, dynamic> loadPlanningData = <String, dynamic>{}.obs;
+  final Rxn<LoadPlanItemModel> selectedLoadPlan = Rxn<LoadPlanItemModel>();
   List<String> get availableProjects => projectOptions;
 
   @override
@@ -60,13 +62,14 @@ class LoadPlanningController extends GetxController {
           final pName =
               (item['projectName'] ?? lead['projectName'] ?? 'Project')
                   .toString();
-          String rawCode = (item['jobId'] ??
-                  item['job_id'] ??
-                  item['projectCode'] ??
-                  item['projectNo'] ??
-                  item['projectNumber'] ??
-                  '')
-              .toString();
+          String rawCode =
+              (item['jobId'] ??
+                      item['job_id'] ??
+                      item['projectCode'] ??
+                      item['projectNo'] ??
+                      item['projectNumber'] ??
+                      '')
+                  .toString();
           if (rawCode.isEmpty || rawCode.length > 20) {
             if (pName.contains('Wood')) {
               rawCode = 'PRO-007';
@@ -86,18 +89,19 @@ class LoadPlanningController extends GetxController {
                 item['loadPlanCount'],
           );
           return ProjectLoadPlanningSummaryModel(
-            id: (item['leadId'] ??
-                    item['_id'] ??
-                    lead['_id'] ??
-                    item['projectId'] ??
-                    '')
-                .toString(),
+            id:
+                (item['leadId'] ??
+                        item['_id'] ??
+                        lead['_id'] ??
+                        item['projectId'] ??
+                        '')
+                    .toString(),
             displayProjectId: rawCode,
             projectName: pName,
             fileReceived: _date(
               item['fileReceivedAt'] ?? item['updatedAt'] ?? item['createdAt'],
             ),
-            totalLoadPlanning: rawTotal > 0 ? rawTotal : 2,
+            totalLoadPlanning: rawTotal,
           );
         }),
       );
@@ -116,22 +120,37 @@ class LoadPlanningController extends GetxController {
     isLoading.value = true;
     errorMessage.value = '';
     try {
-      final results = await Future.wait([
+      // The project planning response is the source of truth. Coverage and
+      // freight enrichment are optional and must not blank the screen when an
+      // older project does not expose one of those endpoints.
+      final planningResults = await Future.wait([
         repository.fetchProjectPlanning(leadId),
-        workflowRepository.projectBundlePlan(leadId),
-        workflowRepository.projectFreightAutofill(leadId),
+        repository.fetchProjectTruckPlan(leadId),
       ]);
-      final data = results[0];
-      final legacy = _map(results[1]['bundlePlan'] ?? results[1]);
-      freightAutofill.assignAll(results[2]);
+      final state = planningResults[0];
+      final truckPlan = planningResults[1];
+      // The deployed web details screen is driven by truck-plan. Keep the
+      // general planning state as a fallback for older projects/API versions.
+      final data = <String, dynamic>{...state, ...truckPlan};
+      loadPlanningData.assignAll(data);
+      final optionalResults = await Future.wait([
+        _optional(() => workflowRepository.projectBundlePlan(leadId)),
+        _optional(() => workflowRepository.projectFreightAutofill(leadId)),
+      ]);
+      final legacy = _map(
+        optionalResults[0]['bundlePlan'] ?? optionalResults[0],
+      );
+      freightAutofill.assignAll(optionalResults[1]);
       final bundlePlan = _map(data['bundlePlan'] ?? legacy);
       bundlePlanId.value =
           (bundlePlan['_id'] ?? bundlePlan['bundlePlanId'] ?? '').toString();
       if (bundlePlanId.value.isNotEmpty) {
         final planResults = await Future.wait([
-          bundlePlanRepository.detail(bundlePlanId.value),
-          bundlePlanRepository.coverage(bundlePlanId.value),
-          bundlePlanRepository.freightAutofill(bundlePlanId.value),
+          _optional(() => bundlePlanRepository.detail(bundlePlanId.value)),
+          _optional(() => bundlePlanRepository.coverage(bundlePlanId.value)),
+          _optional(
+            () => bundlePlanRepository.freightAutofill(bundlePlanId.value),
+          ),
         ]);
         this.bundlePlan.assignAll(planResults[0]);
         bundleCoverage.assignAll(planResults[1]);
@@ -140,22 +159,47 @@ class LoadPlanningController extends GetxController {
         this.bundlePlan.assignAll(bundlePlan);
       }
       final packingPlan = _map(data['packingListPlan']);
-      final candidates =
-          data['loadPlans'] ??
-          data['plans'] ??
-          packingPlan['trucks'] ??
-          data['trucks'];
-      final rows = candidates is List ? candidates : const [];
+      final candidates = _firstList([
+        data['loadPlans'],
+        data['bundlePlans'],
+        data['packingListPlans'],
+        data['plans'],
+        data['items'],
+        data['records'],
+        packingPlan['loadPlans'],
+        packingPlan['trucks'],
+        data['trucks'],
+      ]);
+      final rows = candidates.isNotEmpty
+          ? candidates
+          : bundlePlan.isNotEmpty
+          ? <dynamic>[bundlePlan]
+          : packingPlan.isNotEmpty
+          ? <dynamic>[packingPlan]
+          : const <dynamic>[];
       loadPlansList.assignAll(
         rows.whereType<Map>().map((raw) {
           final item = Map<String, dynamic>.from(raw);
           final vendor = _map(item['vendor'] ?? bundlePlan['vendor']);
-          final bundles = item['bundles'] is List
-              ? item['bundles'] as List
-              : const [];
+          final bundles = _firstList([
+            item['bundles'],
+            item['bundleList'],
+            item['assignedBundles'],
+          ]);
+          final trucks = _firstList([
+            item['truckLoads'],
+            item['loads'],
+            item['trucks'],
+          ]);
           return LoadPlanItemModel(
             loadPlanId:
-                (item['loadPlanId'] ?? item['_id'] ?? item['truckId'] ?? 'N/A')
+                (item['loadPlanId'] ??
+                        item['bundlePlanId'] ??
+                        item['planId'] ??
+                        item['reference'] ??
+                        item['_id'] ??
+                        item['truckId'] ??
+                        'N/A')
                     .toString(),
             shipperReference:
                 (item['shipperReference'] ??
@@ -168,10 +212,17 @@ class LoadPlanningController extends GetxController {
             vendorAvatar: (vendor['photo'] ?? vendor['logo'] ?? '').toString(),
             bundles: _int(
               item['bundleCount'] ??
+                  item['totalBundles'] ??
                   (bundles.isNotEmpty ? bundles.length : null),
             ),
-            loads: _int(item['loadCount'] ?? item['loads'] ?? 1),
-            weight: _weight(item['totalWeight'] ?? item['weight']),
+            loads: _int(
+              item['loadCount'] ??
+                  item['totalLoads'] ??
+                  (trucks.isNotEmpty ? trucks.length : null),
+            ),
+            weight: _weight(
+              item['totalWeight'] ?? item['weight'] ?? item['loadWeight'],
+            ),
             status: _status(
               item['status'] ?? packingPlan['status'] ?? bundlePlan['status'],
             ),
@@ -179,33 +230,6 @@ class LoadPlanningController extends GetxController {
           );
         }),
       );
-
-      if (loadPlansList.isEmpty) {
-        loadPlansList.assignAll([
-          LoadPlanItemModel(
-            loadPlanId: 'LP-2001',
-            shipperReference: 'SHP-FILE-001',
-            vendorName: 'Swift Freight Lines',
-            vendorAvatar: '',
-            bundles: 14,
-            loads: 2,
-            weight: '28,500 lbs',
-            status: 'Ready',
-            date: '07 Aug 2026',
-          ),
-          LoadPlanItemModel(
-            loadPlanId: 'LP-2002',
-            shipperReference: 'SHP-FILE-002',
-            vendorName: 'Apex Logistics LLC',
-            vendorAvatar: '',
-            bundles: 10,
-            loads: 1,
-            weight: '19,200 lbs',
-            status: 'In Transit',
-            date: '08 Aug 2026',
-          ),
-        ]);
-      }
     } catch (e) {
       errorMessage.value = e.toString();
       loadPlansList.clear();
@@ -214,11 +238,23 @@ class LoadPlanningController extends GetxController {
     }
   }
 
-  void openProjectLoadPlanning(ProjectLoadPlanningSummaryModel item) {
+  Future<void> openProjectLoadPlanning(
+    ProjectLoadPlanningSummaryModel item,
+  ) async {
+    selectedProjectId.value = item.id;
+    selectedProjectName.value = item.projectName;
+    loadPlansList.clear();
+    bundlePlan.clear();
+    bundleCoverage.clear();
+    freightAutofill.clear();
+    loadPlanningData.clear();
+    errorMessage.value = '';
+    isLoading.value = true;
     Get.toNamed(
-      AppRoutes.projectLoadPlanning,
+      AppRoutes.loadPlanDetails,
       parameters: {'id': item.id, 'name': item.projectName},
     );
+    await loadProjectLoadPlans(item.id);
   }
 
   Future<void> updateBundlePlanNotes(String notes) async {
@@ -247,19 +283,114 @@ class LoadPlanningController extends GetxController {
     if (bundlePlanId.value.isEmpty) return;
     await bundlePlanRepository.confirm(bundlePlanId.value);
     await loadProjectLoadPlans(selectedProjectId.value);
-    CommonSnackbar.showSuccess(title: 'Bundle plan confirmed', message: 'Load planning is ready.');
+    CommonSnackbar.showSuccess(
+      title: 'Bundle plan confirmed',
+      message: 'Load planning is ready.',
+    );
   }
 
   void showLoadDetails(LoadPlanItemModel item) {
-    final weight = freightAutofill['weight'] ?? item.weight;
-    final packages = freightAutofill['packageCount'] ?? item.bundles;
-    Get.defaultDialog(
-      title: item.loadPlanId,
-      middleText: 'Weight: $weight\nPackages: $packages',
-      textConfirm: 'Close',
-      onConfirm: Get.back,
+    selectedLoadPlan.value = item;
+    Get.toNamed(
+      AppRoutes.loadPlanDetails,
+      parameters: {
+        'id': selectedProjectId.value,
+        'name': selectedProjectName.value,
+        'planId': item.loadPlanId,
+      },
     );
   }
+
+  Map<String, dynamic> get detailPlan {
+    final direct = Map<String, dynamic>.from(bundlePlan);
+    final dataPlan = _map(
+      loadPlanningData['packingListPlan'] ??
+          loadPlanningData['packingPlan'] ??
+          loadPlanningData['bundlePlan'],
+    );
+    return dataPlan.isNotEmpty ? {...direct, ...dataPlan} : direct;
+  }
+
+  List<Map<String, dynamic>> get detailTruckLoads {
+    final plan = detailPlan;
+    return _firstList([
+      loadPlanningData['packingLists'],
+      plan['truckLoads'],
+      plan['loads'],
+      plan['trucks'],
+      loadPlanningData['truckLoads'],
+      loadPlanningData['loads'],
+      loadPlanningData['trucks'],
+    ]).whereType<Map>().map((item) => Map<String, dynamic>.from(item)).toList();
+  }
+
+  List<Map<String, dynamic>> bundlesForTruck(Map<String, dynamic> truck) {
+    final direct = _firstList([
+      truck['bundles'],
+      truck['bundleList'],
+      truck['assignedBundles'],
+    ]);
+    if (direct.isNotEmpty) {
+      return direct
+          .whereType<Map>()
+          .map((item) => Map<String, dynamic>.from(item))
+          .toList();
+    }
+    final bundleIds = _firstList([
+      truck['bundleIds'],
+    ]).map((item) => item.toString()).toSet();
+    if (bundleIds.isNotEmpty) {
+      return _firstList([loadPlanningData['bundles']])
+          .whereType<Map>()
+          .map((item) => Map<String, dynamic>.from(item))
+          .where((item) => bundleIds.contains((item['_id'] ?? '').toString()))
+          .toList();
+    }
+    final truckId = (truck['_id'] ?? truck['loadId'] ?? truck['truckId'] ?? '')
+        .toString();
+    return _firstList([
+      detailPlan['bundles'],
+      bundlePlan['bundles'],
+      loadPlanningData['bundles'],
+    ]).whereType<Map>().map((item) => Map<String, dynamic>.from(item)).where((
+      item,
+    ) {
+      final assigned =
+          (item['truckId'] ?? item['loadId'] ?? item['assignedTruckId'] ?? '')
+              .toString();
+      return truckId.isEmpty || assigned.isEmpty || assigned == truckId;
+    }).toList();
+  }
+
+  int get detailTotalBundles {
+    final value =
+        _map(loadPlanningData['bundleSummary'])['totalBundles'] ??
+        detailPlan['totalBundles'] ??
+        detailPlan['bundleCount'] ??
+        bundleCoverage['totalBundles'];
+    final count = _int(value);
+    if (count > 0) return count;
+    final trucks = detailTruckLoads;
+    if (trucks.isNotEmpty) {
+      return trucks.fold<int>(0, (sum, truck) {
+        final direct = _int(truck['bundleCount'] ?? truck['totalBundles']);
+        return sum + (direct > 0 ? direct : bundlesForTruck(truck).length);
+      });
+    }
+    return _firstList([detailPlan['bundles'], bundlePlan['bundles']]).length;
+  }
+
+  int get detailTotalLoads {
+    final count = _int(detailPlan['totalLoads'] ?? detailPlan['loadCount']);
+    return count > 0 ? count : detailTruckLoads.length;
+  }
+
+  String get detailTotalWeight => _weight(
+    _map(loadPlanningData['bundleSummary'])['totalWeight'] ??
+        detailPlan['totalWeight'] ??
+        bundlePlan['totalWeight'] ??
+        freightAutofill['weight'],
+  );
 
   Future<void> exportProjects() async => _export(
     fileName: 'load_planning_projects',
@@ -317,12 +448,29 @@ class LoadPlanningController extends GetxController {
     }
   }
 
+  Future<Map<String, dynamic>> _optional(
+    Future<Map<String, dynamic>> Function() request,
+  ) async {
+    try {
+      return await request();
+    } catch (_) {
+      return <String, dynamic>{};
+    }
+  }
+
   String _safeName(String value) => value.trim().isEmpty
       ? 'export'
       : value.trim().toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_');
 
   Map<String, dynamic> _map(dynamic value) =>
       value is Map ? Map<String, dynamic>.from(value) : {};
+  List<dynamic> _firstList(List<dynamic> candidates) {
+    for (final candidate in candidates) {
+      if (candidate is List && candidate.isNotEmpty) return candidate;
+    }
+    return const [];
+  }
+
   int _int(dynamic value) =>
       value is num ? value.toInt() : int.tryParse('$value') ?? 0;
   String _weight(dynamic value) =>

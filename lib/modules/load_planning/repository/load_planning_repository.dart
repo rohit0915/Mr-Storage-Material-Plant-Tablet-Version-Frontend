@@ -19,6 +19,10 @@ class LoadPlanningRepository {
     return _get(ApiEndpoints.plantProjectLoadPlanning(leadId));
   }
 
+  Future<Map<String, dynamic>> fetchProjectTruckPlan(String leadId) async {
+    return _get(ApiEndpoints.plantProjectTruckPlan(leadId));
+  }
+
   Future<Map<String, dynamic>> _get(
     String path, {
     Map<String, dynamic>? query,

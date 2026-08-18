@@ -5,6 +5,9 @@ class ApiEndpoints {
   static const String login = 'auth/login';
   static const String logout = 'auth/logout';
   static const String refreshToken = 'auth/refresh';
+  static const String forgotPassword = 'auth/forgot-password';
+  static const String verifyOtp = 'auth/verify-otp';
+  static const String resetPassword = 'auth/reset-password';
   static const String uploadPresignedUrl = 'upload/presigned-url';
 
   // Plant Dashboard & Projects Endpoints
@@ -42,6 +45,8 @@ class ApiEndpoints {
       'plant/load-planning/projects';
   static String plantProjectLoadPlanning(String leadId) =>
       'plant/projects/$leadId/load-planning';
+  static String plantProjectTruckPlan(String leadId) =>
+      'plant/projects/$leadId/load-planning/truck-plan';
   static const String plantPackingListProjects = 'plant/packing-lists/projects';
   static String plantPackingList(String packingListId) =>
       'plant/packing-lists/$packingListId';
@@ -101,6 +106,10 @@ class ApiEndpoints {
   static const String customers = 'customers';
   static String plantConsolidatedBom(String leadId) =>
       'plant/projects/$leadId/consolidated-bom';
+  static String plantGenerateConsolidatedBom(String leadId) =>
+      'plant/projects/$leadId/consolidated-bom/generate';
+  static String plantConsolidatedBomUrl(String leadId) =>
+      'plant/bom/projects/$leadId/consolidated-url';
   static String plantSendConsolidatedBom(String leadId) =>
       'plant/projects/$leadId/consolidated-bom/send';
   static String plantProjectBundlePlan(String leadId) =>

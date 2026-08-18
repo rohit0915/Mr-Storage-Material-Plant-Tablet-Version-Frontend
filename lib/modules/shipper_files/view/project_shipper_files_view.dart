@@ -25,6 +25,40 @@ class ProjectShipperFilesView extends GetView<ShipperFilesController> {
                 if (controller.isLoading.value) {
                   return const CommonLoader();
                 }
+                if (controller.errorMessage.value.isNotEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.error_outline,
+                          color: Colors.red,
+                          size: 52,
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          controller.errorMessage.value,
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            OutlinedButton(
+                              onPressed: Get.back,
+                              child: const Text('Back'),
+                            ),
+                            const SizedBox(width: 12),
+                            ElevatedButton(
+                              onPressed: controller.loadData,
+                              child: const Text('Retry'),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  );
+                }
 
                 return SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
@@ -433,10 +467,12 @@ class ProjectShipperFilesView extends GetView<ShipperFilesController> {
                       ),
                       // Action Column
                       IconButton(
-                        onPressed: () => Get.toNamed(
-                          AppRoutes.shipperFileDetails,
-                          parameters: {'id': item.id},
-                        ),
+                        onPressed: item.fileName.isEmpty || item.id.isEmpty
+                            ? null
+                            : () => Get.toNamed(
+                                AppRoutes.shipperFileDetails,
+                                parameters: {'id': item.id},
+                              ),
                         icon: const Icon(
                           Icons.visibility_outlined,
                           size: 18,

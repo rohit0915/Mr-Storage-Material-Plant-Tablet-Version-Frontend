@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../app/routes/app_routes.dart';
+import 'package:printing/printing.dart';
 import '../../../app/utils/app_colors.dart';
 import '../../../app/utils/app_images.dart';
 import '../../../app/widgets/common_loader.dart';
@@ -24,6 +24,40 @@ class ShipperFileDetailsView extends GetView<ShipperFileDetailsController> {
               child: Obx(() {
                 if (controller.isLoading.value) {
                   return const CommonLoader();
+                }
+                if (controller.errorMessage.value.isNotEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.error_outline,
+                          color: Colors.red,
+                          size: 52,
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          controller.errorMessage.value,
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            OutlinedButton(
+                              onPressed: Get.back,
+                              child: const Text('Back'),
+                            ),
+                            const SizedBox(width: 12),
+                            ElevatedButton(
+                              onPressed: controller.loadSalesOrderDetails,
+                              child: const Text('Retry'),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  );
                 }
 
                 return SingleChildScrollView(
@@ -59,7 +93,7 @@ class ShipperFileDetailsView extends GetView<ShipperFileDetailsController> {
           onPressed: () => Get.back(),
           icon: const Icon(Icons.arrow_back, size: 16, color: Colors.white),
           label: const Text(
-            'Shipper File',
+            'Back',
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.bold,
@@ -77,29 +111,31 @@ class ShipperFileDetailsView extends GetView<ShipperFileDetailsController> {
         ),
         const Spacer(),
 
-        // Download PDF Button
-        OutlinedButton.icon(
-          onPressed: () => Get.toNamed(AppRoutes.pdfView),
-          icon: const Icon(
-            Icons.picture_as_pdf_outlined,
-            size: 16,
-            color: AppColors.textPrimary,
-          ),
-          label: const Text(
-            'Download PDF',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
+        // View / Download PDF Button (In-Place Toggle)
+        Obx(
+          () => OutlinedButton.icon(
+            onPressed: controller.toggleEmbeddedView,
+            icon: const Icon(
+              Icons.picture_as_pdf_outlined,
+              size: 16,
               color: AppColors.textPrimary,
             ),
-          ),
-          style: OutlinedButton.styleFrom(
-            backgroundColor: Colors.white,
-            side: const BorderSide(color: AppColors.inputBorder),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
+            label: Text(
+              controller.showEmbeddedView.value ? 'Hide PDF' : 'View PDF',
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
             ),
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            style: OutlinedButton.styleFrom(
+              backgroundColor: Colors.white,
+              side: const BorderSide(color: AppColors.inputBorder),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            ),
           ),
         ),
         const SizedBox(width: 10),
@@ -203,11 +239,12 @@ class ShipperFileDetailsView extends GetView<ShipperFileDetailsController> {
         children: [
           _buildProjectInfoBanner(),
           const SizedBox(height: 28),
-          _buildSalesOrderHeaderBox(),
-          const SizedBox(height: 24),
-          _buildMetaSummaryGrid(),
-          const SizedBox(height: 24),
-          _buildItemsTable(),
+          _buildApiDocumentSummary(),
+          _buildEmbeddedPdfViewer(),
+          if (controller.salesOrderItems.isNotEmpty) ...[
+            const SizedBox(height: 24),
+            _buildItemsTable(),
+          ],
         ],
       ),
     );
@@ -224,12 +261,14 @@ class ShipperFileDetailsView extends GetView<ShipperFileDetailsController> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Project: ABC Warehouse Project',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
+          Obx(
+            () => Text(
+              'Project: ${controller.projectName.value}',
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
             ),
           ),
           const SizedBox(height: 12),
@@ -238,19 +277,19 @@ class ShipperFileDetailsView extends GetView<ShipperFileDetailsController> {
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children: [
                     Text(
-                      'Project ID: PRJ-1025',
-                      style: TextStyle(
+                      'Project ID: ${controller.projectCode.value}',
+                      style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                         color: AppColors.textPrimary,
                       ),
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     Text(
-                      'Shipper: SteelCorp',
-                      style: TextStyle(
+                      'Shipper: ${controller.vendorName.value}',
+                      style: const TextStyle(
                         fontSize: 12,
                         color: AppColors.textSecondary,
                       ),
@@ -265,9 +304,9 @@ class ShipperFileDetailsView extends GetView<ShipperFileDetailsController> {
                   () => Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Shipper File: steel_v1.xlsx',
-                        style: TextStyle(
+                      Text(
+                        'Shipper File: ${controller.fileName.value}',
+                        style: const TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
                           color: AppColors.textPrimary,
@@ -276,9 +315,9 @@ class ShipperFileDetailsView extends GetView<ShipperFileDetailsController> {
                       const SizedBox(height: 4),
                       Row(
                         children: [
-                          const Text(
-                            'Upload Date: Apr 22, 2026',
-                            style: TextStyle(
+                          Text(
+                            'Upload Date: ${controller.uploadedDate.value}',
+                            style: const TextStyle(
                               fontSize: 12,
                               color: AppColors.textSecondary,
                             ),
@@ -316,6 +355,7 @@ class ShipperFileDetailsView extends GetView<ShipperFileDetailsController> {
     );
   }
 
+  // ignore: unused_element
   Widget _buildSalesOrderHeaderBox() {
     return Container(
       decoration: BoxDecoration(border: Border.all(color: Colors.black12)),
@@ -377,6 +417,195 @@ class ShipperFileDetailsView extends GetView<ShipperFileDetailsController> {
     );
   }
 
+  Widget _buildApiDocumentSummary() {
+    return Obx(
+      () => Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF8FAFC),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.inputBorder),
+        ),
+        child: Column(
+          children: [
+            const Icon(
+              Icons.description_outlined,
+              size: 48,
+              color: Color(0xFF2563EB),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              controller.fileName.value,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              'Uploaded shipper document',
+              style: TextStyle(color: AppColors.textSecondary),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              onPressed: controller.toggleEmbeddedView,
+              icon: Icon(
+                controller.showEmbeddedView.value
+                    ? Icons.visibility_off
+                    : Icons.open_in_new,
+                size: 16,
+                color: Colors.white,
+              ),
+              label: Text(
+                controller.showEmbeddedView.value
+                    ? 'Hide PDF View'
+                    : 'View file',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF2563EB),
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmbeddedPdfViewer() {
+    return Obx(() {
+      if (!controller.showEmbeddedView.value) return const SizedBox.shrink();
+
+      return Container(
+        margin: const EdgeInsets.only(top: 24),
+        decoration: BoxDecoration(
+          color: const Color(0xFF1E293B),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.inputBorder),
+        ),
+        child: Column(
+          children: [
+            // PDF Viewer Controls Header Toolbar
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              decoration: const BoxDecoration(
+                color: Color(0xFF0F172A),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEF4444),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: const Text(
+                      'PDF',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      controller.fileName.value,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: controller.toggleEmbeddedView,
+                    icon: const Icon(
+                      Icons.close,
+                      color: Colors.white70,
+                      size: 20,
+                    ),
+                    tooltip: 'Close PDF View',
+                  ),
+                ],
+              ),
+            ),
+
+            SizedBox(
+              width: double.infinity,
+              height: 760,
+              child: controller.isPdfLoading.value
+                  ? const Center(child: CircularProgressIndicator())
+                  : controller.pdfError.value.isNotEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.picture_as_pdf_outlined,
+                            size: 48,
+                            color: Colors.white70,
+                          ),
+                          const SizedBox(height: 12),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 24),
+                            child: Text(
+                              controller.pdfError.value,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(color: Colors.white),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          ElevatedButton(
+                            onPressed: controller.loadPdfPreview,
+                            child: const Text('Retry PDF'),
+                          ),
+                        ],
+                      ),
+                    )
+                  : controller.pdfBytes.value == null
+                  ? const Center(
+                      child: Text(
+                        'No PDF available',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    )
+                  : PdfPreview(
+                      build: (_) async => controller.pdfBytes.value!,
+                      pdfFileName: controller.fileName.value,
+                      allowPrinting: false,
+                      allowSharing: false,
+                      canChangeOrientation: false,
+                      canChangePageFormat: false,
+                      canDebug: false,
+                      useActions: false,
+                      loadingWidget: const Center(
+                        child: CircularProgressIndicator(),
+                      ),
+                    ),
+            ),
+          ],
+        ),
+      );
+    });
+  }
+
   Widget _buildSalesOrderBoxRow(String label, String value) {
     return Container(
       decoration: const BoxDecoration(
@@ -414,6 +643,7 @@ class ShipperFileDetailsView extends GetView<ShipperFileDetailsController> {
     );
   }
 
+  // ignore: unused_element
   Widget _buildMetaSummaryGrid() {
     return Container(
       decoration: BoxDecoration(border: Border.all(color: Colors.black12)),

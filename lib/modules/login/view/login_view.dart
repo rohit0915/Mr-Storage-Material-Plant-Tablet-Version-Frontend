@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:steel_building_plant_panel/app/utils/app_images.dart';
+import '../../../app/routes/app_routes.dart';
 import '../../../app/utils/app_colors.dart';
 import '../../../app/utils/app_text_styles.dart';
 import '../../../app/widgets/common_button.dart';
@@ -127,13 +128,22 @@ class LoginView extends GetView<LoginController> {
                           // Password Field
                           const Text('Password', style: AppTextStyles.labelText),
                           const SizedBox(height: 8),
-                          TextField(
+                          Obx(() => TextField(
                             controller: controller.passwordController,
-                            obscureText: true,
+                            obscureText: !controller.isPasswordVisible.value,
                             decoration: InputDecoration(
                               hintText: '****************',
                               hintStyle: const TextStyle(color: AppColors.textHint),
                               prefixIcon: const Icon(Icons.lock_outline, color: AppColors.textSecondary),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  controller.isPasswordVisible.value
+                                      ? Icons.visibility_outlined
+                                      : Icons.visibility_off_outlined,
+                                  color: AppColors.textSecondary,
+                                ),
+                                onPressed: controller.togglePasswordVisibility,
+                              ),
                               filled: true,
                               fillColor: AppColors.inputBackground,
                               border: OutlineInputBorder(
@@ -149,7 +159,7 @@ class LoginView extends GetView<LoginController> {
                                 borderSide: const BorderSide(color: AppColors.primary),
                               ),
                             ),
-                          ),
+                          )),
                           const SizedBox(height: 16),
                           
                           // Remember Me & Forgot Password
@@ -173,7 +183,7 @@ class LoginView extends GetView<LoginController> {
                                 ],
                               ),
                               TextButton(
-                                onPressed: () {},
+                                onPressed: () => Get.toNamed(AppRoutes.forgotPassword),
                                 style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero),
                                 child: const Text('Forgot password?', style: AppTextStyles.linkText),
                               ),

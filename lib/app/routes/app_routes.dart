@@ -4,6 +4,7 @@ abstract class AppRoutes {
   static const customerInfo = '/customer-info';
   static const onboarding = '/onboarding';
   static const login = '/login';
+  static const forgotPassword = '/forgot-password';
   static const allProjects = '/all-projects';
   static const projectDetails = '/project-details';
   static const bomFilesDetails = '/bom-files-details';
@@ -20,6 +21,7 @@ abstract class AppRoutes {
   static const comparisonResult = '/comparison-result';
   static const loadPlanning = '/load-planning';
   static const projectLoadPlanning = '/project-load-planning';
+  static const loadPlanDetails = '/load-plan-details';
   static const packingList = '/packing-list';
   static const projectPackingList = '/project-packing-list';
   static const packingListDetails = '/packing-list-details';

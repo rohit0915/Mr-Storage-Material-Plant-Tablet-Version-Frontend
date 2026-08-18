@@ -5,6 +5,7 @@ import 'package:file_saver/file_saver.dart';
 import '../../../app/widgets/common_snackbar.dart';
 import '../../../app/services/plant_socket_service.dart';
 import '../model/bom_files_details_model.dart';
+import '../model/bom_document_mapper.dart';
 import '../repository/bom_files_details_repository.dart';
 
 class BomFilesDetailsController extends GetxController {
@@ -86,31 +87,64 @@ class BomFilesDetailsController extends GetxController {
     projectId.value = Get.parameters['projectId'] ?? '';
     buildingName.value = Get.parameters['buildingName'] ?? '';
 
-    if (id.isEmpty) {
-      errorMessage.value = 'Project id is missing.';
-      _clear();
-      isLoading.value = false;
-      return;
-    }
     try {
-      final data = await repository.fetchJob(
-        id,
-        filter: filters[selectedTabIndex.value],
-        page: currentPage.value,
-        limit: rowsPerPage.value,
-      );
-      _applyJob(data, id);
-      qtyTotal.value = bomItems.fold(0, (sum, item) => sum + item.qty);
-      totalWeightLbs.value = _number(summary.value?.totalWeight ?? '0');
-      totalTons.value = totalWeightLbs.value / 2000;
-      totalCostAmount.value = _number(summary.value?.totalCost ?? '0');
-      totalCost.value = summary.value?.totalCost ?? '\$0.00';
+      if (Get.parameters['mode'] == 'consolidated') {
+        final leadId = projectId.value.isNotEmpty ? projectId.value : id;
+        if (leadId.isEmpty) throw Exception('Project id is missing.');
+        final data = await repository.fetch(leadId);
+        _applyConsolidatedData(data, leadId);
+      } else if (id.isNotEmpty) {
+        final data = await repository.fetchJob(
+          id,
+          filter: filters[selectedTabIndex.value],
+          page: currentPage.value,
+          limit: rowsPerPage.value,
+        );
+        _applyJob(data, id);
+        qtyTotal.value = bomItems.fold(0, (sum, item) => sum + item.qty);
+        totalWeightLbs.value = _number(summary.value?.totalWeight ?? '0');
+        totalTons.value = totalWeightLbs.value / 2000;
+        totalCostAmount.value = _number(summary.value?.totalCost ?? '0');
+        totalCost.value = summary.value?.totalCost ?? '\$0.00';
+      } else {
+        throw Exception('BOM job id is missing.');
+      }
     } catch (error) {
-      errorMessage.value = error.toString();
+      errorMessage.value = error.toString().replaceFirst('Exception: ', '');
       _clear();
     } finally {
       isLoading.value = false;
     }
+  }
+
+  void _applyConsolidatedData(Map<String, dynamic> data, String leadId) {
+    final document = BomDocumentMapper.fromApi(
+      projectId: leadId,
+      response: data,
+    );
+    projectName.value = Get.parameters['name'] ?? document.projectName;
+    projectId.value = document.projectId;
+    bomId.value = document.bomId;
+    buildingName.value = '';
+    customerName.value = Get.parameters['customer'] ?? document.customerName;
+    jobId.value = Get.parameters['projectJobId'] ?? document.jobId;
+    date.value = document.date;
+    sourceFileUrl.value = document.sourceFileUrl;
+    summary.value = document.summary;
+    missingSummary.value = document.missingSummary;
+    bomItems.assignAll(document.items);
+    final groups = <String, List<BomItemModel>>{};
+    for (final item in document.items) {
+      groups.putIfAbsent(item.category, () => []).add(item);
+    }
+    groupedBomItems.assignAll(groups);
+    totalEntries.value = document.items.length;
+    pricedItems.value = document.items.where((item) => !item.isMissing).length;
+    qtyTotal.value = document.items.fold(0, (sum, item) => sum + item.qty);
+    totalWeightLbs.value = _number(document.summary.totalWeight);
+    totalTons.value = totalWeightLbs.value / 2000;
+    totalCostAmount.value = _number(document.summary.totalCost ?? '0');
+    totalCost.value = document.summary.totalCost ?? '\$0.00';
   }
 
   Future<void> selectTab(int index) async {

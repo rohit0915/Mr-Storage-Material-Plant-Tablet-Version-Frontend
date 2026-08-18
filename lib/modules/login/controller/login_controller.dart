@@ -16,6 +16,11 @@ class LoginController extends GetxController {
   final RxBool isFormValid = false.obs;
   final RxBool rememberMe = true.obs;
   final RxBool isLoading = false.obs;
+  final RxBool isPasswordVisible = false.obs;
+
+  void togglePasswordVisibility() {
+    isPasswordVisible.value = !isPasswordVisible.value;
+  }
 
   @override
   void onInit() {

@@ -6,6 +6,7 @@ import '../../home/widgets/app_drawer.dart';
 import '../../home/widgets/dashboard_app_bar.dart';
 import '../controller/freight_carriers_controller.dart';
 import '../model/freight_carrier_master_model.dart';
+import 'add_freight_carrier_view.dart';
 
 class FreightCarriersView extends GetView<FreightCarriersController> {
   const FreightCarriersView({super.key});
@@ -60,7 +61,7 @@ class FreightCarriersView extends GetView<FreightCarriersController> {
                       const SizedBox(height: 24),
 
                       // Carriers Data Table with Horizontal Scroll
-                      _buildCarriersTable(),
+                      _buildCarriersTable(context),
 
                       const SizedBox(height: 32),
                     ],
@@ -178,7 +179,7 @@ class FreightCarriersView extends GetView<FreightCarriersController> {
     );
   }
 
-  Widget _buildCarriersTable() {
+  Widget _buildCarriersTable(BuildContext context) {
     final scrollController = ScrollController();
 
     return Container(
@@ -394,7 +395,7 @@ class FreightCarriersView extends GetView<FreightCarriersController> {
 
                         return Column(
                           children: [
-                            _buildCarrierRow(carrier),
+                            _buildCarrierRow(context, carrier),
                             if (!isLast)
                               const Divider(
                                 height: 1,
@@ -414,7 +415,7 @@ class FreightCarriersView extends GetView<FreightCarriersController> {
     );
   }
 
-  Widget _buildCarrierRow(FreightCarrierMasterModel carrier) {
+  Widget _buildCarrierRow(BuildContext context, FreightCarrierMasterModel carrier) {
     final bool isActive = carrier.status.toLowerCase() == 'active';
 
     return Padding(
@@ -698,20 +699,20 @@ class FreightCarriersView extends GetView<FreightCarriersController> {
             ),
           ),
 
-          // ACTIONS
+          // ACTIONS (View and Edit only - Delete removed as requested)
           SizedBox(
-            width: 90,
+            width: 70,
             child: Row(
               children: [
                 InkWell(
-                  onTap: () {},
+                  onTap: () => _showCarrierDetailDialog(context, carrier),
                   child: const Icon(
                     Icons.remove_red_eye_outlined,
-                    size: 16,
-                    color: Color(0xFF475569),
+                    size: 18,
+                    color: Color(0xFF2563EB),
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 12),
                 InkWell(
                   onTap: () {
                     controller.selectedCarrier.value = carrier;
@@ -719,21 +720,419 @@ class FreightCarriersView extends GetView<FreightCarriersController> {
                   },
                   child: const Icon(
                     Icons.edit_outlined,
-                    size: 16,
-                    color: Color(0xFF2563EB),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                InkWell(
-                  onTap: () => controller.toggleStatus(carrier),
-                  child: const Icon(
-                    Icons.delete_outline,
-                    size: 16,
-                    color: Color(0xFFEF4444),
+                    size: 18,
+                    color: Color(0xFF16A34A),
                   ),
                 ),
               ],
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Carrier Details Modal with Interactive Service Area Map
+  void _showCarrierDetailDialog(BuildContext context, FreightCarrierMasterModel carrier) {
+    final bool isActive = carrier.status.toLowerCase() == 'active';
+
+    Get.dialog(
+      Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        backgroundColor: Colors.white,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+        child: Container(
+          width: 760,
+          padding: const EdgeInsets.all(24),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Modal Header: Carrier Name, Code, Status Pill & Close Button
+                Row(
+                  children: [
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFDBEAFE),
+                        borderRadius: BorderRadius.circular(22),
+                      ),
+                      child: const Icon(
+                        Icons.directions_bus_outlined,
+                        color: Color(0xFF2563EB),
+                        size: 24,
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            carrier.name,
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF0F172A),
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Carrier Code: ${carrier.carrierId.isNotEmpty ? carrier.carrierId : 'N/A'}',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Color(0xFF64748B),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: isActive ? const Color(0xFFDCFCE7) : const Color(0xFFFEE2E2),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Text(
+                        carrier.status,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: isActive ? const Color(0xFF16A34A) : const Color(0xFFEF4444),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    IconButton(
+                      onPressed: () => Get.back(),
+                      icon: const Icon(Icons.close, color: Color(0xFF64748B)),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 20),
+                const Divider(height: 1, color: Color(0xFFE2E8F0)),
+                const SizedBox(height: 20),
+
+                // Contact & Logistics Specs Grid
+                Container(
+                  padding: const EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildDetailCell(
+                              icon: Icons.person_outline,
+                              label: 'Contact Name',
+                              value: carrier.contact.isNotEmpty ? carrier.contact : 'N/A',
+                            ),
+                          ),
+                          Expanded(
+                            child: _buildDetailCell(
+                              icon: Icons.email_outlined,
+                              label: 'Email Address',
+                              value: carrier.email.isNotEmpty ? carrier.email : 'N/A',
+                            ),
+                          ),
+                          Expanded(
+                            child: _buildDetailCell(
+                              icon: Icons.phone_outlined,
+                              label: 'Phone Number',
+                              value: carrier.phone.isNotEmpty ? carrier.phone : 'N/A',
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildDetailCell(
+                              icon: Icons.local_shipping_outlined,
+                              label: 'Service Type',
+                              value: carrier.serviceType.isNotEmpty ? carrier.serviceType : 'N/A',
+                            ),
+                          ),
+                          Expanded(
+                            child: _buildDetailCell(
+                              icon: Icons.place_outlined,
+                              label: 'Service Area',
+                              value: carrier.serviceArea.isNotEmpty ? carrier.serviceArea : 'N/A',
+                            ),
+                          ),
+                          Expanded(
+                            child: _buildDetailCell(
+                              icon: Icons.build_circle_outlined,
+                              label: 'Equipment Types',
+                              value: carrier.equipmentType.isNotEmpty ? carrier.equipmentType : 'N/A',
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
+                // Key Performance Metrics Cards
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildStatCard(
+                        title: 'Active Bids',
+                        value: '${carrier.activeBids}',
+                        subtitle: '${carrier.totalBids} Total Bids',
+                        color: const Color(0xFF2563EB),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildStatCard(
+                        title: 'Awarded Bids',
+                        value: '${carrier.awardedCount}',
+                        subtitle: carrier.winRate,
+                        color: const Color(0xFF16A34A),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildStatCard(
+                        title: 'Average Bid',
+                        value: carrier.avgBid,
+                        subtitle: carrier.respondsTime.isNotEmpty ? carrier.respondsTime : 'Fast Response',
+                        color: const Color(0xFF7C3AED),
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 24),
+
+                // Interactive Service Area Map Section
+                const Text(
+                  'Service Area & Geographical Coverage',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF0F172A),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Container(
+                  height: 220,
+                  width: double.infinity,
+                  clipBehavior: Clip.antiAlias,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1E293B),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFCBD5E1)),
+                  ),
+                  child: Stack(
+                    children: [
+                      // Map View Canvas
+                      Positioned.fill(
+                        child: CustomPaint(
+                          painter: MapPatternPainter(),
+                        ),
+                      ),
+
+                      // Location Pin Overlay
+                      Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF2563EB).withValues(alpha: 0.25),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: const BoxDecoration(
+                                  color: Color(0xFF2563EB),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.location_on,
+                                  size: 22,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(8),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.15),
+                                    blurRadius: 6,
+                                  ),
+                                ],
+                              ),
+                              child: Text(
+                                carrier.serviceArea.isNotEmpty
+                                    ? carrier.serviceArea
+                                    : 'Service Area Coverage Map',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF0F172A),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // Top Map Badge
+                      Positioned(
+                        top: 12,
+                        left: 12,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.95),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Row(
+                            children: const [
+                              Icon(Icons.map, size: 14, color: Color(0xFF2563EB)),
+                              SizedBox(width: 6),
+                              Text(
+                                'Active Coverage Map',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF0F172A),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 24),
+
+                // Modal Bottom Action Bar
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        Get.back();
+                        controller.selectedCarrier.value = carrier;
+                        Get.toNamed(AppRoutes.editFreightCarrier);
+                      },
+                      icon: const Icon(Icons.edit, size: 16),
+                      label: const Text('Edit Carrier Details'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF2563EB),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    OutlinedButton(
+                      onPressed: () => Get.back(),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: const Color(0xFF475569),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      ),
+                      child: const Text('Close'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+      barrierDismissible: true,
+    );
+  }
+
+  Widget _buildDetailCell({required IconData icon, required String label, required String value}) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 16, color: const Color(0xFF2563EB)),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF0F172A),
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatCard({
+    required String title,
+    required String value,
+    required String subtitle,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: TextStyle(fontSize: 12, color: color, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            value,
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: color),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            subtitle,
+            style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)),
           ),
         ],
       ),

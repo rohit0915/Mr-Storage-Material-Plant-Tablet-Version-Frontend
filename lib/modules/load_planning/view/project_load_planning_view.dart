@@ -24,6 +24,42 @@ class ProjectLoadPlanningView extends GetView<LoadPlanningController> {
                 if (controller.isLoading.value) {
                   return const CommonLoader();
                 }
+                if (controller.errorMessage.value.isNotEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.error_outline,
+                          color: Colors.red,
+                          size: 52,
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          controller.errorMessage.value,
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            OutlinedButton(
+                              onPressed: Get.back,
+                              child: const Text('Back'),
+                            ),
+                            const SizedBox(width: 12),
+                            ElevatedButton(
+                              onPressed: () => controller.loadProjectLoadPlans(
+                                controller.selectedProjectId.value,
+                              ),
+                              child: const Text('Retry'),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  );
+                }
 
                 return SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),

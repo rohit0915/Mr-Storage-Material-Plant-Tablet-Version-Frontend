@@ -23,6 +23,9 @@ class BomFilesDetailsView extends GetView<BomFilesDetailsController> {
             // Fixed Top App Bar
             const DashboardAppBar(),
 
+            // Header Navigation & Actions Bar (Always visible)
+            _buildHeaderToolbar(),
+
             Expanded(
               child: Obx(() {
                 if (controller.isLoading.value) {
@@ -32,6 +35,7 @@ class BomFilesDetailsView extends GetView<BomFilesDetailsController> {
                   return CommonErrorWidget(
                     message: controller.errorMessage.value,
                     onRetry: controller.loadBomData,
+                    onBack: () => Get.back(),
                   );
                 }
 
@@ -40,10 +44,7 @@ class BomFilesDetailsView extends GetView<BomFilesDetailsController> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Header Navigation & Actions Bar
-                      _buildHeaderToolbar(),
-
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 8),
 
                       // Main Content Card
                       _buildMainContentCard(),

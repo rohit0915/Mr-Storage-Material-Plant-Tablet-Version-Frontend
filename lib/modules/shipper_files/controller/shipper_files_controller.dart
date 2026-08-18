@@ -69,47 +69,21 @@ class ShipperFilesController extends GetxController {
       ]);
       final stats = results[0];
       final data = results[1];
-      totalProjects.value = _int(stats['totalProjects']);
-      pendingComparison.value = _int(stats['pendingComparison']);
-      approved.value = _int(stats['approved']);
+      totalProjects.value = _int(stats['totalFiles']);
+      pendingComparison.value = _int(stats['filesReceived']);
+      approved.value = _int(stats['ordersSent']);
 
       final projects = data['projects'] is List
           ? data['projects'] as List
           : const [];
 
-      if (projects.isNotEmpty) {
-        projectsList.assignAll(projects.whereType<Map>().map(_projectFromMap));
-      } else {
-        _loadDefaultProjects();
-      }
+      projectsList.assignAll(projects.whereType<Map>().map(_projectFromMap));
     } catch (e) {
-      _loadDefaultProjects();
+      projectsList.clear();
+      errorMessage.value = e.toString();
     } finally {
       isLoading.value = false;
     }
-  }
-
-  void _loadDefaultProjects() {
-    projectsList.assignAll([
-      ProjectShipperFileModel(
-        projectId: 'PRO-007',
-        projectName: 'Wood Workshop',
-        fileReceived: '07 Aug 2026',
-        totalShipperFiles: 2,
-      ),
-      ProjectShipperFileModel(
-        projectId: 'PRO-002',
-        projectName: 'Lucas project',
-        fileReceived: '30 Jul 2026',
-        totalShipperFiles: 1,
-      ),
-      ProjectShipperFileModel(
-        projectId: 'PRO-008',
-        projectName: 'Another Project',
-        fileReceived: '-',
-        totalShipperFiles: 1,
-      ),
-    ]);
   }
 
   ProjectShipperFileModel _projectFromMap(Map raw) {
@@ -118,48 +92,28 @@ class ShipperFilesController extends GetxController {
     final pName = (item['projectName'] ?? lead['projectName'] ?? 'Project')
         .toString();
 
-    String pId =
-        (item['jobId'] ??
-                item['job_id'] ??
-                lead['jobId'] ??
-                lead['job_id'] ??
-                item['projectCode'] ??
-                '')
-            .toString();
-
-    if (pId.isEmpty || pId.length > 20) {
-      if (pName.contains('Wood')) {
-        pId = 'PRO-007';
-      } else if (pName.contains('Lucas')) {
-        pId = 'PRO-002';
-      } else if (pName.contains('Another')) {
-        pId = 'PRO-008';
-      } else {
-        pId = (item['leadId'] ?? item['_id'] ?? '').toString();
-      }
-    }
+    final leadId = (item['leadId'] ?? lead['_id'] ?? item['_id'] ?? '')
+        .toString();
+    final pId = (item['projectId'] ?? item['jobId'] ?? lead['jobId'] ?? '-')
+        .toString();
 
     final rawDate =
+        item['latestSubmittedAt'] ??
         item['fileReceivedAt'] ??
-        item['uploadedAt'] ??
         item['updatedAt'] ??
         item['createdAt'] ??
         lead['createdAt'];
 
     return ProjectShipperFileModel(
+      leadId: leadId,
       projectId: pId,
       projectName: pName,
-      fileReceived: _formatReceivedDate(rawDate, pName),
-      totalShipperFiles: _int(
-        item['totalShipperFiles'] ??
-            item['totalRequests'] ??
-            item['requestCount'] ??
-            (pName.contains('Wood') ? 2 : 1),
-      ),
+      fileReceived: _formatReceivedDate(rawDate),
+      totalShipperFiles: _int(item['totalShipperFiles']),
     );
   }
 
-  String _formatReceivedDate(dynamic value, String pName) {
+  String _formatReceivedDate(dynamic value) {
     if (value != null &&
         value.toString().isNotEmpty &&
         value.toString() != 'null') {
@@ -198,19 +152,27 @@ class ShipperFilesController extends GetxController {
       }
     }
 
-    if (pName.contains('Wood')) return '07 Aug 2026';
-    if (pName.contains('Lucas')) return '30 Jul 2026';
-    if (pName.contains('Another')) return '-';
     return '-';
   }
 
   Future<void> openProject(ProjectShipperFileModel item) async {
-    selectedProjectId.value = item.projectId;
+    selectedProjectId.value = item.leadId;
     selectedProjectName.value = item.projectName;
+    shipperFiles.clear();
+    errorMessage.value = '';
+    isLoading.value = true;
     Get.toNamed(
       AppRoutes.projectShipperFiles,
-      parameters: {'id': item.projectId, 'name': item.projectName},
+      parameters: {'id': item.leadId, 'name': item.projectName},
     );
+    try {
+      await loadProjectRequests(item.leadId);
+    } catch (error) {
+      shipperFiles.clear();
+      errorMessage.value = error.toString();
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   Future<void> loadProjectRequests(String leadId) async {
@@ -226,17 +188,13 @@ class ShipperFilesController extends GetxController {
         final comparison = _map(item['amountComparison']);
         return ShipperFileItemModel(
           id: (item['requestId'] ?? item['_id'] ?? '').toString(),
-          shipperName: (item['shipperName'] ?? vendor['name'] ?? 'Shipper')
-              .toString(),
-          fileName:
-              (((item['fileName']?.toString().isNotEmpty ?? false)
-                          ? item['fileName']
-                          : null) ??
-                      item['vendorCode'] ??
-                      item['shipperReference'] ??
-                      item['reference'] ??
-                      'No file uploaded')
+          shipperName:
+              (item['vendorName'] ??
+                      item['shipperName'] ??
+                      vendor['name'] ??
+                      '-')
                   .toString(),
+          fileName: (item['fileName'] ?? '').toString(),
           uploadDate: _date(
             item['uploadedDate'] ?? item['uploadedAt'] ?? item['createdAt'],
           ),

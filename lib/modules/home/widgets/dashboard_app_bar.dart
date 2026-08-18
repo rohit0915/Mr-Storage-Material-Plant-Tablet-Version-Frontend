@@ -477,6 +477,9 @@ class _ChangePasswordDialogState extends State<_ChangePasswordDialog> {
   final next = TextEditingController();
   final confirm = TextEditingController();
   bool loading = false;
+  bool showCurrent = false;
+  bool showNext = false;
+  bool showConfirm = false;
 
   @override
   void dispose() {
@@ -529,19 +532,50 @@ class _ChangePasswordDialogState extends State<_ChangePasswordDialog> {
         children: [
           TextField(
             controller: current,
-            obscureText: true,
-            decoration: const InputDecoration(labelText: 'Current password'),
+            obscureText: !showCurrent,
+            decoration: InputDecoration(
+              labelText: 'Current password',
+              suffixIcon: IconButton(
+                icon: Icon(
+                  showCurrent
+                      ? Icons.visibility_outlined
+                      : Icons.visibility_off_outlined,
+                  size: 20,
+                ),
+                onPressed: () => setState(() => showCurrent = !showCurrent),
+              ),
+            ),
           ),
           TextField(
             controller: next,
-            obscureText: true,
-            decoration: const InputDecoration(labelText: 'New password'),
+            obscureText: !showNext,
+            decoration: InputDecoration(
+              labelText: 'New password',
+              suffixIcon: IconButton(
+                icon: Icon(
+                  showNext
+                      ? Icons.visibility_outlined
+                      : Icons.visibility_off_outlined,
+                  size: 20,
+                ),
+                onPressed: () => setState(() => showNext = !showNext),
+              ),
+            ),
           ),
           TextField(
             controller: confirm,
-            obscureText: true,
-            decoration: const InputDecoration(
+            obscureText: !showConfirm,
+            decoration: InputDecoration(
               labelText: 'Confirm new password',
+              suffixIcon: IconButton(
+                icon: Icon(
+                  showConfirm
+                      ? Icons.visibility_outlined
+                      : Icons.visibility_off_outlined,
+                  size: 20,
+                ),
+                onPressed: () => setState(() => showConfirm = !showConfirm),
+              ),
             ),
           ),
         ],

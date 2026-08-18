@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../app/routes/app_routes.dart';
 import '../../../app/utils/app_colors.dart';
 import '../../../app/utils/app_images.dart';
 import '../../../app/widgets/common_snackbar.dart';
@@ -88,118 +87,36 @@ class DrawingDetailsDialog extends StatelessWidget {
 
             const SizedBox(height: 16),
 
-            // Blueprint Image / PDF Canvas Container with View PDF action
-            GestureDetector(
-              onTap: () {
-                Get.toNamed(AppRoutes.pdfView);
-              },
-              child: Container(
-                height: 380,
-                width: double.infinity,
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: AppColors.inputBorder),
-                ),
-                child: Stack(
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(6),
-                      child: Center(
-                        child: item.fileUrl.isNotEmpty
-                            ? Image.network(
-                                item.fileUrl,
-                                fit: BoxFit.contain,
-                                errorBuilder: (ctx, err, stack) =>
-                                    _fallbackPreview(),
-                              )
-                            : _fallbackPreview(),
-                      ),
-                    ),
-                    // Floating "Open PDF Viewer" Overlay
-                    Positioned(
-                      bottom: 12,
-                      right: 12,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF2563EB).withValues(alpha: 0.9),
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.2),
-                              blurRadius: 6,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: const [
-                            Icon(
-                              Icons.picture_as_pdf_outlined,
-                              size: 14,
-                              color: Colors.white,
-                            ),
-                            SizedBox(width: 6),
-                            Text(
-                              'Open Full PDF Viewer',
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
+            // Blueprint Image / PDF Canvas Container (Renders drawing / PDF directly in-place)
+            Container(
+              height: 380,
+              width: double.infinity,
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.inputBorder),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(6),
+                child: Center(
+                  child: item.fileUrl.isNotEmpty
+                      ? Image.network(
+                          item.fileUrl,
+                          fit: BoxFit.contain,
+                          errorBuilder: (ctx, err, stack) =>
+                              _fallbackPreview(),
+                        )
+                      : _fallbackPreview(),
                 ),
               ),
             ),
 
             const SizedBox(height: 20),
 
-            // Bottom Toolbar: View PDF, Download & Status Pill
+            // Bottom Toolbar: Download Button & Status Pill
             Row(
               children: [
-                // View PDF Button
-                ElevatedButton.icon(
-                  onPressed: () {
-                    Get.toNamed(AppRoutes.pdfView);
-                  },
-                  icon: const Icon(
-                    Icons.picture_as_pdf_outlined,
-                    size: 16,
-                    color: Colors.white,
-                  ),
-                  label: const Text(
-                    'View PDF',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2563EB),
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 10,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-
                 // Download Button
                 ElevatedButton.icon(
                   onPressed: () {
@@ -218,14 +135,14 @@ class DrawingDetailsDialog extends StatelessWidget {
                     ),
                   ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF94A3B8),
+                    backgroundColor: const Color(0xFF2563EB),
                     elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                     ),
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 10,
+                      horizontal: 24,
+                      vertical: 12,
                     ),
                   ),
                 ),

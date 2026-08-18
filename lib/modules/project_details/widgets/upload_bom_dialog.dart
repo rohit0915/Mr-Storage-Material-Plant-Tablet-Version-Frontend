@@ -4,7 +4,6 @@ import 'package:get/get.dart';
 import '../../../app/routes/app_routes.dart';
 import '../../../app/utils/app_colors.dart';
 import '../controller/project_details_controller.dart';
-import 'bom_uploaded_success_dialog.dart';
 
 class UploadBomDialog extends StatelessWidget {
   final Future<void> Function()? onUploaded;
@@ -205,30 +204,41 @@ class UploadBomDialog extends StatelessWidget {
                   ),
                   const SizedBox(width: 12),
                   ElevatedButton(
-                    onPressed: controller.isUploading.value
+                    onPressed:
+                        controller.isUploading.value ||
+                            controller.isConsolidatingBom.value
                         ? null
-                        : () async {
-                            if (controller.selectedUploadFiles.isNotEmpty) {
-                              final success = await controller
-                                  .uploadSelectedFiles(isBom: true);
-                              if (success) {
-                                await onUploaded?.call();
-                                Get.back();
-                                Get.dialog(
-                                  BomUploadedSuccessDialog(
-                                    projectId: controller.projectId,
-                                    projectName: controller.projectName.value,
-                                  ),
-                                );
-                              }
-                            } else {
-                              Get.back();
-                              Get.toNamed(
-                                AppRoutes.bomFilesDetails,
-                                parameters: {'id': controller.projectId},
+                        : controller.selectedUploadFiles.isNotEmpty
+                        ? () async {
+                            final success = await controller
+                                .uploadSelectedFiles(isBom: true);
+                            if (success) {
+                              await onUploaded?.call();
+                              Get.snackbar(
+                                'BOM uploaded',
+                                'Extraction has started. Confirm every building BOM before consolidating.',
                               );
                             }
-                          },
+                          }
+                        : controller.canConsolidateBom
+                        ? () async {
+                            final success = await controller
+                                .generateConsolidatedBom();
+                            if (!success) return;
+                            Get.back();
+                            Get.toNamed(
+                              AppRoutes.bomFilesDetails,
+                              parameters: {
+                                'projectId': controller.projectId,
+                                'id': controller.projectId,
+                                'mode': 'consolidated',
+                                'name': controller.projectName.value,
+                                'customer': controller.customerName.value,
+                                'projectJobId': controller.jobId.value,
+                              },
+                            );
+                          }
+                        : null,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF1E56B9),
                       elevation: 0,
@@ -240,7 +250,9 @@ class UploadBomDialog extends StatelessWidget {
                         vertical: 10,
                       ),
                     ),
-                    child: controller.isUploading.value
+                    child:
+                        controller.isUploading.value ||
+                            controller.isConsolidatingBom.value
                         ? const SizedBox(
                             width: 18,
                             height: 18,
@@ -249,8 +261,10 @@ class UploadBomDialog extends StatelessWidget {
                               color: Colors.white,
                             ),
                           )
-                        : const Text(
-                            'Consolidate',
+                        : Text(
+                            controller.selectedUploadFiles.isNotEmpty
+                                ? 'Upload'
+                                : 'Consolidate',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: Colors.white,

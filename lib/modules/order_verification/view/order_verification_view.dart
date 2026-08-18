@@ -35,6 +35,22 @@ class OrderVerificationView extends GetView<OrderVerificationController> {
                     children: [
                       // Header Navigation Toolbar
                       _buildHeaderToolbar(),
+                      if (controller.errorMessage.value.isNotEmpty) ...[
+                        const SizedBox(height: 16),
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFEF2F2),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: const Color(0xFFFECACA)),
+                          ),
+                          child: Text(
+                            controller.errorMessage.value,
+                            style: const TextStyle(color: Color(0xFFDC2626)),
+                          ),
+                        ),
+                      ],
                       const SizedBox(height: 24),
 
                       // Main White Card Container
@@ -138,7 +154,9 @@ class OrderVerificationView extends GetView<OrderVerificationController> {
 
           // Compare Files Button
           ElevatedButton.icon(
-            onPressed: () => controller.compareFiles(),
+            onPressed: controller.canCompare
+                ? () => controller.compareFiles()
+                : null,
             icon: const Icon(Icons.balance, size: 18, color: Colors.white),
             label: const Text(
               'Compare Files',
@@ -203,67 +221,77 @@ class OrderVerificationView extends GetView<OrderVerificationController> {
             ),
           ),
           const SizedBox(height: 16),
-          // Attached File Box
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: AppColors.inputBorder),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: badgeColor,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    fileType,
-                    style: const TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+          if (fileName.isEmpty)
+            Text(
+              title == 'Uploaded BOM File'
+                  ? 'No consolidated BOM found'
+                  : 'Vendor has not submitted a file yet',
+              style: const TextStyle(
+                fontSize: 12,
+                color: AppColors.textSecondary,
+              ),
+            )
+          else
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.inputBorder),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: badgeColor,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      fileType,
+                      style: const TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        fileName,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          fileName,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        fileSize,
-                        style: const TextStyle(
-                          fontSize: 10,
-                          color: AppColors.textSecondary,
+                        const SizedBox(height: 2),
+                        Text(
+                          fileSize,
+                          style: const TextStyle(
+                            fontSize: 10,
+                            color: AppColors.textSecondary,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-                const Icon(
-                  Icons.cancel_outlined,
-                  size: 18,
-                  color: AppColors.textHint,
-                ),
-              ],
+                  const Icon(
+                    Icons.cancel_outlined,
+                    size: 18,
+                    color: AppColors.textHint,
+                  ),
+                ],
+              ),
             ),
-          ),
         ],
       ),
     );

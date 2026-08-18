@@ -17,27 +17,22 @@ class AddFreightCarrierView extends StatefulWidget {
 }
 
 class _AddFreightCarrierViewState extends State<AddFreightCarrierView> {
-  final _nameController = TextEditingController(text: 'Ironhaul Logistics');
-  final _idController = TextEditingController(text: 'DLV-2026-10482');
-  final _phoneController = TextEditingController(text: '000-000-0000');
-  final _emailController = TextEditingController(text: 'emmawatson@email.com');
+  final _nameController = TextEditingController();
+  final _idController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _emailController = TextEditingController();
 
-  final _streetController = TextEditingController(
-    text: 'Palm Residency, MG Road',
-  );
-  final _placeController = TextEditingController(text: 'Flat 402');
-  final _postalController = TextEditingController(text: '411001');
+  final _streetController = TextEditingController();
+  final _placeController = TextEditingController();
+  final _postalController = TextEditingController();
 
   // Fleet Capacity Controllers
-  final _totalVehicleController = TextEditingController(text: '32');
-  final _maxCapacityController = TextEditingController(text: '800000 lbs');
-  final _avgAgeController = TextEditingController(text: '4.2');
+  final _totalVehicleController = TextEditingController();
+  final _maxCapacityController = TextEditingController();
+  final _avgAgeController = TextEditingController();
 
   // Internal Notes Controller
-  final _notesController = TextEditingController(
-    text:
-        'Client requested work completion before Friday inspection. Ensure safety compliance checklist is completed before closure.',
-  );
+  final _notesController = TextEditingController();
 
   String _selectedCountry = 'India';
   String _selectedState = 'Maharashtra';
@@ -59,6 +54,43 @@ class _AddFreightCarrierViewState extends State<AddFreightCarrierView> {
   bool _isFleetEquipmentExpanded = true;
   bool _isFleetCapacityExpanded = true;
   bool _isInternalNotesExpanded = true;
+
+  @override
+  void initState() {
+    super.initState();
+    final controller = Get.find<FreightCarriersController>();
+    final selected = controller.selectedCarrier.value;
+
+    if (widget.isEdit && selected != null) {
+      _nameController.text = selected.name;
+      _idController.text = selected.carrierId.isNotEmpty ? selected.carrierId : selected.id;
+      _phoneController.text = selected.phone;
+      _emailController.text = selected.email;
+      _streetController.text = selected.serviceArea;
+      _totalVehicleController.text = selected.activeBids > 0 ? '${selected.activeBids}' : '12';
+      _maxCapacityController.text = selected.equipmentType.isNotEmpty ? selected.equipmentType : '80000 lbs';
+      _avgAgeController.text = '3.5';
+      _notesController.text = 'Service Area: ${selected.serviceArea}. Service Type: ${selected.serviceType}.';
+
+      if (selected.serviceArea.contains(',')) {
+        final parts = selected.serviceArea.split(',');
+        if (parts.isNotEmpty) _selectedCity = parts[0].trim();
+        if (parts.length > 1) _selectedState = parts[1].trim();
+      }
+    } else {
+      _nameController.clear();
+      _idController.text = 'CR-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}';
+      _phoneController.clear();
+      _emailController.clear();
+      _streetController.clear();
+      _placeController.clear();
+      _postalController.clear();
+      _totalVehicleController.clear();
+      _maxCapacityController.clear();
+      _avgAgeController.clear();
+      _notesController.clear();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -196,7 +228,10 @@ class _AddFreightCarrierViewState extends State<AddFreightCarrierView> {
     final controller = Get.find<FreightCarriersController>();
     if (_nameController.text.trim().isEmpty ||
         _emailController.text.trim().isEmpty) {
-      CommonSnackbar.showWarning(title: 'Required fields', message: 'Carrier name and email are required.');
+      CommonSnackbar.showWarning(
+        title: 'Required fields',
+        message: 'Carrier name and email address are required.',
+      );
       return;
     }
     try {
@@ -204,20 +239,24 @@ class _AddFreightCarrierViewState extends State<AddFreightCarrierView> {
           num.tryParse(
             _maxCapacityController.text.replaceAll(RegExp(r'[^0-9.]'), ''),
           ) ??
-          0;
+          80000;
+      final areaText = _streetController.text.trim().isNotEmpty
+          ? _streetController.text.trim()
+          : [
+              _selectedCity,
+              _selectedState,
+              _selectedCountry,
+            ].where((value) => value.isNotEmpty).join(', ');
+
       await controller.saveCarrier(
         id: widget.isEdit ? controller.selectedCarrier.value?.id : null,
         name: _nameController.text.trim(),
         email: _emailController.text.trim(),
         phone: _phoneController.text.trim(),
-        contactName: '',
-        serviceType: 'flatbed',
-        serviceArea: [
-          _selectedCity,
-          _selectedState,
-          _selectedCountry,
-        ].where((value) => value.isNotEmpty).join(', '),
-        totalVehicles: int.tryParse(_totalVehicleController.text) ?? 0,
+        contactName: _nameController.text.trim(),
+        serviceType: 'Flatbed',
+        serviceArea: areaText,
+        totalVehicles: int.tryParse(_totalVehicleController.text) ?? 10,
         maximumLoadCapacity: maxCapacity,
         equipmentTypes: _equipmentList
             .map((item) => (item['equipment'] ?? '').toString())

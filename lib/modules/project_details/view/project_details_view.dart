@@ -85,11 +85,14 @@ class ProjectDetailsView extends GetView<ProjectDetailsController> {
                             ),
                             const Spacer(),
                             ElevatedButton.icon(
-                              onPressed: () => Get.dialog(
-                                UploadBomDialog(
-                                  onUploaded: controller.loadProjectDetails,
-                                ),
-                              ),
+                              onPressed: () {
+                                controller.resetUpload();
+                                Get.dialog(
+                                  UploadBomDialog(
+                                    onUploaded: controller.loadProjectDetails,
+                                  ),
+                                );
+                              },
                               icon: const Icon(
                                 Icons.upload_outlined,
                                 size: 18,
@@ -193,7 +196,7 @@ class ProjectDetailsView extends GetView<ProjectDetailsController> {
 
   Widget _buildActionButtonsRow() {
     final buttons = [
-      {'label': 'View BOM File', 'route': AppRoutes.bomFilesDetails},
+      {'label': 'View BOM File', 'route': ''},
       {'label': 'View Drawings & Photos', 'route': AppRoutes.projectDrawings},
       {'label': 'Material Delivery', 'route': AppRoutes.deliveryDetails},
       {'label': 'View Shipper Files', 'route': AppRoutes.projectShipperFiles},
@@ -211,7 +214,21 @@ class ProjectDetailsView extends GetView<ProjectDetailsController> {
         children: buttons.map((b) {
           return ElevatedButton(
             onPressed: () {
-              if (b['route'] != null) {
+              if (b['label'] == 'View BOM File') {
+                Get.toNamed(
+                  AppRoutes.bomFilesDetails,
+                  parameters: {
+                    'id': controller.projectId,
+                    'projectId': controller.projectId,
+                    'mode': 'consolidated',
+                    'name': controller.projectName.value,
+                    'customer': controller.customerName.value,
+                    'projectJobId': controller.jobId.value,
+                  },
+                );
+                return;
+              }
+              if (b['route'] != null && b['route']!.isNotEmpty) {
                 Get.toNamed(
                   b['route']!,
                   parameters: {
@@ -1360,13 +1377,15 @@ class ProjectDetailsView extends GetView<ProjectDetailsController> {
                                 ),
                               ),
                             )
-                          : ListView.builder(
+                          : ListView.separated(
                               physics: const BouncingScrollPhysics(),
                               itemCount: controller.activities.length,
+                              separatorBuilder: (context, index) =>
+                                  const Divider(height: 12, color: AppColors.divider),
                               itemBuilder: (context, index) {
                                 final act = controller.activities[index];
                                 return Padding(
-                                  padding: const EdgeInsets.only(bottom: 12.0),
+                                  padding: const EdgeInsets.symmetric(vertical: 4.0),
                                   child: Row(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
@@ -1452,12 +1471,14 @@ class ProjectDetailsView extends GetView<ProjectDetailsController> {
                                 ),
                               ),
                             )
-                          : ListView.builder(
+                          : ListView.separated(
                               physics: const BouncingScrollPhysics(),
                               itemCount: controller.notes.length,
+                              separatorBuilder: (context, index) =>
+                                  const Divider(height: 10, color: AppColors.divider),
                               itemBuilder: (context, index) {
                                 return Padding(
-                                  padding: const EdgeInsets.only(bottom: 10.0),
+                                  padding: const EdgeInsets.symmetric(vertical: 4.0),
                                   child: Text(
                                     controller.notes[index],
                                     style: const TextStyle(

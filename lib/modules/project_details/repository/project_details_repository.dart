@@ -34,7 +34,9 @@ class ProjectDetailsRepository {
       ApiEndpoints.plantProjectBuildings(leadId),
     );
     final data = response.data?['data'];
-    final buildings = data is Map ? data['buildings'] : null;
+    final buildings = data is List
+        ? data
+        : (data is Map ? data['buildings'] : null);
     if (buildings is! List) return const [];
     return buildings
         .whereType<Map>()
@@ -45,14 +47,6 @@ class ProjectDetailsRepository {
   Future<Map<String, dynamic>> fetchExistingDrawings(String leadId) async {
     final response = await apiClient.get(
       ApiEndpoints.plantProjectDrawings(leadId),
-    );
-    final data = response.data?['data'];
-    return data is Map ? Map<String, dynamic>.from(data) : {};
-  }
-
-  Future<Map<String, dynamic>> fetchExistingBomFiles(String leadId) async {
-    final response = await apiClient.get(
-      ApiEndpoints.plantProjectBomFiles(leadId),
     );
     final data = response.data?['data'];
     return data is Map ? Map<String, dynamic>.from(data) : {};
@@ -103,7 +97,7 @@ class ProjectDetailsRepository {
     }
   }
 
-  Future<void> registerBomFiles({
+  Future<List<Map<String, dynamic>>> registerBomFiles({
     required String leadId,
     required List<Map<String, dynamic>> bomFiles,
   }) async {
@@ -116,6 +110,30 @@ class ProjectDetailsRepository {
         response.data?['message'] ?? 'Unable to register BOM files.',
       );
     }
+    final data = response.data?['data'];
+    final jobs = data is Map ? data['jobs'] : null;
+    if (jobs is! List) return const [];
+    return jobs
+        .whereType<Map>()
+        .map((job) => Map<String, dynamic>.from(job))
+        .toList();
+  }
+
+  Future<List<Map<String, dynamic>>> fetchBomJobStatuses(
+    List<String> jobIds,
+  ) async {
+    if (jobIds.isEmpty) return const [];
+    final response = await apiClient.post(
+      ApiEndpoints.plantBomJobsStatus,
+      data: {'jobIds': jobIds},
+    );
+    final data = response.data?['data'];
+    final jobs = data is Map ? data['jobs'] : null;
+    if (jobs is! List) return const [];
+    return jobs
+        .whereType<Map>()
+        .map((job) => Map<String, dynamic>.from(job))
+        .toList();
   }
 
   Future<Map<String, dynamic>> generateConsolidatedBom(String leadId) async {

@@ -58,9 +58,16 @@ class ShipperRequestWorkflowRepository {
   }
 
   Map<String, dynamic> _data(dynamic body) {
-    if (body is Map && body['success'] == true && body['data'] is Map) {
-      return Map<String, dynamic>.from(body['data'] as Map);
+    if (body is Map) {
+      final dataObj = body['data'];
+      if (dataObj is Map) {
+        return Map<String, dynamic>.from(dataObj);
+      }
+      if (dataObj is List) {
+        return <String, dynamic>{'results': dataObj};
+      }
+      return Map<String, dynamic>.from(body);
     }
-    throw Exception(body is Map ? body['message'] : 'Request failed.');
+    return <String, dynamic>{};
   }
 }

@@ -268,4 +268,18 @@ class ShipperFilesController extends GetxController {
     shipperFiles[index].isSelected = val ?? false;
     shipperFiles.refresh();
   }
+
+  void openShipperFileDetails(ShipperFileItemModel item) {
+    Get.toNamed(
+      AppRoutes.shipperFileDetails,
+      parameters: {'id': item.id},
+    );
+  }
+
+  void openProjectShipperFiles(ProjectShipperFileModel project) {
+    Get.toNamed(
+      AppRoutes.projectShipperFiles,
+      parameters: {'id': project.leadId.isNotEmpty ? project.leadId : project.projectId, 'name': project.projectName},
+    );
+  }
 }

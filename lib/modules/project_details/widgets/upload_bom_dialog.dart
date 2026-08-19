@@ -13,7 +13,6 @@ class UploadBomDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.find<ProjectDetailsController>();
-    controller.resetUpload();
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       backgroundColor: Colors.white,
@@ -100,7 +99,7 @@ class UploadBomDialog extends StatelessWidget {
                       ),
                       SizedBox(height: 4),
                       Text(
-                        'OUT, CSV, XLSX, XLS, PDF or ZIP',
+                        'TXT or OUT',
                         style: TextStyle(
                           fontSize: 12,
                           color: AppColors.textSecondary,
@@ -329,19 +328,33 @@ class UploadBomDialog extends StatelessWidget {
               : '${_month(parsedDate.month)} ${parsedDate.day}';
 
           final hasFile = existing != null;
-          final jobStatus =
-              (existing?['status'] ?? existing?['bomJobStatus'] ?? '')
-                  .toString()
-                  .toLowerCase();
-          final isCompleted = jobStatus == 'completed';
-          final isConfirmed = existing?['isConfirmed'] == true;
-          final status = isCompleted
-              ? (isConfirmed ? 'BOM Confirmed' : 'BOM Extracted')
-              : _status(
+          final rawJobStatus = (existing?['status'] ??
                   existing?['bomJobStatus'] ??
-                      existing?['status'] ??
-                      'Processing',
-                );
+                  existing?['jobStatus'] ??
+                  building['status'] ??
+                  '')
+              .toString();
+          final jobStatus = rawJobStatus.toLowerCase();
+          final isConfirmed = existing?['isConfirmed'] == true ||
+              existing?['isBomConfirmed'] == true ||
+              existing?['confirmed'] == true ||
+              building['isConfirmed'] == true ||
+              building['isBomConfirmed'] == true ||
+              building['confirmed'] == true ||
+              jobStatus.contains('confirm');
+
+          final isCompleted = jobStatus == 'completed' ||
+              jobStatus == 'bom_extraction_complete' ||
+              jobStatus == 'bom_review_complete' ||
+              jobStatus == 'confirmed' ||
+              jobStatus == 'bom confirmed' ||
+              isConfirmed;
+
+          final status = isConfirmed
+              ? 'BOM Confirmed'
+              : isCompleted
+                  ? 'BOM Extracted'
+                  : _status(rawJobStatus.isNotEmpty ? rawJobStatus : 'Processing');
           final bomJobId =
               (existing?['bomJobId'] ??
                       existing?['jobId'] ??
@@ -400,7 +413,7 @@ class UploadBomDialog extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
                     OutlinedButton(
-                      onPressed: !hasFile || bomJobId.isEmpty
+                      onPressed: !hasFile || !isCompleted || bomJobId.isEmpty
                           ? null
                           : () {
                               Get.back();
@@ -416,7 +429,9 @@ class UploadBomDialog extends StatelessWidget {
                                   'projectJobId': controller.jobId.value,
                                   'date': controller.createdOn.value,
                                 },
-                              );
+                              )?.then((_) {
+                                controller.loadProjectDetails();
+                              });
                             },
                       style: OutlinedButton.styleFrom(
                         foregroundColor: AppColors.textPrimary,
@@ -489,7 +504,7 @@ class UploadBomDialog extends StatelessWidget {
     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
     decoration: BoxDecoration(
       color:
-          status.toLowerCase().contains('confirmed') ||
+          status.toLowerCase().contains('confirm') ||
               status.toLowerCase().contains('uploaded')
           ? const Color(0xFFDBEAFE)
           : const Color(0xFFFEF3C7),
@@ -501,7 +516,7 @@ class UploadBomDialog extends StatelessWidget {
         fontSize: 10,
         fontWeight: FontWeight.bold,
         color:
-            status.toLowerCase().contains('confirmed') ||
+            status.toLowerCase().contains('confirm') ||
                 status.toLowerCase().contains('uploaded')
             ? const Color(0xFF1D4ED8)
             : const Color(0xFFD97706),

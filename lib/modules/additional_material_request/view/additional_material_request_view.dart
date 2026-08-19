@@ -129,164 +129,127 @@ class AdditionalMaterialRequestView extends GetView<AdditionalMaterialRequestCon
           ),
           const SizedBox(height: 20),
 
-          // Table Header
+          // Table Header (With Vertical & Horizontal Grid Lines)
           Container(
-            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+            decoration: const BoxDecoration(
+              color: Color(0xFFF8FAFC),
+              border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
+            ),
             child: Row(
-              children: const [
-                Expanded(
-                  flex: 3,
-                  child: Text(
-                    'Material',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                ),
-                Expanded(
-                  flex: 3,
-                  child: Text(
-                    'Category',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                ),
-                Expanded(
-                  flex: 2,
-                  child: Text(
-                    'QNT',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                ),
-                Expanded(
-                  flex: 2,
-                  child: Text(
-                    'Updated',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                ),
-                Expanded(
-                  flex: 2,
-                  child: Align(
-                    alignment: Alignment.centerRight,
-                    child: Text(
-                      'Action',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ),
-                ),
+              children: [
+                _buildTh('Material', flex: 3),
+                _buildTh('Category', flex: 3),
+                _buildTh('QNT', flex: 2),
+                _buildTh('Updated', flex: 2),
+                _buildTh('Action', flex: 2, isLast: true),
               ],
             ),
           ),
-          const Divider(height: 1, color: AppColors.divider),
 
-          // Table Data Rows
+          // Table Data Rows (With Vertical & Horizontal Grid Lines)
           Obx(() {
-            return ListView.separated(
+            if (controller.inventoryList.isEmpty) {
+              return const Padding(
+                padding: EdgeInsets.symmetric(vertical: 48),
+                child: Center(
+                  child: Text(
+                    'No additional material requests found.',
+                    style: TextStyle(color: AppColors.textSecondary),
+                  ),
+                ),
+              );
+            }
+            return ListView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: controller.inventoryList.length,
-              separatorBuilder: (context, index) => const Divider(height: 1, color: AppColors.divider),
               itemBuilder: (context, index) {
                 final item = controller.inventoryList[index];
-                return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
-                  child: Row(
-                    children: [
-                      // Material Column
-                      Expanded(
-                        flex: 3,
-                        child: Text(
-                          item.material,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            color: AppColors.textSecondary,
-                            height: 1.3,
+                return IntrinsicHeight(
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      border: Border(bottom: BorderSide(color: Color(0xFFF1F5F9))),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _buildTd(
+                          Text(
+                            item.material,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: AppColors.textSecondary,
+                              height: 1.3,
+                            ),
                           ),
+                          flex: 3,
                         ),
-                      ),
-                      // Category Column
-                      Expanded(
-                        flex: 3,
-                        child: Text(
-                          item.category,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            color: AppColors.textSecondary,
+                        _buildTd(
+                          Text(
+                            item.category,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: AppColors.textSecondary,
+                            ),
                           ),
+                          flex: 3,
                         ),
-                      ),
-                      // QNT Column
-                      Expanded(
-                        flex: 2,
-                        child: Text(
-                          item.qnt,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimary,
+                        _buildTd(
+                          Text(
+                            item.qnt,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.textPrimary,
+                            ),
                           ),
+                          flex: 2,
                         ),
-                      ),
-                      // Updated Column
-                      Expanded(
-                        flex: 2,
-                        child: Text(
-                          item.updated,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            color: AppColors.textSecondary,
+                        _buildTd(
+                          Text(
+                            item.updated,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: AppColors.textSecondary,
+                            ),
                           ),
+                          flex: 2,
                         ),
-                      ),
-                      // Action Column
-                      Expanded(
-                        flex: 2,
-                        child: Align(
-                          alignment: Alignment.centerRight,
-                          child: InkWell(
-                            onTap: () => controller.toggleApprove(index),
-                            borderRadius: BorderRadius.circular(16),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-                              decoration: BoxDecoration(
-                                color: item.isApproved
-                                    ? const Color(0xFFDCFCE7)
-                                    : const Color(0xFFDBEAFE),
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              child: Text(
-                                item.isApproved ? 'Approved' : 'Approve',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
+                        _buildTd(
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: InkWell(
+                              onTap: () => controller.toggleApprove(index),
+                              borderRadius: BorderRadius.circular(16),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 6,
+                                ),
+                                decoration: BoxDecoration(
                                   color: item.isApproved
-                                      ? const Color(0xFF16A34A)
-                                      : const Color(0xFF2563EB),
+                                      ? const Color(0xFFDCFCE7)
+                                      : const Color(0xFFDBEAFE),
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: Text(
+                                  item.isApproved ? 'Approved' : 'Approve',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: item.isApproved
+                                        ? const Color(0xFF16A34A)
+                                        : const Color(0xFF2563EB),
+                                  ),
                                 ),
                               ),
                             ),
                           ),
+                          flex: 2,
+                          isLast: true,
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 );
               },
@@ -295,5 +258,43 @@ class AdditionalMaterialRequestView extends GetView<AdditionalMaterialRequestCon
         ],
       ),
     );
+  }
+
+  Widget _buildTh(String label, {int flex = 2, double? width, bool isLast = false}) {
+    final child = Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        border: Border(
+          right: isLast ? BorderSide.none : const BorderSide(color: Color(0xFFE2E8F0)),
+        ),
+      ),
+      alignment: Alignment.centerLeft,
+      child: Text(
+        label,
+        style: const TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.bold,
+          color: AppColors.textSecondary,
+        ),
+      ),
+    );
+    if (width != null) return SizedBox(width: width, child: child);
+    return Expanded(flex: flex, child: child);
+  }
+
+  Widget _buildTd(Widget child, {int flex = 2, double? width, bool isLast = false}) {
+    final container = Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      decoration: BoxDecoration(
+        border: Border(
+          right: isLast ? BorderSide.none : const BorderSide(color: Color(0xFFF1F5F9)),
+        ),
+      ),
+      alignment: Alignment.centerLeft,
+      child: child,
+    );
+    if (width != null) return SizedBox(width: width, child: container);
+    return Expanded(flex: flex, child: container);
   }
 }

@@ -2,11 +2,14 @@ import 'dart:async';
 
 import 'package:get/get.dart';
 import 'package:file_saver/file_saver.dart';
+import '../../../app/routes/app_routes.dart';
+import '../../../app/services/file_export_service.dart';
 import '../../../app/widgets/common_snackbar.dart';
 import '../../../app/services/plant_socket_service.dart';
 import '../model/bom_files_details_model.dart';
 import '../model/bom_document_mapper.dart';
 import '../repository/bom_files_details_repository.dart';
+import '../../project_details/controller/project_details_controller.dart';
 
 class BomFilesDetailsController extends GetxController {
   final BomFilesDetailsRepository repository;
@@ -53,25 +56,21 @@ class BomFilesDetailsController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    loadBomData();
     if (Get.isRegistered<PlantSocketService>()) {
       _socketSubscription = Get.find<PlantSocketService>().listenFor(
         {
           'bom_extraction_complete',
           'bom_extraction_failed',
           'bom_review_complete',
+          'bom_confirmed',
+          'bom_job_updated',
         },
         (event) {
-          final eventJobId = event.payload['jobId']?.toString();
-          if (eventJobId == null ||
-              eventJobId.isEmpty ||
-              eventJobId == jobId.value ||
-              eventJobId == Get.parameters['id']) {
-            loadBomData();
-          }
+          loadBomData();
         },
       );
     }
-    loadBomData();
   }
 
   @override
@@ -101,11 +100,6 @@ class BomFilesDetailsController extends GetxController {
           limit: rowsPerPage.value,
         );
         _applyJob(data, id);
-        qtyTotal.value = bomItems.fold(0, (sum, item) => sum + item.qty);
-        totalWeightLbs.value = _number(summary.value?.totalWeight ?? '0');
-        totalTons.value = totalWeightLbs.value / 2000;
-        totalCostAmount.value = _number(summary.value?.totalCost ?? '0');
-        totalCost.value = summary.value?.totalCost ?? '\$0.00';
       } else {
         throw Exception('BOM job id is missing.');
       }
@@ -138,26 +132,11 @@ class BomFilesDetailsController extends GetxController {
       groups.putIfAbsent(item.category, () => []).add(item);
     }
     groupedBomItems.assignAll(groups);
-    totalEntries.value = document.items.length;
-    pricedItems.value = document.items.where((item) => !item.isMissing).length;
+
+    pricedItems.value = document.items.where((i) => i.amount.isNotEmpty && i.amount != '\$0.00').length;
     qtyTotal.value = document.items.fold(0, (sum, item) => sum + item.qty);
     totalWeightLbs.value = _number(document.summary.totalWeight);
     totalTons.value = totalWeightLbs.value / 2000;
-    totalCostAmount.value = _number(document.summary.totalCost ?? '0');
-    totalCost.value = document.summary.totalCost ?? '\$0.00';
-  }
-
-  Future<void> selectTab(int index) async {
-    if (selectedTabIndex.value == index) return;
-    selectedTabIndex.value = index;
-    currentPage.value = 1;
-    await loadBomData();
-  }
-
-  Future<void> changePage(int page) async {
-    if (page < 1 || page > totalPages || page == currentPage.value) return;
-    currentPage.value = page;
-    await loadBomData();
   }
 
   Future<void> changeRowsPerPage(int rows) async {
@@ -221,6 +200,11 @@ class BomFilesDetailsController extends GetxController {
     try {
       await repository.confirmBuilding(buildingId.value);
       isConfirmed.value = true;
+      if (Get.isRegistered<ProjectDetailsController>()) {
+        final projectController = Get.find<ProjectDetailsController>();
+        projectController.markBuildingAsConfirmed(buildingId.value);
+        projectController.loadProjectDetails();
+      }
       CommonSnackbar.showSuccess(
         title: 'BOM Confirmed',
         message: 'BOM has been confirmed successfully.',
@@ -280,20 +264,63 @@ class BomFilesDetailsController extends GetxController {
     totalCostAmount.value = 0;
   }
 
+  void selectTab(int index) {
+    selectedTabIndex.value = index;
+    currentPage.value = 1;
+    loadBomData();
+  }
+
+  void changePage(int page) {
+    currentPage.value = page;
+    loadBomData();
+  }
+
   Future<void> downloadExcel() async {
     try {
-      if (sourceFileUrl.value.isEmpty) {
-        throw Exception('The BOM Excel file is not available.');
+      if (sourceFileUrl.value.isNotEmpty) {
+        await FileSaver.instance.saveFile(
+          name: '${bomId.value.isEmpty ? 'bom' : bomId.value}_details',
+          link: LinkDetails(link: sourceFileUrl.value),
+          fileExtension: 'xlsx',
+          mimeType: MimeType.microsoftExcel,
+        );
+      } else if (bomItems.isNotEmpty) {
+        final rows = <List<dynamic>>[
+          const [
+            'Category',
+            'Part Code',
+            'Description',
+            'Color',
+            'Mark',
+            'QTY',
+            'Length',
+            'Weight',
+            'Total Cost',
+          ],
+          ...bomItems.map(
+            (item) => [
+              item.category,
+              item.part,
+              item.description,
+              item.color,
+              item.mark,
+              item.qty,
+              item.length,
+              item.weight,
+              item.amount,
+            ],
+          ),
+        ];
+        await FileExportService.saveExcel(
+          fileName: '${bomId.value.isEmpty ? 'bom' : bomId.value}_details',
+          rows: rows,
+        );
+      } else {
+        throw Exception('BOM data is not available to download.');
       }
-      await FileSaver.instance.saveFile(
-        name: '${bomId.value}_bom_details',
-        link: LinkDetails(link: sourceFileUrl.value),
-        fileExtension: 'xlsx',
-        mimeType: MimeType.microsoftExcel,
-      );
       CommonSnackbar.showSuccess(
         title: 'Download complete',
-        message: '${bomId.value} BOM Excel was downloaded.',
+        message: 'BOM Excel file downloaded successfully.',
       );
     } catch (error) {
       CommonSnackbar.showError(
@@ -301,6 +328,28 @@ class BomFilesDetailsController extends GetxController {
         message: error.toString(),
       );
     }
+  }
+
+  void shareWithShippers() {
+    final pId = projectId.value.isNotEmpty
+        ? projectId.value
+        : (Get.parameters['projectId'] ?? Get.parameters['id'] ?? '');
+    if (pId.isEmpty) {
+      CommonSnackbar.showError(
+        title: 'Share unavailable',
+        message: 'Project ID is missing for this BOM.',
+      );
+      return;
+    }
+    Get.toNamed(
+      AppRoutes.generateShipperOrder,
+      parameters: {
+        'id': pId,
+        'name': projectName.value.isNotEmpty
+            ? projectName.value
+            : (Get.parameters['name'] ?? 'Project'),
+      },
+    );
   }
 
   double _number(String value) =>

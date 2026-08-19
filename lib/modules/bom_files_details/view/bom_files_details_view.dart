@@ -3,7 +3,6 @@ import 'package:get/get.dart';
 import '../../../app/routes/app_routes.dart';
 import '../../../app/utils/app_colors.dart';
 import '../../../app/widgets/common_pagination.dart';
-import '../../../app/widgets/common_error_widget.dart';
 import '../../home/widgets/app_drawer.dart';
 import '../../home/widgets/dashboard_app_bar.dart';
 import '../controller/bom_files_details_controller.dart';
@@ -31,12 +30,8 @@ class BomFilesDetailsView extends GetView<BomFilesDetailsController> {
                 if (controller.isLoading.value) {
                   return const BomDetailsShimmer();
                 }
-                if (controller.errorMessage.value.isNotEmpty) {
-                  return CommonErrorWidget(
-                    message: controller.errorMessage.value,
-                    onRetry: controller.loadBomData,
-                    onBack: () => Get.back(),
-                  );
+                if (controller.errorMessage.value.isNotEmpty || controller.bomItems.isEmpty) {
+                  return _buildConsolidatedNotGeneratedCard();
                 }
 
                 return SingleChildScrollView(
@@ -96,24 +91,110 @@ class BomFilesDetailsView extends GetView<BomFilesDetailsController> {
             ),
           ),
           const Spacer(),
+
           Obx(() {
+            final hasBomData = controller.bomItems.isNotEmpty &&
+                controller.errorMessage.value.isEmpty;
+            final isConfirmed = (controller.isConfirmed.value ||
+                    Get.parameters['mode'] == 'consolidated') &&
+                hasBomData;
             final unpriced =
                 controller.missingSummary.value?.missingItemQty ?? 0;
-            if (controller.isConfirmed.value ||
-                controller.buildingId.value.isEmpty) {
+
+            if (isConfirmed) {
+              return Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Download Excel Button (Shown only when BOM is present & confirmed)
+                  ElevatedButton.icon(
+                    onPressed: () => controller.downloadExcel(),
+                    icon: Container(
+                      padding: const EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF16A34A),
+                        borderRadius: BorderRadius.circular(3),
+                      ),
+                      child: const Icon(
+                        Icons.grid_on,
+                        size: 12,
+                        color: Colors.white,
+                      ),
+                    ),
+                    label: const Text(
+                      'Download Excel',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      elevation: 0,
+                      side: const BorderSide(color: Color(0xFFE2E8F0)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+
+                  // Share with Shippers Button (Shown only when BOM is present & confirmed)
+                  ElevatedButton(
+                    onPressed: () => controller.shareWithShippers(),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF7C3AED),
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 18,
+                        vertical: 12,
+                      ),
+                    ),
+                    child: const Text(
+                      'Share with Shippers',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            }
+
+            if (!hasBomData || controller.buildingId.value.isEmpty) {
               return const SizedBox.shrink();
             }
+
             return ElevatedButton.icon(
               onPressed: unpriced > 0 || controller.isConfirming.value
                   ? null
                   : controller.confirmBom,
               icon: const Icon(Icons.check_circle_outline, size: 16),
               label: Text(
-                controller.isConfirming.value ? 'Confirming...' : 'Confirm BOM',
+                controller.isConfirming.value
+                    ? 'Confirming...'
+                    : 'Confirm BOM',
               ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF16A34A),
                 foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
               ),
             );
           }),
@@ -787,6 +868,45 @@ class BomFilesDetailsView extends GetView<BomFilesDetailsController> {
             const Icon(Icons.swap_vert, size: 12, color: AppColors.textHint),
           ],
         ],
+      ),
+    );
+  }
+
+  Widget _buildConsolidatedNotGeneratedCard() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 24.0),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 48.0, horizontal: 32.0),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.inputBorder),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: const [
+            Text(
+              'Consolidated BOM Not Generated Yet',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: 12),
+            Text(
+              'The consolidated Bill of Materials (BOM) has not been generated for this project. Please make sure that BOM files have been uploaded and processed.',
+              style: TextStyle(
+                fontSize: 13,
+                color: AppColors.textSecondary,
+                height: 1.4,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -288,303 +288,184 @@ class ProjectPackingListView extends GetView<PackingListController> {
       ),
       child: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          // Table Header (With Vertical & Horizontal Grid Lines)
+          Container(
+            decoration: const BoxDecoration(
+              color: Color(0xFFF8FAFC),
+              border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
+            ),
             child: Row(
               children: [
-                SizedBox(
-                  width: 28,
-                  child: Checkbox(
-                    value:
-                        controller.packingItemsList.isNotEmpty &&
-                        controller.packingItemsList.every(
-                          (item) => item.isSelected,
-                        ),
-                    onChanged: (val) =>
-                        controller.toggleSelectAllPackingItems(val),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(4),
+                _buildThWidget(
+                  SizedBox(
+                    width: 28,
+                    child: Checkbox(
+                      value:
+                          controller.packingItemsList.isNotEmpty &&
+                          controller.packingItemsList.every(
+                            (item) => item.isSelected,
+                          ),
+                      onChanged: (val) =>
+                          controller.toggleSelectAllPackingItems(val),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(4),
+                      ),
                     ),
                   ),
+                  width: 40,
                 ),
-                const SizedBox(width: 8),
-                const Expanded(
-                  flex: 2,
-                  child: Text(
-                    'Packing ID',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                ),
-                const Expanded(
-                  flex: 2,
-                  child: Text(
-                    'Load ID',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                ),
-                const Expanded(
-                  flex: 2,
-                  child: Row(
-                    children: [
-                      Text(
-                        'Truck',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      SizedBox(width: 4),
-                      Icon(
-                        Icons.swap_vert,
-                        size: 14,
-                        color: AppColors.textSecondary,
-                      ),
-                    ],
-                  ),
-                ),
-                const Expanded(
-                  flex: 1,
-                  child: Row(
-                    children: [
-                      Text(
-                        'Bundles',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      SizedBox(width: 2),
-                      Icon(
-                        Icons.swap_vert,
-                        size: 14,
-                        color: AppColors.textSecondary,
-                      ),
-                    ],
-                  ),
-                ),
-                const Expanded(
-                  flex: 2,
-                  child: Row(
-                    children: [
-                      Text(
-                        'Weight',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      SizedBox(width: 2),
-                      Icon(
-                        Icons.swap_vert,
-                        size: 14,
-                        color: AppColors.textSecondary,
-                      ),
-                    ],
-                  ),
-                ),
-                const Expanded(
-                  flex: 2,
-                  child: Row(
-                    children: [
-                      Text(
-                        'Destination',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      SizedBox(width: 2),
-                      Icon(
-                        Icons.swap_vert,
-                        size: 14,
-                        color: AppColors.textSecondary,
-                      ),
-                    ],
-                  ),
-                ),
-                const Expanded(
-                  flex: 2,
-                  child: Row(
-                    children: [
-                      Text(
-                        'Date',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      SizedBox(width: 2),
-                      Icon(
-                        Icons.swap_vert,
-                        size: 14,
-                        color: AppColors.textSecondary,
-                      ),
-                    ],
-                  ),
-                ),
-                const Expanded(
-                  flex: 2,
-                  child: Text(
-                    'Status',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 60),
+                _buildTh('Packing ID', flex: 2),
+                _buildTh('Load ID', flex: 2),
+                _buildTh('Truck', flex: 2),
+                _buildTh('Bundles', flex: 1),
+                _buildTh('Weight', flex: 2),
+                _buildTh('Destination', flex: 2),
+                _buildTh('Date', flex: 2),
+                _buildTh('Status', flex: 2),
+                _buildTh('Action', width: 72, isLast: true),
               ],
             ),
           ),
-          const Divider(height: 1, color: AppColors.divider),
+
+          // Table Data Rows (With Vertical & Horizontal Grid Lines)
           Obx(() {
-            return ListView.separated(
+            return ListView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: controller.packingItemsList.length,
-              separatorBuilder: (context, index) =>
-                  const Divider(height: 1, color: AppColors.divider),
               itemBuilder: (context, index) {
                 final item = controller.packingItemsList[index];
-                return Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 10,
-                  ),
-                  child: Row(
-                    children: [
-                      SizedBox(
-                        width: 28,
-                        child: Checkbox(
-                          value: item.isSelected,
-                          onChanged: (val) =>
-                              controller.toggleSelectPackingItem(index, val),
-                          activeColor: const Color(0xFF6366F1),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        flex: 2,
-                        child: Text(
-                          item.packingId,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        flex: 2,
-                        child: Text(
-                          item.loadId,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        flex: 2,
-                        child: Text(
-                          item.truck,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        flex: 1,
-                        child: Text(
-                          '${item.bundles}',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        flex: 2,
-                        child: Text(
-                          item.weight,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        flex: 2,
-                        child: Text(
-                          item.destination,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        flex: 2,
-                        child: Text(
-                          item.date,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        flex: 2,
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: _buildStatusBadge(item.status),
-                        ),
-                      ),
-                      SizedBox(
-                        width: 60,
-                        child: ElevatedButton(
-                          onPressed: () =>
-                              controller.openPackingListDetails(item),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF2563EB),
-                            elevation: 0,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 6,
+                return IntrinsicHeight(
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      border: Border(bottom: BorderSide(color: Color(0xFFF1F5F9))),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _buildTdWidget(
+                          SizedBox(
+                            width: 28,
+                            child: Checkbox(
+                              value: item.isSelected,
+                              onChanged: (val) =>
+                                  controller.toggleSelectPackingItem(index, val),
+                              activeColor: const Color(0xFF6366F1),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(4),
+                              ),
                             ),
                           ),
-                          child: const Text(
-                            'View',
-                            style: TextStyle(
-                              fontSize: 11,
+                          width: 40,
+                        ),
+                        _buildTdWidget(
+                          Text(
+                            item.packingId,
+                            style: const TextStyle(
+                              fontSize: 12,
                               fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                              color: AppColors.textPrimary,
                             ),
                           ),
+                          flex: 2,
                         ),
-                      ),
-                    ],
+                        _buildTdWidget(
+                          Text(
+                            item.loadId,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                          flex: 2,
+                        ),
+                        _buildTdWidget(
+                          Text(
+                            item.truck,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          flex: 2,
+                        ),
+                        _buildTdWidget(
+                          Text(
+                            '${item.bundles}',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                          flex: 1,
+                        ),
+                        _buildTdWidget(
+                          Text(
+                            item.weight,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                          flex: 2,
+                        ),
+                        _buildTdWidget(
+                          Text(
+                            item.destination,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                          flex: 2,
+                        ),
+                        _buildTdWidget(
+                          Text(
+                            item.date,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                          flex: 2,
+                        ),
+                        _buildTdWidget(
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: _buildStatusBadge(item.status),
+                          ),
+                          flex: 2,
+                        ),
+                        _buildTdWidget(
+                          ElevatedButton(
+                            onPressed: () =>
+                                controller.openPackingListDetails(item),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF2563EB),
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 6,
+                              ),
+                            ),
+                            child: const Text(
+                              'View',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                          width: 72,
+                          isLast: true,
+                        ),
+                      ],
+                    ),
                   ),
                 );
               },
@@ -593,6 +474,66 @@ class ProjectPackingListView extends GetView<PackingListController> {
         ],
       ),
     );
+  }
+
+  Widget _buildTh(String label, {int flex = 2, double? width, bool isLast = false}) {
+    return _buildThWidget(
+      Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          if (label != 'Packing ID' && label != 'Load ID' && label != 'Status' && label != 'Action') ...[
+            const SizedBox(width: 2),
+            const Icon(
+              Icons.swap_vert,
+              size: 14,
+              color: AppColors.textSecondary,
+            ),
+          ],
+        ],
+      ),
+      flex: flex,
+      width: width,
+      isLast: isLast,
+    );
+  }
+
+  Widget _buildThWidget(Widget child, {int flex = 2, double? width, bool isLast = false}) {
+    final container = Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        border: Border(
+          right: isLast ? BorderSide.none : const BorderSide(color: Color(0xFFE2E8F0)),
+        ),
+      ),
+      alignment: Alignment.centerLeft,
+      child: child,
+    );
+    if (width != null) return SizedBox(width: width, child: container);
+    return Expanded(flex: flex, child: container);
+  }
+
+  Widget _buildTdWidget(Widget child, {int flex = 2, double? width, bool isLast = false}) {
+    final container = Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+      decoration: BoxDecoration(
+        border: Border(
+          right: isLast ? BorderSide.none : const BorderSide(color: Color(0xFFF1F5F9)),
+        ),
+      ),
+      alignment: Alignment.centerLeft,
+      child: child,
+    );
+    if (width != null) return SizedBox(width: width, child: container);
+    return Expanded(flex: flex, child: container);
   }
 
   Widget _buildStatusBadge(String status) {

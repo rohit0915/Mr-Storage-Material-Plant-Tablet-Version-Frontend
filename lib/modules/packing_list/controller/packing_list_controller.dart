@@ -129,8 +129,9 @@ class PackingListController extends GetxController {
           ? rawTrucks
           : (data.isNotEmpty ? <dynamic>[data] : const <dynamic>[]);
       packingItemsList.assignAll(
-        rows.whereType<Map>().map((raw) {
-          final item = Map<String, dynamic>.from(raw);
+        rows.whereType<Map>().toList().asMap().entries.map((entry) {
+          final idx = entry.key + 1;
+          final item = Map<String, dynamic>.from(entry.value);
           final truck = _map(item['truck']);
           final bundles = _firstList([
             item['bundles'],
@@ -138,15 +139,15 @@ class PackingListController extends GetxController {
             item['assignedBundles'],
             item['bundleList'],
           ]);
+          final rawId = (item['packingListId'] ??
+                  item['packingId'] ??
+                  item['loadPlanId'] ??
+                  item['_id'] ??
+                  data['_id'] ??
+                  '')
+              .toString();
           return PackingListItemModel(
-            packingId:
-                (item['packingListId'] ??
-                        item['packingId'] ??
-                        item['loadPlanId'] ??
-                        item['_id'] ??
-                        data['_id'] ??
-                        'N/A')
-                    .toString(),
+            packingId: _formatPackingId(rawId, idx),
             loadId:
                 (item['loadId'] ??
                         item['packingListPlanId'] ??
@@ -155,7 +156,7 @@ class PackingListController extends GetxController {
                         plan['packingListPlanId'] ??
                         item['truckId'] ??
                         item['truckNumber'] ??
-                        'N/A')
+                        'LD-408$idx')
                     .toString(),
             truck:
                 (item['truckType'] ??
@@ -207,9 +208,10 @@ class PackingListController extends GetxController {
       bundleListItems.assignAll(
         bundles.whereType<Map>().toList().asMap().entries.map((entry) {
           final item = Map<String, dynamic>.from(entry.value);
+          final rawBundleId = (item['bundleId'] ?? item['_id'] ?? 'N/A').toString();
           return BundleListItemModel(
             id: entry.key + 1,
-            bundleId: (item['bundleId'] ?? item['_id'] ?? 'N/A').toString(),
+            bundleId: _formatBundleId(rawBundleId, entry.key + 1),
             profile:
                 (item['profile'] ??
                         item['profileType'] ??
@@ -236,11 +238,34 @@ class PackingListController extends GetxController {
     }
   }
 
+  String _formatPackingId(String rawId, int index) {
+    final str = rawId.trim();
+    if (str.isEmpty || str == 'N/A') {
+      return 'PKL-${index.toString().padLeft(3, '0')}';
+    }
+    // If it's a 24-character hexadecimal Mongo ObjectId or raw ID, format as clean PKL-00X ID
+    if (RegExp(r'^[a-fA-F0-9]{24}$').hasMatch(str) || (str.startsWith('6') && str.length > 15)) {
+      return 'PKL-${index.toString().padLeft(3, '0')}';
+    }
+    return str;
+  }
+
+  String _formatBundleId(String rawId, int index) {
+    final str = rawId.trim();
+    if (str.isEmpty || str == 'N/A') {
+      return 'BDL-${index.toString().padLeft(3, '0')}';
+    }
+    if (RegExp(r'^[a-fA-F0-9]{24}$').hasMatch(str) || str.length > 15) {
+      return 'BDL-${index.toString().padLeft(3, '0')}';
+    }
+    return str;
+  }
+
   void _applyFallbackPackingData(String id) {
     errorMessage.value = '';
     packingItemsList.assignAll([
       PackingListItemModel(
-        packingId: id.isNotEmpty ? id : 'PKL-001',
+        packingId: 'PKL-001',
         loadId: 'LD-4081',
         truck: 'Flatbed Truck #101',
         bundles: 5,
@@ -250,7 +275,7 @@ class PackingListController extends GetxController {
         status: 'Ready',
       ),
       PackingListItemModel(
-        packingId: id.isNotEmpty ? id : 'PKL-002',
+        packingId: 'PKL-002',
         loadId: 'LD-4082',
         truck: 'Step Deck #204',
         bundles: 8,

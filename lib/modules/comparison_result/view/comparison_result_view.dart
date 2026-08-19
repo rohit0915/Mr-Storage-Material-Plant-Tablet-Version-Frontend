@@ -83,33 +83,42 @@ class ComparisonResultView extends GetView<ComparisonResultController> {
           ),
         ),
         const SizedBox(width: 16),
-        const Text(
-          'Comparison Result',
-          style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
-          ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Comparison Result',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Obx(() => Text(
+                  'Project: ${controller.projectName.value} | Vendor: ${controller.vendorName.value}',
+                  style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                )),
+          ],
         ),
         const Spacer(),
-        ElevatedButton.icon(
-          onPressed: () => controller.sendReportToShippers(),
-          icon: const Icon(Icons.arrow_forward, size: 16, color: Colors.white),
-          label: const Text(
-            'Send Report to the Shippers',
+        ElevatedButton(
+          onPressed: () => controller.openRequestResubmitDialog(),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF475569),
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+          ),
+          child: const Text(
+            'Request Resubmit',
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.bold,
               color: Colors.white,
             ),
-          ),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF2563EB),
-            elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           ),
         ),
       ],
@@ -117,66 +126,110 @@ class ComparisonResultView extends GetView<ComparisonResultController> {
   }
 
   Widget _buildSummaryCardsRow() {
-    return Row(
-      children: [
-        Expanded(
-          child: _buildMetricCard(
-            title: 'Matched Items',
-            value: '58',
-            backgroundColor: const Color(0xFF22C55E),
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: _buildMetricCard(
-            title: 'Missing Items',
-            value: '2',
-            backgroundColor: const Color(0xFFEAB308),
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: _buildMetricCard(
-            title: 'Extra Items',
-            value: '0',
-            backgroundColor: const Color(0xFFF97316),
-          ),
-        ),
-      ],
-    );
+    return Obx(() => Row(
+          children: [
+            Expanded(
+              child: _buildMetricCard(
+                title: 'Total Items',
+                value: '${controller.totalItems.value}',
+                backgroundColor: const Color(0xFF1D4ED8),
+                filterKey: 'all',
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildMetricCard(
+                title: 'Matched Items',
+                value: '${controller.matchedItems.value}',
+                backgroundColor: const Color(0xFF16A34A),
+                filterKey: 'matched',
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildMetricCard(
+                title: 'Part Missing',
+                value: '${controller.partMissing.value}',
+                backgroundColor: const Color(0xFFEAB308),
+                filterKey: 'part_missing',
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildMetricCard(
+                title: 'Not Match',
+                value: '${controller.notMatch.value}',
+                backgroundColor: const Color(0xFFE11D48),
+                filterKey: 'not_match',
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildMetricCard(
+                title: 'Extra Items',
+                value: '${controller.extraItems.value}',
+                backgroundColor: const Color(0xFFEA580C),
+                filterKey: 'extra_items',
+              ),
+            ),
+          ],
+        ));
   }
 
   Widget _buildMetricCard({
     required String title,
     required String value,
     required Color backgroundColor,
+    required String filterKey,
   }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 13,
-              color: Colors.white,
-              fontWeight: FontWeight.w500,
-            ),
+    final isSelected = controller.selectedFilter.value == filterKey;
+    return InkWell(
+      onTap: () => controller.selectFilter(filterKey),
+      borderRadius: BorderRadius.circular(10),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+        decoration: BoxDecoration(
+          color: backgroundColor,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: isSelected ? Colors.black : Colors.transparent,
+            width: isSelected ? 3 : 0,
           ),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: backgroundColor.withValues(alpha: 0.4),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
+              : null,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Text(
+                title,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.white,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
-          ),
-        ],
+            Text(
+              value,
+              style: const TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -194,12 +247,13 @@ class ComparisonResultView extends GetView<ComparisonResultController> {
             border: Border.all(color: AppColors.inputBorder),
           ),
           child: Row(
-            children: const [
-              Icon(Icons.search, size: 16, color: AppColors.textSecondary),
-              SizedBox(width: 8),
+            children: [
+              const Icon(Icons.search, size: 16, color: AppColors.textSecondary),
+              const SizedBox(width: 8),
               Expanded(
                 child: TextField(
-                  decoration: InputDecoration(
+                  onChanged: (val) => controller.searchQuery.value = val,
+                  decoration: const InputDecoration(
                     hintText: 'Search',
                     hintStyle: TextStyle(
                       fontSize: 12,
@@ -216,7 +270,7 @@ class ComparisonResultView extends GetView<ComparisonResultController> {
         ),
         const Spacer(),
 
-        // Download Excel Report Button
+        // Download Report Button
         ElevatedButton.icon(
           onPressed: () => controller.downloadExcelReport(),
           icon: const Icon(
@@ -225,7 +279,7 @@ class ComparisonResultView extends GetView<ComparisonResultController> {
             color: Colors.white,
           ),
           label: const Text(
-            'Download Excel Report',
+            'Download Report',
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.bold,
@@ -250,151 +304,74 @@ class ComparisonResultView extends GetView<ComparisonResultController> {
       width: double.infinity,
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.inputBorder),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
       ),
       child: Column(
         children: [
           // Table Header Row
-          Padding(
+          Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: const BoxDecoration(
+              color: Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(12),
+                topRight: Radius.circular(12),
+              ),
+              border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
+            ),
             child: Row(
-              children: const [
-                Expanded(
-                  flex: 2,
-                  child: Text(
-                    'Part Number',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                ),
-                Expanded(
-                  flex: 5,
-                  child: Row(
-                    children: [
-                      Text(
-                        'Description',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      SizedBox(width: 4),
-                      Icon(
-                        Icons.swap_vert,
-                        size: 14,
-                        color: AppColors.textSecondary,
-                      ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  flex: 2,
-                  child: Row(
-                    children: [
-                      Text(
-                        'Ordered QTY',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      SizedBox(width: 4),
-                      Icon(
-                        Icons.swap_vert,
-                        size: 14,
-                        color: AppColors.textSecondary,
-                      ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  flex: 2,
-                  child: Row(
-                    children: [
-                      Text(
-                        'Shipped QTY',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      SizedBox(width: 4),
-                      Icon(
-                        Icons.swap_vert,
-                        size: 14,
-                        color: AppColors.textSecondary,
-                      ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  flex: 2,
-                  child: Row(
-                    children: [
-                      Text(
-                        'Difference',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      SizedBox(width: 4),
-                      Icon(
-                        Icons.swap_vert,
-                        size: 14,
-                        color: AppColors.textSecondary,
-                      ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  flex: 2,
-                  child: Row(
-                    children: [
-                      Text(
-                        'Reason',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      SizedBox(width: 4),
-                      Icon(
-                        Icons.swap_vert,
-                        size: 14,
-                        color: AppColors.textSecondary,
-                      ),
-                    ],
-                  ),
-                ),
+              children: [
+                _buildTh('Part Number', flex: 2),
+                _buildTh('Description', flex: 4),
+                _buildTh('Ordered QTY', flex: 2),
+                _buildTh('Shipped QTY', flex: 2),
+                _buildTh('Difference', flex: 2),
+                _buildTh('Status', flex: 3),
+                _buildTh('Reason', flex: 5, isLast: true),
               ],
             ),
           ),
-          const Divider(height: 1, color: AppColors.divider),
 
           // Table Data Rows
           Obx(() {
+            final items = controller.filteredComparisonItems;
+            if (items.isEmpty) {
+              return Container(
+                padding: const EdgeInsets.all(40),
+                alignment: Alignment.center,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: const [
+                    Icon(
+                      Icons.folder_open_outlined,
+                      size: 40,
+                      color: AppColors.textHint,
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      'No items found for selected filter.',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
             return ListView.separated(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              itemCount: controller.comparisonItems.length,
+              itemCount: items.length,
               separatorBuilder: (context, index) =>
-                  const Divider(height: 1, color: AppColors.divider),
+                  const Divider(height: 1, color: Color(0xFFF1F5F9)),
               itemBuilder: (context, index) {
-                final item = controller.comparisonItems[index];
+                final item = items[index];
                 return Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
-                    vertical: 12,
+                    vertical: 14,
                   ),
                   child: Row(
                     children: [
@@ -410,7 +387,7 @@ class ComparisonResultView extends GetView<ComparisonResultController> {
                         ),
                       ),
                       Expanded(
-                        flex: 5,
+                        flex: 4,
                         child: Text(
                           item.description,
                           style: const TextStyle(
@@ -445,17 +422,27 @@ class ComparisonResultView extends GetView<ComparisonResultController> {
                           item.difference,
                           style: const TextStyle(
                             fontSize: 12,
-                            color: AppColors.textSecondary,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textPrimary,
                           ),
                         ),
                       ),
                       Expanded(
-                        flex: 2,
+                        flex: 3,
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: _buildStatusBadge(item.category, item.statusDisplay),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 5,
                         child: Text(
                           item.reason,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 11,
-                            color: AppColors.textSecondary,
+                            color: item.category == 'not_match'
+                                ? const Color(0xFFE11D48)
+                                : AppColors.textSecondary,
                           ),
                         ),
                       ),
@@ -465,6 +452,72 @@ class ComparisonResultView extends GetView<ComparisonResultController> {
               },
             );
           }),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatusBadge(String category, String statusText) {
+    Color bg;
+    Color fg;
+    switch (category) {
+      case 'matched':
+        bg = const Color(0xFFDCFCE7);
+        fg = const Color(0xFF16A34A);
+        break;
+      case 'part_missing':
+        bg = const Color(0xFFFEF9C3);
+        fg = const Color(0xFFCA8A04);
+        break;
+      case 'not_match':
+        bg = const Color(0xFFFFE4E6);
+        fg = const Color(0xFFE11D48);
+        break;
+      case 'extra_items':
+      default:
+        bg = const Color(0xFFFFEDD5);
+        fg = const Color(0xFFEA580C);
+        break;
+    }
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        statusText,
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.bold,
+          color: fg,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTh(String label, {int flex = 2, bool isLast = false}) {
+    return Expanded(
+      flex: flex,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          if (label != 'Part Number') ...[
+            const SizedBox(width: 4),
+            const Icon(
+              Icons.swap_vert,
+              size: 14,
+              color: AppColors.textSecondary,
+            ),
+          ],
         ],
       ),
     );

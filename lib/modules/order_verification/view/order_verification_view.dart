@@ -129,11 +129,11 @@ class OrderVerificationView extends GetView<OrderVerificationController> {
               // Uploaded BOM File Dropzone Box
               Expanded(
                 child: _buildDropzoneBox(
-                  title: 'Uploaded BOM File',
+                  title: 'BOM File',
                   fileName: controller.bomFileName.value,
                   fileSize: controller.bomFileSize.value,
-                  fileType: 'PDF',
-                  badgeColor: const Color(0xFFEF4444),
+                  fileType: 'BOM',
+                  badgeColor: const Color(0xFF2563EB),
                 ),
               ),
               const SizedBox(width: 24),
@@ -141,11 +141,11 @@ class OrderVerificationView extends GetView<OrderVerificationController> {
               // Uploaded Shipper File Dropzone Box
               Expanded(
                 child: _buildDropzoneBox(
-                  title: 'Uploaded Shipper File',
+                  title: 'Shipper File',
                   fileName: controller.shipperFileName.value,
                   fileSize: controller.shipperFileSize.value,
-                  fileType: 'X',
-                  badgeColor: const Color(0xFF16A34A),
+                  fileType: 'PDF',
+                  badgeColor: const Color(0xFF2563EB),
                 ),
               ),
             ],
@@ -154,14 +154,12 @@ class OrderVerificationView extends GetView<OrderVerificationController> {
 
           // Compare Files Button
           ElevatedButton.icon(
-            onPressed: controller.canCompare
-                ? () => controller.compareFiles()
-                : null,
+            onPressed: () => controller.compareFiles(),
             icon: const Icon(Icons.balance, size: 18, color: Colors.white),
             label: const Text(
               'Compare Files',
               style: TextStyle(
-                fontSize: 13,
+                fontSize: 14,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
               ),
@@ -170,9 +168,9 @@ class OrderVerificationView extends GetView<OrderVerificationController> {
               backgroundColor: const Color(0xFF7C3AED),
               elevation: 0,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(10),
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
             ),
           ),
         ],
@@ -187,31 +185,33 @@ class OrderVerificationView extends GetView<OrderVerificationController> {
     required String fileType,
     required Color badgeColor,
   }) {
+    final displayFile = fileName.isNotEmpty ? fileName : (title == 'BOM File' ? 'BOM_Consolidated.xlsx' : 'Shipper_Quote.pdf');
+
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
       decoration: BoxDecoration(
         color: const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: const Color(0xFF93C5FD),
+          color: const Color(0xFFE2E8F0),
           style: BorderStyle.solid,
         ),
       ),
       child: Column(
         children: [
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
               color: const Color(0xFF2563EB),
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(12),
             ),
             child: const Icon(
-              Icons.cloud_upload_outlined,
+              Icons.folder_shared_outlined,
               color: Colors.white,
-              size: 24,
+              size: 28,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
           Text(
             title,
             style: const TextStyle(
@@ -220,78 +220,32 @@ class OrderVerificationView extends GetView<OrderVerificationController> {
               color: AppColors.textPrimary,
             ),
           ),
-          const SizedBox(height: 16),
-          if (fileName.isEmpty)
-            Text(
-              title == 'Uploaded BOM File'
-                  ? 'No consolidated BOM found'
-                  : 'Vendor has not submitted a file yet',
-              style: const TextStyle(
-                fontSize: 12,
-                color: AppColors.textSecondary,
-              ),
-            )
-          else
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppColors.inputBorder),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: badgeColor,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      fileType,
-                      style: const TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          fileName,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimary,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          fileSize,
-                          style: const TextStyle(
-                            fontSize: 10,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Icon(
-                    Icons.cancel_outlined,
-                    size: 18,
-                    color: AppColors.textHint,
-                  ),
-                ],
-              ),
+          const SizedBox(height: 18),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: const Color(0xFF2563EB), width: 1.2),
             ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Flexible(
+                  child: Text(
+                    displayFile,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF2563EB),
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );

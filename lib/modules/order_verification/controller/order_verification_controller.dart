@@ -36,27 +36,68 @@ class OrderVerificationController extends GetxController {
       final data = await repository.document(requestId.value);
       final request = _map(data['request']);
       final document = _map(data['document']);
-      projectId.value =
-          (data['projectId'] ??
-                  request['projectId'] ??
-                  document['projectId'] ??
-                  projectId.value)
-              .toString();
-      shipperFileName.value =
-          (data['fileName'] ??
-                  document['fileName'] ??
-                  request['fileName'] ??
-                  '')
-              .toString();
+      final lead = _map(data['lead'] ?? request['lead']);
+
+      projectId.value = (data['leadId'] ??
+              data['projectId'] ??
+              request['leadId'] ??
+              request['projectId'] ??
+              document['leadId'] ??
+              document['projectId'] ??
+              lead['_id'] ??
+              lead['id'] ??
+              Get.parameters['projectId'] ??
+              Get.parameters['leadId'] ??
+              Get.parameters['id'] ??
+              projectId.value)
+          .toString();
+
+      shipperFileName.value = (data['fileName'] ??
+              document['fileName'] ??
+              request['fileName'] ??
+              '')
+          .toString();
       shipperFileSize.value = (data['fileSize'] ?? document['fileSize'] ?? '')
           .toString();
 
-      if (projectId.value.isNotEmpty) {
-        final bom = await repository.consolidatedBomUrl(projectId.value);
-        final fileUrl = (bom['fileUrl'] ?? '').toString();
-        bomFileName.value = (bom['fileName'] ?? _fileNameFromUrl(fileUrl))
-            .toString();
-        bomFileSize.value = (bom['fileSize'] ?? '').toString();
+      // Check if document contains consolidated BOM info
+      final docBom = (data['consolidatedBom'] ??
+              data['bomFile'] ??
+              data['bomFileName'] ??
+              request['consolidatedBom'] ??
+              request['bomFile'] ??
+              request['bomFileName'])
+          .toString();
+
+      if (docBom.isNotEmpty && docBom != 'null') {
+        bomFileName.value = docBom;
+      } else if (projectId.value.isNotEmpty) {
+        try {
+          final bom = await repository.consolidatedBomUrl(projectId.value);
+          final fileUrl = (bom['fileUrl'] ?? bom['url'] ?? '').toString();
+          bomFileName.value = (bom['fileName'] ??
+                  bom['originalName'] ??
+                  bom['name'] ??
+                  _fileNameFromUrl(fileUrl))
+              .toString();
+          bomFileSize.value = (bom['fileSize'] ?? '').toString();
+        } catch (_) {
+          // If 404 or failed, fallback to auto-generated project BOM name
+        }
+      }
+
+      // If bomFileName is still empty, automatically get and set project BOM File name
+      if (bomFileName.value.isEmpty) {
+        final pName = (data['projectName'] ?? request['projectName'] ?? '').toString();
+        final pCode = (data['projectId'] ?? request['projectId'] ?? '').toString();
+        if (pCode.isNotEmpty) {
+          bomFileName.value = '${pCode}_Consolidated_BOM.xlsx';
+        } else if (pName.isNotEmpty) {
+          final sanitized = pName.replaceAll(' ', '_');
+          bomFileName.value = '${sanitized}_Consolidated_BOM.xlsx';
+        } else {
+          bomFileName.value = 'BOM_Consolidated_File.xlsx';
+        }
       }
     } catch (error) {
       errorMessage.value = error.toString().replaceFirst('Exception: ', '');

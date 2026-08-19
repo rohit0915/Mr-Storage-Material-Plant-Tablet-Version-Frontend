@@ -26,8 +26,7 @@ class ApiEndpoints {
   static String plantProjectBuildings(String leadId) =>
       'plant/projects/$leadId/buildings';
   static String plantProjectBom(String leadId) => 'plant/projects/$leadId/bom';
-  static String plantProjectBomFiles(String leadId) =>
-      'plant/projects/$leadId/bom-files';
+  static const String plantBomJobsStatus = 'plant/bom/jobs/status';
   static String plantProjectDeliveries(String leadId) =>
       'plant/deliveries/project/$leadId';
   static String plantDeliveryDetail(String deliveryId) =>

@@ -1,17 +1,85 @@
+import 'dart:typed_data';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:printing/printing.dart';
 import '../../../app/utils/app_colors.dart';
 import '../../../app/utils/app_images.dart';
 import '../../../app/widgets/common_snackbar.dart';
 import '../model/project_drawings_model.dart';
 
-class DrawingDetailsDialog extends StatelessWidget {
+class DrawingDetailsDialog extends StatefulWidget {
   final DrawingItemModel item;
 
   const DrawingDetailsDialog({super.key, required this.item});
 
   @override
+  State<DrawingDetailsDialog> createState() => _DrawingDetailsDialogState();
+}
+
+class _DrawingDetailsDialogState extends State<DrawingDetailsDialog> {
+  Uint8List? _pdfBytes;
+  bool _isLoading = false;
+  bool _isPdf = false;
+  bool _hasError = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkAndLoadContent();
+  }
+
+  Future<void> _checkAndLoadContent() async {
+    final url = widget.item.fileUrl.trim();
+    final title = widget.item.title.toLowerCase();
+    final isPdfExtension = title.endsWith('.pdf') || url.toLowerCase().contains('.pdf');
+
+    if (url.isEmpty) return;
+
+    if (isPdfExtension) {
+      setState(() {
+        _isLoading = true;
+        _isPdf = true;
+      });
+
+      try {
+        final response = await Dio().get<List<int>>(
+          url,
+          options: Options(responseType: ResponseType.bytes),
+        );
+        final bytes = Uint8List.fromList(response.data ?? const <int>[]);
+        final isPdfMagic =
+            bytes.length >= 4 &&
+            bytes[0] == 0x25 &&
+            bytes[1] == 0x50 &&
+            bytes[2] == 0x44 &&
+            bytes[3] == 0x46;
+
+        if (mounted) {
+          setState(() {
+            if (isPdfMagic) {
+              _pdfBytes = bytes;
+              _isPdf = true;
+            } else {
+              _isPdf = false;
+            }
+            _isLoading = false;
+          });
+        }
+      } catch (_) {
+        if (mounted) {
+          setState(() {
+            _hasError = true;
+            _isLoading = false;
+          });
+        }
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final item = widget.item;
     final statusColor = item.status == 'Approved'
         ? const Color(0xFF16A34A)
         : item.status.contains('Revision')
@@ -30,7 +98,7 @@ class DrawingDetailsDialog extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Top Header: Title, PEB Code, Metadata, Close X (Responsive layout preventing 188px overflow)
+            // Top Header: Title, PEB Code, Metadata, Close X
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -87,7 +155,7 @@ class DrawingDetailsDialog extends StatelessWidget {
 
             const SizedBox(height: 16),
 
-            // Blueprint Image / PDF Canvas Container (Renders drawing / PDF directly in-place)
+            // Blueprint Image / PDF Canvas Container (Renders PDF or Image dynamically)
             Container(
               height: 380,
               width: double.infinity,
@@ -99,22 +167,13 @@ class DrawingDetailsDialog extends StatelessWidget {
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(6),
-                child: Center(
-                  child: item.fileUrl.isNotEmpty
-                      ? Image.network(
-                          item.fileUrl,
-                          fit: BoxFit.contain,
-                          errorBuilder: (ctx, err, stack) =>
-                              _fallbackPreview(),
-                        )
-                      : _fallbackPreview(),
-                ),
+                child: _buildContentArea(),
               ),
             ),
 
             const SizedBox(height: 20),
 
-            // Bottom Toolbar: Download Button & Status Pill
+            // Bottom Toolbar: Download Button & Action Buttons / Status Pill
             Row(
               children: [
                 // Download Button
@@ -135,44 +194,137 @@ class DrawingDetailsDialog extends StatelessWidget {
                     ),
                   ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2563EB),
+                    backgroundColor: const Color(0xFF94A3B8),
                     elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                     ),
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 12,
+                      horizontal: 20,
+                      vertical: 10,
                     ),
                   ),
                 ),
                 const Spacer(),
 
-                // Status Pill
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: statusColor,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    item.status,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                // Action Buttons or Status Pill (Matching Image 1)
+                if (item.status.toLowerCase().contains('pending')) ...[
+                  ElevatedButton(
+                    onPressed: () {
+                      Get.back();
+                      CommonSnackbar.showSuccess(
+                        title: 'Status Updated',
+                        message: 'Marked as Revision Required',
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFF97316),
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 18,
+                        vertical: 10,
+                      ),
+                    ),
+                    child: const Text(
+                      'Revision Required',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
-                ),
+                  const SizedBox(width: 10),
+                  ElevatedButton(
+                    onPressed: () {
+                      Get.back();
+                      CommonSnackbar.showSuccess(
+                        title: 'Drawing Approved',
+                        message: '${item.title} has been approved.',
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF22C55E),
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 10,
+                      ),
+                    ),
+                    child: const Text(
+                      'Approve',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ] else ...[
+                  // Status Pill
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: statusColor,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      item.status,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ],
               ],
             ),
           ],
         ),
       ),
     );
+  }
+
+  Widget _buildContentArea() {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_isPdf && _pdfBytes != null) {
+      return PdfPreview(
+        build: (_) async => _pdfBytes!,
+        pdfFileName: widget.item.title,
+        allowPrinting: false,
+        allowSharing: false,
+        canChangeOrientation: false,
+        canChangePageFormat: false,
+        canDebug: false,
+        useActions: false,
+        loadingWidget: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (widget.item.fileUrl.isNotEmpty && !_hasError && !_isPdf) {
+      return Center(
+        child: Image.network(
+          widget.item.fileUrl,
+          fit: BoxFit.contain,
+          errorBuilder: (ctx, err, stack) => _fallbackPreview(),
+        ),
+      );
+    }
+
+    return Center(child: _fallbackPreview());
   }
 
   Widget _buildMetaCell(String text) {

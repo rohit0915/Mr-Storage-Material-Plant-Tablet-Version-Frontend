@@ -6,6 +6,7 @@ import 'package:socket_io_client/socket_io_client.dart' as io;
 import '../utils/app_constants.dart';
 import '../utils/app_logger.dart';
 import '../widgets/common_snackbar.dart';
+import '../widgets/shipper_file_received_dialog.dart';
 import 'shared_pref_service.dart';
 
 class PlantSocketEvent {
@@ -137,7 +138,18 @@ class PlantSocketService extends GetxService {
         : <String, dynamic>{'data': data};
     _events.add(PlantSocketEvent(name, payload));
     final message = _message(name, payload);
-    if (name.endsWith('_failed')) {
+    if (name == 'shipper_file_submitted') {
+      final vendorName = (payload['vendorName'] ?? payload['shipperName'] ?? payload['name'] ?? 'Namra').toString();
+      final quoteVal = (payload['quoteValue'] ?? payload['amount'] ?? payload['rate'] ?? '\$100,000').toString();
+      final leadId = (payload['leadId'] ?? payload['projectId'] ?? '').toString();
+      final requestId = (payload['requestId'] ?? payload['shipperFileId'] ?? payload['id'] ?? payload['_id'] ?? '').toString();
+      ShipperFileReceivedDialog.show(
+        vendorName: vendorName,
+        quoteValue: quoteVal,
+        leadId: leadId.isNotEmpty ? leadId : null,
+        requestId: requestId.isNotEmpty ? requestId : null,
+      );
+    } else if (name.endsWith('_failed')) {
       CommonSnackbar.showError(title: 'Live update', message: message);
     } else {
       CommonSnackbar.showSuccess(title: 'Live update', message: message);

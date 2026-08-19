@@ -217,179 +217,144 @@ class ShipperFilesView extends GetView<ShipperFilesController> {
       ),
       child: Column(
         children: [
-          // Table Header
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          // Table Header (With Vertical & Horizontal Grid Lines)
+          Container(
+            decoration: const BoxDecoration(
+              color: Color(0xFFF8FAFC),
+              border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
+            ),
             child: Row(
               children: [
-                SizedBox(
-                  width: 32,
-                  child: Checkbox(
-                    value: controller.projectsList.every(
-                      (item) => item.isSelected,
-                    ),
-                    onChanged: (val) {
-                      for (var item in controller.projectsList) {
-                        item.isSelected = val ?? false;
-                      }
-                      controller.projectsList.refresh();
-                    },
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                const Expanded(
-                  flex: 3,
-                  child: Text(
-                    'Project ID',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
+                _buildThWidget(
+                  SizedBox(
+                    width: 32,
+                    child: Checkbox(
+                      value: controller.projectsList.every(
+                        (item) => item.isSelected,
+                      ),
+                      onChanged: (val) {
+                        for (var item in controller.projectsList) {
+                          item.isSelected = val ?? false;
+                        }
+                        controller.projectsList.refresh();
+                      },
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(4),
+                      ),
                     ),
                   ),
+                  width: 44,
                 ),
-                const Expanded(
-                  flex: 4,
-                  child: Text(
-                    'Project Name',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                ),
-                const Expanded(
-                  flex: 3,
-                  child: Row(
-                    children: [
-                      Text(
-                        'File Received',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      SizedBox(width: 4),
-                      Icon(
-                        Icons.swap_vert,
-                        size: 14,
-                        color: AppColors.textSecondary,
-                      ),
-                    ],
-                  ),
-                ),
-                const Expanded(
-                  flex: 3,
-                  child: Row(
-                    children: [
-                      Text(
-                        'Total Shippers Files',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      SizedBox(width: 4),
-                      Icon(
-                        Icons.swap_vert,
-                        size: 14,
-                        color: AppColors.textSecondary,
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 44),
+                _buildTh('Project ID', flex: 3),
+                _buildTh('Project Name', flex: 4),
+                _buildTh('File Received', flex: 3),
+                _buildTh('Total Shippers Files', flex: 3),
+                _buildTh('Action', width: 56, isLast: true),
               ],
             ),
           ),
-          const Divider(height: 1, color: AppColors.divider),
 
-          // Table Rows
+          // Table Data Rows (With Vertical & Horizontal Grid Lines)
           Obx(() {
-            return ListView.separated(
+            return ListView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: controller.projectsList.length,
-              separatorBuilder: (context, index) =>
-                  const Divider(height: 1, color: AppColors.divider),
               itemBuilder: (context, index) {
                 final item = controller.projectsList[index];
-                return Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 14,
-                  ),
-                  child: Row(
-                    children: [
-                      SizedBox(
-                        width: 32,
-                        child: Checkbox(
-                          value: item.isSelected,
-                          onChanged: (val) =>
-                              controller.toggleSelectProject(index, val),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(4),
+                return IntrinsicHeight(
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      border: Border(bottom: BorderSide(color: Color(0xFFF1F5F9))),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _buildTdWidget(
+                          SizedBox(
+                            width: 32,
+                            child: Checkbox(
+                              value: item.isSelected,
+                              onChanged: (val) =>
+                                  controller.toggleSelectProject(index, val),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                            ),
                           ),
+                          width: 44,
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        flex: 3,
-                        child: Text(
-                          item.projectId,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            color: AppColors.textSecondary,
+                        _buildTdWidget(
+                          Text(
+                            item.projectId,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: AppColors.textSecondary,
+                            ),
                           ),
+                          flex: 3,
                         ),
-                      ),
-                      Expanded(
-                        flex: 4,
-                        child: Text(
-                          item.projectName,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimary,
+                        _buildTdWidget(
+                          Text(
+                            item.projectName,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.textPrimary,
+                            ),
                           ),
+                          flex: 4,
                         ),
-                      ),
-                      Expanded(
-                        flex: 3,
-                        child: Text(
-                          item.fileReceived,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            color: AppColors.textSecondary,
+                        _buildTdWidget(
+                          Text(
+                            item.fileReceived,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: AppColors.textSecondary,
+                            ),
                           ),
+                          flex: 3,
                         ),
-                      ),
-                      Expanded(
-                        flex: 3,
-                        child: Text(
-                          '${item.totalShipperFiles}',
-                          style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimary,
+                        _buildTdWidget(
+                          Text(
+                            '${item.totalShipperFiles}',
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.textPrimary,
+                            ),
                           ),
+                          flex: 3,
                         ),
-                      ),
-                      IconButton(
-                        onPressed: () => controller.openProject(item),
-                        icon: const Icon(
-                          Icons.visibility_outlined,
-                          size: 18,
-                          color: AppColors.textPrimary,
+                        // Action Column with Eye Icon Button
+                        _buildTdWidget(
+                          Center(
+                            child: Container(
+                              width: 32,
+                              height: 32,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF4F46E5),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: IconButton(
+                                padding: EdgeInsets.zero,
+                                icon: const Icon(
+                                  Icons.remove_red_eye_outlined,
+                                  color: Colors.white,
+                                  size: 18,
+                                ),
+                                onPressed: () {
+                                  controller.openProjectShipperFiles(item);
+                                },
+                                tooltip: 'View Project Shipper Files',
+                              ),
+                            ),
+                          ),
+                          width: 56,
+                          isLast: true,
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 );
               },
@@ -398,6 +363,53 @@ class ShipperFilesView extends GetView<ShipperFilesController> {
         ],
       ),
     );
+  }
+
+  Widget _buildTh(String label, {int flex = 2, double? width, bool isLast = false}) {
+    return _buildThWidget(
+      Text(
+        label,
+        style: const TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.bold,
+          color: AppColors.textPrimary,
+        ),
+      ),
+      flex: flex,
+      width: width,
+      isLast: isLast,
+    );
+  }
+
+  Widget _buildThWidget(Widget child, {int flex = 2, double? width, bool isLast = false}) {
+    final container = Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        border: Border(
+          right: isLast ? BorderSide.none : const BorderSide(color: Color(0xFFE2E8F0)),
+        ),
+      ),
+      alignment: Alignment.centerLeft,
+      child: child,
+    );
+    if (width != null) return SizedBox(width: width, child: container);
+    return Expanded(flex: flex, child: container);
+  }
+
+  Widget _buildTdWidget(Widget child, {int flex = 2, double? width, bool isLast = false}) {
+    final container = Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      decoration: BoxDecoration(
+        border: Border(
+          right: isLast ? BorderSide.none : const BorderSide(color: Color(0xFFF1F5F9)),
+        ),
+      ),
+      alignment: Alignment.centerLeft,
+      child: child,
+    );
+    if (width != null) return SizedBox(width: width, child: container);
+    return Expanded(flex: flex, child: container);
   }
 
   Widget _buildPaginationFooter() {

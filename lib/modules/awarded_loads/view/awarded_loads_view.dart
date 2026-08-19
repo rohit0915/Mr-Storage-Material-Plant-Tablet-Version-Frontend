@@ -291,348 +291,277 @@ class AwardedLoadsView extends GetView<AwardedLoadsController> {
               ),
               child: Column(
         children: [
-          // Table Header
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          // Table Header (With Vertical Grid Lines)
+          Container(
+            decoration: const BoxDecoration(
+              color: Color(0xFFF8FAFC),
+              border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
+            ),
             child: Row(
-              children: const [
-                Expanded(
-                  flex: 2,
-                  child: Text(
-                    'REQUEST ID',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                ),
-                Expanded(
-                  flex: 2,
-                  child: Text(
-                    'PROJECT',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                ),
-                Expanded(
-                  flex: 3,
-                  child: Text(
-                    'DESCRIPTION',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                ),
-                Expanded(
-                  flex: 2,
-                  child: Text(
-                    'PICKUP LOCATION',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                ),
-                Expanded(
-                  flex: 2,
-                  child: Text(
-                    'DELIVERY LOCATION',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                ),
-                Expanded(
-                  flex: 2,
-                  child: Text(
-                    'DATES',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                ),
-                Expanded(
-                  flex: 3,
-                  child: Text(
-                    'CARRIER',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                ),
-                Expanded(
-                  flex: 2,
-                  child: Text(
-                    'BUDGET & BIDS',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                ),
-                Expanded(
-                  flex: 2,
-                  child: Text(
-                    'STATUS',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                ),
+              children: [
+                _buildTh('REQUEST ID', flex: 2),
+                _buildTh('PROJECT', flex: 2),
+                _buildTh('DESCRIPTION', flex: 3),
+                _buildTh('PICKUP LOCATION', flex: 2),
+                _buildTh('DELIVERY LOCATION', flex: 2),
+                _buildTh('DATES', flex: 2),
+                _buildTh('CARRIER', flex: 3),
+                _buildTh('BUDGET & BIDS', flex: 2),
+                _buildTh('STATUS', flex: 2, isLast: true),
               ],
             ),
           ),
-          const Divider(height: 1, color: AppColors.divider),
 
-          // Table Rows
+          // Table Rows (With Vertical & Horizontal Grid Lines)
           Obx(() {
-            return ListView.separated(
+            final items = controller.filteredAwardedLoads;
+            if (items.isEmpty) {
+              return const Padding(
+                padding: EdgeInsets.symmetric(vertical: 48),
+                child: Center(
+                  child: Text(
+                    'No awarded loads found.',
+                    style: TextStyle(color: AppColors.textSecondary),
+                  ),
+                ),
+              );
+            }
+            return ListView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              itemCount: controller.filteredAwardedLoads.length,
-              separatorBuilder: (context, index) =>
-                  const Divider(height: 1, color: AppColors.divider),
+              itemCount: items.length,
               itemBuilder: (context, index) {
-                final item = controller.filteredAwardedLoads[index];
-                return Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 14,
-                  ),
-                  child: Row(
-                    children: [
-                      // Request ID & Requested Date & SubStatus pill
-                      Expanded(
-                        flex: 2,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              item.requestId,
-                              style: const TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.textPrimary,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              'Requested: ${item.requestedDate}',
-                              style: const TextStyle(
-                                fontSize: 10,
-                                color: AppColors.textHint,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFEFF6FF),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: const Color(0xFF93C5FD),
+                final item = items[index];
+                return IntrinsicHeight(
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      border: Border(bottom: BorderSide(color: Color(0xFFF1F5F9))),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // Request ID & Requested Date & SubStatus pill
+                        _buildTd(
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                item.requestId,
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.textPrimary,
                                 ),
                               ),
-                              child: Text(
-                                item.subStatus,
+                              const SizedBox(height: 2),
+                              Text(
+                                'Requested: ${item.requestedDate}',
                                 style: const TextStyle(
                                   fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF2563EB),
+                                  color: AppColors.textHint,
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      // Project Name
-                      Expanded(
-                        flex: 2,
-                        child: Text(
-                          item.project,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                      ),
-
-                      // Description
-                      Expanded(
-                        flex: 3,
-                        child: Text(
-                          item.description,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                      ),
-
-                      // Pickup Location
-                      Expanded(
-                        flex: 2,
-                        child: Text(
-                          item.pickupLocation,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                      ),
-
-                      // Delivery Location
-                      Expanded(
-                        flex: 2,
-                        child: Text(
-                          item.deliveryLocation,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                      ),
-
-                      // Dates
-                      Expanded(
-                        flex: 2,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Pickup: ${item.pickupDate}',
-                              style: const TextStyle(
-                                fontSize: 10,
-                                color: AppColors.textSecondary,
-                              ),
-                            ),
-                            Text(
-                              'Delivery: ${item.deliveryDate}',
-                              style: const TextStyle(
-                                fontSize: 10,
-                                color: AppColors.textSecondary,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      // Carrier
-                      Expanded(
-                        flex: 3,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              item.carrierName,
-                              style: const TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.textPrimary,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Row(
-                              children: [
-                                const Icon(
-                                  Icons.phone,
-                                  size: 10,
-                                  color: Color(0xFF2563EB),
+                              const SizedBox(height: 4),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 2,
                                 ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  item.carrierPhone,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFEFF6FF),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: const Color(0xFF93C5FD),
+                                  ),
+                                ),
+                                child: Text(
+                                  item.subStatus,
                                   style: const TextStyle(
-                                    fontSize: 11,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
                                     color: Color(0xFF2563EB),
                                   ),
                                 ),
-                              ],
-                            ),
-                          ],
+                              ),
+                            ],
+                          ),
+                          flex: 2,
                         ),
-                      ),
 
-                      // Budget & Bids
-                      Expanded(
-                        flex: 2,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              item.budget,
-                              style: const TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.textPrimary,
-                              ),
+                        // Project Name
+                        _buildTd(
+                          Text(
+                            item.project,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textPrimary,
                             ),
-                            Text(
-                              'Awarded: ${item.awardedAmount}',
-                              style: const TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.textPrimary,
-                              ),
-                            ),
-                            Text(
-                              '${item.bidsCount} bids',
-                              style: const TextStyle(
-                                fontSize: 11,
-                                color: AppColors.textSecondary,
-                              ),
-                            ),
-                          ],
+                          ),
+                          flex: 2,
                         ),
-                      ),
 
-                      // Status Badge
-                      Expanded(
-                        flex: 2,
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 4,
+                        // Description
+                        _buildTd(
+                          Text(
+                            item.description,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textSecondary,
                             ),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFDCFCE7),
-                              borderRadius: BorderRadius.circular(20),
+                          ),
+                          flex: 3,
+                        ),
+
+                        // Pickup Location
+                        _buildTd(
+                          Text(
+                            item.pickupLocation,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textSecondary,
                             ),
-                            child: const Text(
-                              'Awarded',
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                                color: Color(0xFF166534),
+                          ),
+                          flex: 2,
+                        ),
+
+                        // Delivery Location
+                        _buildTd(
+                          Text(
+                            item.deliveryLocation,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                          flex: 2,
+                        ),
+
+                        // Dates
+                        _buildTd(
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                'Pickup: ${item.pickupDate}',
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                              Text(
+                                'Delivery: ${item.deliveryDate}',
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                          flex: 2,
+                        ),
+
+                        // Carrier
+                        _buildTd(
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                item.carrierName,
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.textPrimary,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Row(
+                                children: [
+                                  const Icon(
+                                    Icons.phone,
+                                    size: 10,
+                                    color: Color(0xFF2563EB),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    item.carrierPhone,
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      color: Color(0xFF2563EB),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          flex: 3,
+                        ),
+
+                        // Budget & Bids
+                        _buildTd(
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                item.budget,
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.textPrimary,
+                                ),
+                              ),
+                              Text(
+                                'Awarded: ${item.awardedAmount}',
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.textPrimary,
+                                ),
+                              ),
+                              Text(
+                                '${item.bidsCount} bids',
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                          flex: 2,
+                        ),
+
+                        // Status Badge
+                        _buildTd(
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFDCFCE7),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: const Text(
+                                'Awarded',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFF166534),
+                                ),
                               ),
                             ),
                           ),
+                          flex: 2,
+                          isLast: true,
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 );
               },
@@ -646,4 +575,43 @@ class AwardedLoadsView extends GetView<AwardedLoadsController> {
         },
       );
   }
+
+  Widget _buildTh(String label, {int flex = 2, double? width, bool isLast = false}) {
+    final child = Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        border: Border(
+          right: isLast ? BorderSide.none : const BorderSide(color: Color(0xFFE2E8F0)),
+        ),
+      ),
+      alignment: Alignment.centerLeft,
+      child: Text(
+        label,
+        style: const TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.bold,
+          color: AppColors.textSecondary,
+        ),
+      ),
+    );
+    if (width != null) return SizedBox(width: width, child: child);
+    return Expanded(flex: flex, child: child);
+  }
+
+  Widget _buildTd(Widget child, {int flex = 2, double? width, bool isLast = false}) {
+    final container = Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      decoration: BoxDecoration(
+        border: Border(
+          right: isLast ? BorderSide.none : const BorderSide(color: Color(0xFFF1F5F9)),
+        ),
+      ),
+      alignment: Alignment.centerLeft,
+      child: child,
+    );
+    if (width != null) return SizedBox(width: width, child: container);
+    return Expanded(flex: flex, child: container);
+  }
 }
+

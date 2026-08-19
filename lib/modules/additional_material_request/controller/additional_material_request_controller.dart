@@ -16,64 +16,7 @@ class AdditionalMaterialRequestController extends GetxController {
 
   void loadInventoryData() {
     isLoading.value = true;
-    inventoryList.assignAll([
-      MaterialInventoryItemModel(
-        id: '1',
-        material: 'Cement\nOPC 53',
-        category: 'Cement',
-        qnt: '230',
-        updated: '08-Apr',
-      ),
-      MaterialInventoryItemModel(
-        id: '2',
-        material: 'TMT Steel\n12mm',
-        category: 'Steel',
-        qnt: '8.2',
-        updated: '08-Apr',
-      ),
-      MaterialInventoryItemModel(
-        id: '3',
-        material: 'Aggregates\n20mm',
-        category: 'Aggregate',
-        qnt: '40',
-        updated: '08-Apr',
-      ),
-      MaterialInventoryItemModel(
-        id: '4',
-        material: 'Chemical\nHardener',
-        category: 'Consumable',
-        qnt: '4',
-        updated: '08-Apr',
-      ),
-      MaterialInventoryItemModel(
-        id: '5',
-        material: 'Cement\nOPC 53',
-        category: 'Cement',
-        qnt: '230',
-        updated: '08-Apr',
-      ),
-      MaterialInventoryItemModel(
-        id: '6',
-        material: 'TMT Steel\n12mm',
-        category: 'Steel',
-        qnt: '8.2',
-        updated: '08-Apr',
-      ),
-      MaterialInventoryItemModel(
-        id: '7',
-        material: 'Aggregates\n20mm',
-        category: 'Aggregate',
-        qnt: '40',
-        updated: '08-Apr',
-      ),
-      MaterialInventoryItemModel(
-        id: '8',
-        material: 'Chemical\nHardener',
-        category: 'Consumable',
-        qnt: '4',
-        updated: '08-Apr',
-      ),
-    ]);
+    inventoryList.clear();
     isLoading.value = false;
   }
 

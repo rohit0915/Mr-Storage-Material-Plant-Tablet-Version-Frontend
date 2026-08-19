@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../app/routes/app_routes.dart';
 import '../../../app/utils/app_colors.dart';
 import '../../../app/widgets/common_loader.dart';
 import '../../../app/widgets/common_pagination.dart';
@@ -249,237 +248,176 @@ class ProjectShipperFilesView extends GetView<ShipperFilesController> {
       ),
       child: Column(
         children: [
-          // Table Header
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          // Table Header (With Vertical & Horizontal Grid Lines)
+          Container(
+            decoration: const BoxDecoration(
+              color: Color(0xFFF8FAFC),
+              border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
+            ),
             child: Row(
               children: [
-                SizedBox(
-                  width: 32,
-                  child: Checkbox(
-                    value: controller.shipperFiles.every(
-                      (item) => item.isSelected,
-                    ),
-                    onChanged: (val) {
-                      for (var item in controller.shipperFiles) {
-                        item.isSelected = val ?? false;
-                      }
-                      controller.shipperFiles.refresh();
-                    },
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                const Expanded(
-                  flex: 3,
-                  child: Row(
-                    children: [
-                      Text(
-                        'Shipper',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
-                        ),
+                _buildThWidget(
+                  SizedBox(
+                    width: 32,
+                    child: Checkbox(
+                      value: controller.shipperFiles.every(
+                        (item) => item.isSelected,
                       ),
-                      SizedBox(width: 4),
-                      Icon(
-                        Icons.swap_vert,
-                        size: 14,
-                        color: AppColors.textSecondary,
+                      onChanged: (val) {
+                        for (var item in controller.shipperFiles) {
+                          item.isSelected = val ?? false;
+                        }
+                        controller.shipperFiles.refresh();
+                      },
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(4),
                       ),
-                    ],
-                  ),
-                ),
-                const Expanded(
-                  flex: 3,
-                  child: Text(
-                    'File Name',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
                     ),
                   ),
+                  width: 44,
                 ),
-                const Expanded(
-                  flex: 3,
-                  child: Row(
-                    children: [
-                      Text(
-                        'Upload Date',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      SizedBox(width: 4),
-                      Icon(
-                        Icons.swap_vert,
-                        size: 14,
-                        color: AppColors.textSecondary,
-                      ),
-                    ],
-                  ),
-                ),
-                const Expanded(
-                  flex: 2,
-                  child: Row(
-                    children: [
-                      Text(
-                        'Rates',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      SizedBox(width: 4),
-                      Icon(
-                        Icons.swap_vert,
-                        size: 14,
-                        color: AppColors.textSecondary,
-                      ),
-                    ],
-                  ),
-                ),
-                const Expanded(
-                  flex: 3,
-                  child: Text(
-                    'File Status',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 44),
+                _buildTh('Shipper', flex: 3),
+                _buildTh('File Name', flex: 3),
+                _buildTh('Upload Date', flex: 3),
+                _buildTh('Rates', flex: 2),
+                _buildTh('File Status', flex: 3),
+                _buildTh('Action', width: 56, isLast: true),
               ],
             ),
           ),
-          const Divider(height: 1, color: AppColors.divider),
 
-          // Table Data Rows
+          // Table Data Rows (With Vertical & Horizontal Grid Lines)
           Obx(() {
-            return ListView.separated(
+            return ListView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: controller.shipperFiles.length,
-              separatorBuilder: (context, index) =>
-                  const Divider(height: 1, color: AppColors.divider),
               itemBuilder: (context, index) {
                 final item = controller.shipperFiles[index];
-                return Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  child: Row(
-                    children: [
-                      SizedBox(
-                        width: 32,
-                        child: Checkbox(
-                          value: item.isSelected,
-                          onChanged: (val) =>
-                              controller.toggleSelectFile(index, val),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      // Shipper Name + Avatar Column
-                      Expanded(
-                        flex: 3,
-                        child: Row(
-                          children: [
-                            CircleAvatar(
-                              radius: 12,
-                              backgroundColor: const Color(0xFFDBEAFE),
-                              child: Text(
-                                item.shipperName[0],
-                                style: const TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF2563EB),
-                                ),
+                return IntrinsicHeight(
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      border: Border(bottom: BorderSide(color: Color(0xFFF1F5F9))),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _buildTdWidget(
+                          SizedBox(
+                            width: 32,
+                            child: Checkbox(
+                              value: item.isSelected,
+                              onChanged: (val) =>
+                                  controller.toggleSelectFile(index, val),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(4),
                               ),
                             ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                item.shipperName,
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.textPrimary,
+                          ),
+                          width: 44,
+                        ),
+                        // Shipper Name + Avatar Column
+                        _buildTdWidget(
+                          Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 12,
+                                backgroundColor: const Color(0xFFDBEAFE),
+                                child: Text(
+                                  item.shipperName.isNotEmpty ? item.shipperName[0] : 'S',
+                                  style: const TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF2563EB),
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      // File Name Column
-                      Expanded(
-                        flex: 3,
-                        child: Text(
-                          item.fileName,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                      ),
-                      // Upload Date Column
-                      Expanded(
-                        flex: 3,
-                        child: Text(
-                          item.uploadDate,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                      ),
-                      // Rates Column
-                      Expanded(
-                        flex: 2,
-                        child: Text(
-                          item.rate,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                      ),
-                      // File Status Column (Read-only Status Badge)
-                      Expanded(
-                        flex: 3,
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: _buildStatusBadge(item.status),
-                        ),
-                      ),
-                      // Action Column
-                      IconButton(
-                        onPressed: item.fileName.isEmpty || item.id.isEmpty
-                            ? null
-                            : () => Get.toNamed(
-                                AppRoutes.shipperFileDetails,
-                                parameters: {'id': item.id},
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  item.shipperName,
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.textPrimary,
+                                  ),
+                                ),
                               ),
-                        icon: const Icon(
-                          Icons.visibility_outlined,
-                          size: 18,
-                          color: AppColors.textPrimary,
+                            ],
+                          ),
+                          flex: 3,
                         ),
-                      ),
-                    ],
+                        // File Name Column
+                        _buildTdWidget(
+                          Text(
+                            item.fileName,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                          flex: 3,
+                        ),
+                        // Upload Date Column
+                        _buildTdWidget(
+                          Text(
+                            item.uploadDate,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                          flex: 3,
+                        ),
+                        // Rates Column
+                        _buildTdWidget(
+                          Text(
+                            item.rate,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          flex: 2,
+                        ),
+                        // File Status Column
+                        _buildTdWidget(
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: _buildStatusBadge(item.status),
+                          ),
+                          flex: 3,
+                        ),
+                        // Action Column with Eye Icon Button
+                        _buildTdWidget(
+                          Center(
+                            child: Container(
+                              width: 32,
+                              height: 32,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF4F46E5),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: IconButton(
+                                padding: EdgeInsets.zero,
+                                icon: const Icon(
+                                  Icons.remove_red_eye_outlined,
+                                  color: Colors.white,
+                                  size: 18,
+                                ),
+                                onPressed: () {
+                                  controller.openShipperFileDetails(item);
+                                },
+                                tooltip: 'View Shipper File Details',
+                              ),
+                            ),
+                          ),
+                          width: 56,
+                          isLast: true,
+                        ),
+                      ],
+                    ),
                   ),
                 );
               },
@@ -488,6 +426,63 @@ class ProjectShipperFilesView extends GetView<ShipperFilesController> {
         ],
       ),
     );
+  }
+
+  Widget _buildTh(String label, {int flex = 2, double? width, bool isLast = false}) {
+    return _buildThWidget(
+      Row(
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(width: 4),
+          const Icon(
+            Icons.swap_vert,
+            size: 14,
+            color: AppColors.textSecondary,
+          ),
+        ],
+      ),
+      flex: flex,
+      width: width,
+      isLast: isLast,
+    );
+  }
+
+  Widget _buildThWidget(Widget child, {int flex = 2, double? width, bool isLast = false}) {
+    final container = Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        border: Border(
+          right: isLast ? BorderSide.none : const BorderSide(color: Color(0xFFE2E8F0)),
+        ),
+      ),
+      alignment: Alignment.centerLeft,
+      child: child,
+    );
+    if (width != null) return SizedBox(width: width, child: container);
+    return Expanded(flex: flex, child: container);
+  }
+
+  Widget _buildTdWidget(Widget child, {int flex = 2, double? width, bool isLast = false}) {
+    final container = Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      decoration: BoxDecoration(
+        border: Border(
+          right: isLast ? BorderSide.none : const BorderSide(color: Color(0xFFF1F5F9)),
+        ),
+      ),
+      alignment: Alignment.centerLeft,
+      child: child,
+    );
+    if (width != null) return SizedBox(width: width, child: container);
+    return Expanded(flex: flex, child: container);
   }
 
   Widget _buildStatusBadge(String status) {

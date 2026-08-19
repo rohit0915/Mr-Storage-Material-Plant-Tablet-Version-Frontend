@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import 'package:file_picker/file_picker.dart';
+import 'dart:async';
 import 'dart:typed_data';
 import '../../../app/services/file_export_service.dart';
 import '../../../app/widgets/common_snackbar.dart';
@@ -68,6 +69,9 @@ class ProjectDetailsController extends GetxController {
   final RxBool isUploading = false.obs;
   final RxDouble uploadProgress = 0.0.obs;
   final RxString uploadError = ''.obs;
+  final RxBool isPollingBom = false.obs;
+  Timer? _bomStatusTimer;
+  final Set<String> _pendingBomJobIds = <String>{};
 
   String projectId = '';
 
@@ -80,6 +84,12 @@ class ProjectDetailsController extends GetxController {
       projectId = Get.arguments as String;
     }
     loadProjectDetails();
+  }
+
+  @override
+  void onClose() {
+    _bomStatusTimer?.cancel();
+    super.onClose();
   }
 
   Future<void> loadProjectDetails() async {
@@ -247,7 +257,6 @@ class ProjectDetailsController extends GetxController {
         _withoutFailure(repository!.fetchNotes(projectId)),
         _withoutFailure(repository!.fetchBuildings(projectId)),
         _withoutFailure(repository!.fetchExistingDrawings(projectId)),
-        _withoutFailure(repository!.fetchExistingBomFiles(projectId)),
       ]);
       final lifecycleData = optionalResults[0] as Map<String, dynamic>?;
       final invoicesData = optionalResults[1] as List<dynamic>?;
@@ -259,23 +268,7 @@ class ProjectDetailsController extends GetxController {
         target: existingDrawings,
         keys: const ['drawings', 'files', 'versions'],
       );
-      _mapExistingFiles(
-        optionalResults[5] as Map<String, dynamic>?,
-        target: existingBomFiles,
-        keys: const ['latestBomJob', 'bomFiles', 'files', 'versions', 'bom'],
-      );
-      // Some API versions include latestBomJob directly in the buildings list.
-      // Merge that shape as well so an already-uploaded BOM is never hidden.
-      if (buildingData != null) {
-        final directBuildings = <String, dynamic>{'buildings': buildingData};
-        final directlyMapped = <String, Map<String, dynamic>>{}.obs;
-        _mapExistingFiles(
-          directBuildings,
-          target: directlyMapped,
-          keys: const ['latestBomJob'],
-        );
-        existingBomFiles.addAll(directlyMapped);
-      }
+      _syncBomFilesFromBuildings(buildingData ?? const []);
       if (buildings.isNotEmpty && selectedBuildingId.value.isEmpty) {
         selectedBuildingId.value = buildingId(buildings.first);
       }
@@ -414,7 +407,7 @@ class ProjectDetailsController extends GetxController {
     uploadError.value = '';
     final result = await FilePicker.pickFiles(
       allowedExtensions: isBom
-          ? const ['out', 'csv', 'xlsx', 'xls', 'pdf', 'zip']
+          ? const ['txt', 'out']
           : const ['pdf', 'jpg', 'jpeg', 'png', 'svg', 'zip'],
       type: FileType.custom,
     );
@@ -450,7 +443,7 @@ class ProjectDetailsController extends GetxController {
   }) => isBom ? existingBomFiles[buildingId] : existingDrawings[buildingId];
 
   String buildingId(Map<String, dynamic> building) =>
-      _nestedId(building['_id'] ?? building['id'] ?? building['buildingId']);
+      _nestedId(building['buildingId'] ?? building['_id'] ?? building['id']);
 
   String buildingName(Map<String, dynamic> building) =>
       (building['name'] ??
@@ -486,7 +479,7 @@ class ProjectDetailsController extends GetxController {
         final presigned = await repository!.createPresignedUpload(
           fileName: file.name,
           fileType: contentType,
-          folder: isBom ? 'bom' : 'drawings',
+          folder: isBom ? 'boms' : 'drawings',
         );
         final uploadUrl = (presigned['uploadUrl'] ?? '').toString();
         final fileUrl = (presigned['fileUrl'] ?? '').toString();
@@ -512,9 +505,14 @@ class ProjectDetailsController extends GetxController {
       }
 
       if (isBom) {
-        await repository!.registerBomFiles(
+        final jobs = await repository!.registerBomFiles(
           leadId: projectId,
           bomFiles: registeredFiles,
+        );
+        _pendingBomJobIds.addAll(
+          jobs
+              .map((job) => (job['bomJobId'] ?? job['jobId'] ?? '').toString())
+              .where((id) => id.isNotEmpty),
         );
       } else {
         await repository!.registerDrawings(
@@ -523,6 +521,7 @@ class ProjectDetailsController extends GetxController {
         );
       }
       await _reloadExistingUploads();
+      if (isBom) _startBomStatusPolling();
       uploadProgress.value = 1;
       selectedUploadFiles.clear();
       return true;
@@ -593,9 +592,7 @@ class ProjectDetailsController extends GetxController {
   }
 
   String _bomFormat(String? extension) =>
-      (extension ?? '').toLowerCase() == 'out'
-      ? 'mbs_out'
-      : (extension ?? 'unknown').toLowerCase();
+      (extension ?? 'unknown').toLowerCase();
 
   String _extension(String fileName) {
     final dot = fileName.lastIndexOf('.');
@@ -613,18 +610,96 @@ class ProjectDetailsController extends GetxController {
     if (repository == null || projectId.isEmpty) return;
     final results = await Future.wait([
       _withoutFailure(repository!.fetchExistingDrawings(projectId)),
-      _withoutFailure(repository!.fetchExistingBomFiles(projectId)),
+      _withoutFailure(repository!.fetchBuildings(projectId)),
     ]);
     _mapExistingFiles(
-      results[0],
+      results[0] as Map<String, dynamic>?,
       target: existingDrawings,
       keys: const ['drawings', 'files', 'versions'],
     );
+    final refreshedBuildings = results[1] as List<Map<String, dynamic>>?;
+    if (refreshedBuildings != null) {
+      buildings.assignAll(refreshedBuildings);
+      _syncBomFilesFromBuildings(refreshedBuildings);
+    }
+  }
+
+  void markBuildingAsConfirmed(String bId) {
+    if (bId.isEmpty) return;
+    final existing = existingBomFiles[bId];
+    if (existing != null) {
+      existingBomFiles[bId] = {
+        ...existing,
+        'isConfirmed': true,
+        'isBomConfirmed': true,
+        'status': 'BOM Confirmed',
+        'bomJobStatus': 'confirmed',
+      };
+    }
+    for (var i = 0; i < buildings.length; i++) {
+      final id = buildingId(buildings[i]);
+      if (id == bId) {
+        buildings[i] = {
+          ...buildings[i],
+          'isConfirmed': true,
+          'isBomConfirmed': true,
+          'status': 'BOM Confirmed',
+          'bomJobStatus': 'confirmed',
+        };
+        break;
+      }
+    }
+    existingBomFiles.refresh();
+    buildings.refresh();
+  }
+
+  void _syncBomFilesFromBuildings(List<Map<String, dynamic>> source) {
     _mapExistingFiles(
-      results[1],
+      <String, dynamic>{'buildings': source},
       target: existingBomFiles,
-      keys: const ['latestBomJob', 'bomFiles', 'files', 'versions', 'bom'],
+      keys: const ['latestBomJob'],
     );
+    for (final building in source) {
+      final latest = building['latestBomJob'];
+      if (latest is! Map) continue;
+      final status = (latest['status'] ?? building['bomJobStatus'] ?? '')
+          .toString()
+          .toLowerCase();
+      final jobId = (latest['bomJobId'] ?? latest['jobId'] ?? '').toString();
+      if (jobId.isNotEmpty && (status == 'queued' || status == 'processing')) {
+        _pendingBomJobIds.add(jobId);
+      }
+    }
+    if (_pendingBomJobIds.isNotEmpty) _startBomStatusPolling();
+  }
+
+  void _startBomStatusPolling() {
+    if (_pendingBomJobIds.isEmpty || repository == null) return;
+    _bomStatusTimer?.cancel();
+    isPollingBom.value = true;
+    _bomStatusTimer = Timer.periodic(const Duration(seconds: 2), (_) async {
+      try {
+        final statuses = await repository!.fetchBomJobStatuses(
+          _pendingBomJobIds.toList(),
+        );
+        var shouldRefresh = false;
+        for (final job in statuses) {
+          final id = (job['jobId'] ?? job['bomJobId'] ?? '').toString();
+          final status = (job['status'] ?? '').toString().toLowerCase();
+          if (id.isNotEmpty && status != 'queued' && status != 'processing') {
+            _pendingBomJobIds.remove(id);
+            shouldRefresh = true;
+          }
+        }
+        if (shouldRefresh) await _reloadExistingUploads();
+        if (_pendingBomJobIds.isEmpty) {
+          _bomStatusTimer?.cancel();
+          isPollingBom.value = false;
+        }
+      } catch (_) {
+        // A transient poll failure should not hide the already loaded file.
+      }
+    });
   }
 
   void _mapExistingFiles(

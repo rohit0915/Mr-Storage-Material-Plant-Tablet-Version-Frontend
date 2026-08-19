@@ -178,182 +178,135 @@ class PackingListView extends GetView<PackingListController> {
       ),
       child: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          // Table Header (With Vertical & Horizontal Grid Lines)
+          Container(
+            decoration: const BoxDecoration(
+              color: Color(0xFFF8FAFC),
+              border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
+            ),
             child: Row(
               children: [
-                SizedBox(
-                  width: 32,
-                  child: Checkbox(
-                    value:
-                        controller.projectsList.isNotEmpty &&
-                        controller.projectsList.every(
-                          (item) => item.isSelected,
-                        ),
-                    onChanged: (val) => controller.toggleSelectAllProjects(val),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(4),
+                _buildThWidget(
+                  SizedBox(
+                    width: 32,
+                    child: Checkbox(
+                      value:
+                          controller.projectsList.isNotEmpty &&
+                          controller.projectsList.every(
+                            (item) => item.isSelected,
+                          ),
+                      onChanged: (val) => controller.toggleSelectAllProjects(val),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(4),
+                      ),
                     ),
                   ),
+                  width: 44,
                 ),
-                const SizedBox(width: 12),
-                const Expanded(
-                  flex: 2,
-                  child: Text(
-                    'Project ID',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                ),
-                const Expanded(
-                  flex: 3,
-                  child: Text(
-                    'Project Name',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                ),
-                const Expanded(
-                  flex: 3,
-                  child: Row(
-                    children: [
-                      Text(
-                        'List Generated Date',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      SizedBox(width: 4),
-                      Icon(
-                        Icons.swap_vert,
-                        size: 14,
-                        color: AppColors.textSecondary,
-                      ),
-                    ],
-                  ),
-                ),
-                const Expanded(
-                  flex: 3,
-                  child: Row(
-                    children: [
-                      Text(
-                        'Total Packing List',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      SizedBox(width: 4),
-                      Icon(
-                        Icons.swap_vert,
-                        size: 14,
-                        color: AppColors.textSecondary,
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 44),
+                _buildTh('Project ID', flex: 2),
+                _buildTh('Project Name', flex: 3),
+                _buildTh('List Generated Date', flex: 3),
+                _buildTh('Total Packing List', flex: 3),
+                _buildTh('Action', width: 64, isLast: true),
               ],
             ),
           ),
-          const Divider(height: 1, color: AppColors.divider),
+
+          // Table Data Rows (With Vertical & Horizontal Grid Lines)
           Obx(() {
-            return ListView.separated(
+            return ListView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: controller.projectsList.length,
-              separatorBuilder: (context, index) =>
-                  const Divider(height: 1, color: AppColors.divider),
               itemBuilder: (context, index) {
                 final item = controller.projectsList[index];
-                return Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  child: Row(
-                    children: [
-                      SizedBox(
-                        width: 32,
-                        child: Checkbox(
-                          value: item.isSelected,
-                          onChanged: (val) =>
-                              controller.toggleSelectProject(index, val),
-                          activeColor: const Color(0xFF6366F1),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(4),
+                return IntrinsicHeight(
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      border: Border(bottom: BorderSide(color: Color(0xFFF1F5F9))),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _buildTdWidget(
+                          SizedBox(
+                            width: 32,
+                            child: Checkbox(
+                              value: item.isSelected,
+                              onChanged: (val) =>
+                                  controller.toggleSelectProject(index, val),
+                              activeColor: const Color(0xFF6366F1),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                            ),
                           ),
+                          width: 44,
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        flex: 2,
-                        child: Text(
-                          item.displayProjectId,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            color: AppColors.textSecondary,
+                        _buildTdWidget(
+                          Text(
+                            item.displayProjectId,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: AppColors.textSecondary,
+                            ),
                           ),
+                          flex: 2,
                         ),
-                      ),
-                      Expanded(
-                        flex: 3,
-                        child: Text(
-                          item.projectName,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimary,
+                        _buildTdWidget(
+                          Text(
+                            item.projectName,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.textPrimary,
+                            ),
                           ),
+                          flex: 3,
                         ),
-                      ),
-                      Expanded(
-                        flex: 3,
-                        child: Text(
-                          item.listGeneratedDate,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            color: AppColors.textSecondary,
+                        _buildTdWidget(
+                          Text(
+                            item.listGeneratedDate,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: AppColors.textSecondary,
+                            ),
                           ),
+                          flex: 3,
                         ),
-                      ),
-                      Expanded(
-                        flex: 3,
-                        child: Text(
-                          '${item.totalPackingList}',
-                          style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimary,
+                        _buildTdWidget(
+                          Text(
+                            '${item.totalPackingList}',
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.textPrimary,
+                            ),
                           ),
+                          flex: 3,
                         ),
-                      ),
-                      IconButton(
-                        onPressed: () =>
-                            controller.openProjectPackingList(item),
-                        icon: Container(
-                          padding: const EdgeInsets.all(6),
-                          decoration: BoxDecoration(
-                            border: Border.all(color: AppColors.inputBorder),
-                            borderRadius: BorderRadius.circular(6),
+                        _buildTdWidget(
+                          IconButton(
+                            onPressed: () =>
+                                controller.openProjectPackingList(item),
+                            icon: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: AppColors.inputBorder),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: const Icon(
+                                Icons.visibility_outlined,
+                                size: 16,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
                           ),
-                          child: const Icon(
-                            Icons.visibility_outlined,
-                            size: 16,
-                            color: AppColors.textPrimary,
-                          ),
+                          width: 64,
+                          isLast: true,
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 );
               },
@@ -362,6 +315,53 @@ class PackingListView extends GetView<PackingListController> {
         ],
       ),
     );
+  }
+
+  Widget _buildTh(String label, {int flex = 2, double? width, bool isLast = false}) {
+    return _buildThWidget(
+      Text(
+        label,
+        style: const TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.bold,
+          color: AppColors.textPrimary,
+        ),
+      ),
+      flex: flex,
+      width: width,
+      isLast: isLast,
+    );
+  }
+
+  Widget _buildThWidget(Widget child, {int flex = 2, double? width, bool isLast = false}) {
+    final container = Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        border: Border(
+          right: isLast ? BorderSide.none : const BorderSide(color: Color(0xFFE2E8F0)),
+        ),
+      ),
+      alignment: Alignment.centerLeft,
+      child: child,
+    );
+    if (width != null) return SizedBox(width: width, child: container);
+    return Expanded(flex: flex, child: container);
+  }
+
+  Widget _buildTdWidget(Widget child, {int flex = 2, double? width, bool isLast = false}) {
+    final container = Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      decoration: BoxDecoration(
+        border: Border(
+          right: isLast ? BorderSide.none : const BorderSide(color: Color(0xFFF1F5F9)),
+        ),
+      ),
+      alignment: Alignment.centerLeft,
+      child: child,
+    );
+    if (width != null) return SizedBox(width: width, child: container);
+    return Expanded(flex: flex, child: container);
   }
 
   Widget _buildPaginationFooter() {

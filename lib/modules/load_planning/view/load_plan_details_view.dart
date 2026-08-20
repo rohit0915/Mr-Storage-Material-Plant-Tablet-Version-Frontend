@@ -26,7 +26,10 @@ class LoadPlanDetailsView extends GetView<LoadPlanningController> {
                 }
                 return SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 20,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -69,26 +72,27 @@ class LoadPlanDetailsView extends GetView<LoadPlanningController> {
   }
 
   Widget _errorState() => Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.error_outline, size: 52, color: Colors.red),
-            const SizedBox(height: 12),
-            Text(controller.errorMessage.value, textAlign: TextAlign.center),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () => controller.loadProjectLoadPlans(
-                controller.selectedProjectId.value,
-              ),
-              child: const Text('Retry'),
-            ),
-          ],
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Icon(Icons.error_outline, size: 52, color: Colors.red),
+        const SizedBox(height: 12),
+        Text(controller.errorMessage.value, textAlign: TextAlign.center),
+        const SizedBox(height: 16),
+        ElevatedButton(
+          onPressed: () => controller.loadProjectLoadPlans(
+            controller.selectedProjectId.value,
+          ),
+          child: const Text('Retry'),
         ),
-      );
+      ],
+    ),
+  );
 
   Widget _detailsCard() {
     final trucks = controller.detailTruckLoads;
-    final reference = controller.selectedLoadPlan.value?.shipperReference ??
+    final reference =
+        controller.selectedLoadPlan.value?.shipperReference ??
         _text(controller.detailPlan, [
           'planNumber',
           'shipperReference',
@@ -102,8 +106,8 @@ class LoadPlanDetailsView extends GetView<LoadPlanningController> {
     final shipperRefText = webReference.isNotEmpty
         ? webReference
         : reference.isEmpty
-            ? 'N/A'
-            : reference;
+        ? 'N/A'
+        : reference;
 
     final projectNameText = controller.selectedProjectName.value.isEmpty
         ? 'Project'
@@ -159,7 +163,10 @@ class LoadPlanDetailsView extends GetView<LoadPlanningController> {
           const SizedBox(height: 16),
           _summaryRow('Total Bundles', '${controller.detailTotalBundles}'),
           _summaryRow('Total Loads', '${controller.detailTotalLoads}'),
-          _summaryRow('Total Weight', _weightUpper(controller.detailTotalWeight)),
+          _summaryRow(
+            'Total Weight',
+            _weightUpper(controller.detailTotalWeight),
+          ),
 
           const SizedBox(height: 32),
 
@@ -250,7 +257,9 @@ class LoadPlanDetailsView extends GetView<LoadPlanningController> {
             child: ConstrainedBox(
               constraints: BoxConstraints(minWidth: constraints.maxWidth),
               child: DataTable(
-                headingRowColor: WidgetStateProperty.all(const Color(0xFF262626)),
+                headingRowColor: WidgetStateProperty.all(
+                  const Color(0xFF262626),
+                ),
                 headingTextStyle: const TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.bold,
@@ -364,7 +373,9 @@ class LoadPlanDetailsView extends GetView<LoadPlanningController> {
             child: ConstrainedBox(
               constraints: BoxConstraints(minWidth: constraints.maxWidth),
               child: DataTable(
-                headingRowColor: WidgetStateProperty.all(const Color(0xFF262626)),
+                headingRowColor: WidgetStateProperty.all(
+                  const Color(0xFF262626),
+                ),
                 headingTextStyle: const TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.bold,
@@ -386,10 +397,19 @@ class LoadPlanDetailsView extends GetView<LoadPlanningController> {
                 rows: bundles.asMap().entries.map((entry) {
                   final index = entry.key;
                   final bundle = entry.value;
-                  final hasPackingList = _flag(bundle, ['packingListGenerated', 'hasPackingList']);
-                  final hasQrLabels = _flag(bundle, ['qrLabelsGenerated', 'hasQrLabels']);
-                  final isAssigned = _flag(bundle, ['assignedToTruck', 'isAssigned']) ||
-                      _text(bundle, ['status']).toLowerCase().contains('assigned');
+                  final hasPackingList = _flag(bundle, [
+                    'packingListGenerated',
+                    'hasPackingList',
+                  ]);
+                  final hasQrLabels = _flag(bundle, [
+                    'qrLabelsGenerated',
+                    'hasQrLabels',
+                  ]);
+                  final isAssigned =
+                      _flag(bundle, ['assignedToTruck', 'isAssigned']) ||
+                      _text(bundle, [
+                        'status',
+                      ]).toLowerCase().contains('assigned');
 
                   final bundleIdText = _text(bundle, [
                     'bundleNo',
@@ -432,7 +452,9 @@ class LoadPlanDetailsView extends GetView<LoadPlanningController> {
                       ),
                       DataCell(
                         Text(
-                          _weightUpper(bundle['totalWeight'] ?? bundle['weight']),
+                          _weightUpper(
+                            bundle['totalWeight'] ?? bundle['weight'],
+                          ),
                           style: const TextStyle(
                             fontSize: 13,
                             color: Color(0xFF475569),
@@ -455,35 +477,28 @@ class LoadPlanDetailsView extends GetView<LoadPlanningController> {
 
   Widget _checkIcon(bool value) {
     if (value) {
-      return const Icon(
-        Icons.check,
-        size: 18,
-        color: Color(0xFF0F172A),
-      );
+      return const Icon(Icons.check, size: 18, color: Color(0xFF0F172A));
     }
     return const Text(
       '-',
-      style: TextStyle(
-        fontSize: 14,
-        color: Color(0xFF94A3B8),
-      ),
+      style: TextStyle(fontSize: 14, color: Color(0xFF94A3B8)),
     );
   }
 
   Widget _emptyState(String message) => Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(28),
-        decoration: BoxDecoration(
-          color: const Color(0xFFF8FAFC),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: const Color(0xFFE2E8F0)),
-        ),
-        child: Text(
-          message,
-          textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)),
-        ),
-      );
+    width: double.infinity,
+    padding: const EdgeInsets.all(28),
+    decoration: BoxDecoration(
+      color: const Color(0xFFF8FAFC),
+      borderRadius: BorderRadius.circular(10),
+      border: Border.all(color: const Color(0xFFE2E8F0)),
+    ),
+    child: Text(
+      message,
+      textAlign: TextAlign.center,
+      style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)),
+    ),
+  );
 
   String _truckName(Map<String, dynamic> truck) {
     final nested = truck['truck'];
@@ -570,7 +585,8 @@ class LoadPlanDetailsView extends GetView<LoadPlanningController> {
   String _weightUpper(dynamic value) {
     if (value == null || value.toString().isEmpty) return '0 LBS';
     final text = value.toString();
-    if (text.toUpperCase().contains('LBS') || text.toUpperCase().contains('LB')) {
+    if (text.toUpperCase().contains('LBS') ||
+        text.toUpperCase().contains('LB')) {
       return text.toUpperCase();
     }
     return '$text LBS';

@@ -40,8 +40,9 @@ import '../../modules/comparison_result/binding/comparison_result_binding.dart';
 import '../../modules/comparison_result/view/comparison_result_view.dart';
 import '../../modules/load_planning/binding/load_planning_binding.dart';
 import '../../modules/load_planning/view/load_planning_view.dart';
-import '../../modules/load_planning/view/project_load_planning_view.dart';
 import '../../modules/load_planning/view/load_plan_details_view.dart';
+import '../../modules/load_planning/binding/load_planning_workflow_binding.dart';
+import '../../modules/load_planning/view/load_planning_workflow_view.dart';
 import '../../modules/packing_list/binding/packing_list_binding.dart';
 import '../../modules/packing_list/view/packing_list_view.dart';
 import '../../modules/packing_list/view/project_packing_list_view.dart';
@@ -191,8 +192,8 @@ class AppPages {
     ),
     GetPage(
       name: AppRoutes.projectLoadPlanning,
-      page: () => const ProjectLoadPlanningView(),
-      binding: LoadPlanningBinding(),
+      page: () => const LoadPlanningWorkflowView(),
+      binding: LoadPlanningWorkflowBinding(),
     ),
     GetPage(
       name: AppRoutes.loadPlanDetails,

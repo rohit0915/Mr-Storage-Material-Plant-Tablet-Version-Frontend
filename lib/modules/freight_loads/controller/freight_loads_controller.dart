@@ -271,6 +271,13 @@ class FreightLoadsController extends GetxController {
     );
   }
 
+  FreightLoadItemModel? get selectedLoadItem {
+    if (selectedLoadId.value.isEmpty) return null;
+    return freightLoadsList.firstWhereOrNull(
+      (item) => item.id == selectedLoadId.value || item.requestId == selectedLoadId.value,
+    );
+  }
+
   bool get hasPreviousPage => currentPage.value > 1;
   bool get hasNextPage => currentPage.value * pageSize < totalResults.value;
 

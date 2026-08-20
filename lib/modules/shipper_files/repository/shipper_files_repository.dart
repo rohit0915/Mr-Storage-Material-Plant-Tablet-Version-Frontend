@@ -16,8 +16,15 @@ class ShipperFilesRepository {
   Future<Map<String, dynamic>> _get(String path) async {
     final response = await apiClient.get(path);
     final body = response.data;
-    if (body is Map && body['success'] == true && body['data'] is Map) {
-      return Map<String, dynamic>.from(body['data'] as Map);
+    if (body is Map) {
+      final data = body['data'];
+      if (data is Map) {
+        return Map<String, dynamic>.from(data);
+      }
+      if (data is List) {
+        return <String, dynamic>{'requests': data, 'projects': data};
+      }
+      return Map<String, dynamic>.from(body);
     }
     return <String, dynamic>{};
   }

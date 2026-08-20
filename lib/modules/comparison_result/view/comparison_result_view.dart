@@ -33,19 +33,19 @@ class ComparisonResultView extends GetView<ComparisonResultController> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Header Navigation & Actions Toolbar
+                      // Header Navigation & Actions Toolbar matching Web
                       _buildHeaderToolbar(),
                       const SizedBox(height: 20),
 
-                      // 3 Summary Metric Cards Row
+                      // 5 Summary Metric Cards Row matching Web
                       _buildSummaryCardsRow(),
                       const SizedBox(height: 20),
 
-                      // Search & Download Excel Report Row
+                      // Search & Download Report Row matching Web
                       _buildSearchAndDownloadRow(),
                       const SizedBox(height: 16),
 
-                      // Comparison Data Table Card
+                      // Comparison Data Table Card matching Web
                       _buildComparisonTableCard(),
                       const SizedBox(height: 32),
                     ],
@@ -97,83 +97,203 @@ class ComparisonResultView extends GetView<ComparisonResultController> {
             const SizedBox(height: 2),
             Obx(() => Text(
                   'Project: ${controller.projectName.value} | Vendor: ${controller.vendorName.value}',
-                  style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textSecondary,
+                  ),
                 )),
           ],
         ),
         const Spacer(),
-        ElevatedButton(
-          onPressed: () => controller.openRequestResubmitDialog(),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF475569),
-            elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-          ),
-          child: const Text(
-            'Request Resubmit',
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-        ),
+
+        Obx(() {
+          if (controller.isApproved.value) {
+            return ElevatedButton(
+              onPressed: () => controller.startLoadPlanning(),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF8B5CF6),
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+              ),
+              child: const Text(
+                'Start Load Planning',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            );
+          }
+          return Row(
+            children: [
+              // Request Resubmit Button
+              ElevatedButton(
+                onPressed: () => controller.openRequestResubmitDialog(),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF808D9E),
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                ),
+                child: const Text(
+                  'Request Resubmit',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+
+              // Approve Shipment Button
+              ElevatedButton(
+                onPressed: () => controller.approveShipment(),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF16A34A),
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                ),
+                child: const Text(
+                  'Approve Shipment',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ],
+          );
+        }),
       ],
     );
   }
 
   Widget _buildSummaryCardsRow() {
-    return Obx(() => Row(
-          children: [
-            Expanded(
-              child: _buildMetricCard(
-                title: 'Total Items',
-                value: '${controller.totalItems.value}',
-                backgroundColor: const Color(0xFF1D4ED8),
-                filterKey: 'all',
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = constraints.maxWidth < 750;
+        return Obx(() {
+          if (isMobile) {
+            return Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildMetricCard(
+                        title: 'Total Items',
+                        value: '${controller.totalItems.value}',
+                        backgroundColor: const Color(0xFF1D52B4),
+                        filterKey: 'all',
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: _buildMetricCard(
+                        title: 'Matched Items',
+                        value: '${controller.matchedItems.value}',
+                        backgroundColor: const Color(0xFF00C853),
+                        filterKey: 'matched',
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildMetricCard(
+                        title: 'Part Missing',
+                        value: '${controller.partMissing.value}',
+                        backgroundColor: const Color(0xFFF59E0B),
+                        filterKey: 'part_missing',
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: _buildMetricCard(
+                        title: 'Not Match',
+                        value: '${controller.notMatch.value}',
+                        backgroundColor: const Color(0xFFE11D48),
+                        filterKey: 'not_match',
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: _buildMetricCard(
+                        title: 'Extra Items',
+                        value: '${controller.extraItems.value}',
+                        backgroundColor: const Color(0xFFEA580C),
+                        filterKey: 'extra_items',
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            );
+          }
+          return Row(
+            children: [
+              Expanded(
+                child: _buildMetricCard(
+                  title: 'Total Items',
+                  value: '${controller.totalItems.value}',
+                  backgroundColor: const Color(0xFF1D52B4),
+                  filterKey: 'all',
+                ),
               ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _buildMetricCard(
-                title: 'Matched Items',
-                value: '${controller.matchedItems.value}',
-                backgroundColor: const Color(0xFF16A34A),
-                filterKey: 'matched',
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildMetricCard(
+                  title: 'Matched Items',
+                  value: '${controller.matchedItems.value}',
+                  backgroundColor: const Color(0xFF00C853),
+                  filterKey: 'matched',
+                ),
               ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _buildMetricCard(
-                title: 'Part Missing',
-                value: '${controller.partMissing.value}',
-                backgroundColor: const Color(0xFFEAB308),
-                filterKey: 'part_missing',
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildMetricCard(
+                  title: 'Part Missing',
+                  value: '${controller.partMissing.value}',
+                  backgroundColor: const Color(0xFFF59E0B),
+                  filterKey: 'part_missing',
+                ),
               ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _buildMetricCard(
-                title: 'Not Match',
-                value: '${controller.notMatch.value}',
-                backgroundColor: const Color(0xFFE11D48),
-                filterKey: 'not_match',
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildMetricCard(
+                  title: 'Not Match',
+                  value: '${controller.notMatch.value}',
+                  backgroundColor: const Color(0xFFE11D48),
+                  filterKey: 'not_match',
+                ),
               ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _buildMetricCard(
-                title: 'Extra Items',
-                value: '${controller.extraItems.value}',
-                backgroundColor: const Color(0xFFEA580C),
-                filterKey: 'extra_items',
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildMetricCard(
+                  title: 'Extra Items',
+                  value: '${controller.extraItems.value}',
+                  backgroundColor: const Color(0xFFEA580C),
+                  filterKey: 'extra_items',
+                ),
               ),
-            ),
-          ],
-        ));
+            ],
+          );
+        });
+      },
+    );
   }
 
   Widget _buildMetricCard({
@@ -309,7 +429,7 @@ class ComparisonResultView extends GetView<ComparisonResultController> {
       ),
       child: Column(
         children: [
-          // Table Header Row
+          // Table Header Row matching Web (Reason before Status)
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             decoration: const BoxDecoration(
@@ -327,8 +447,8 @@ class ComparisonResultView extends GetView<ComparisonResultController> {
                 _buildTh('Ordered QTY', flex: 2),
                 _buildTh('Shipped QTY', flex: 2),
                 _buildTh('Difference', flex: 2),
-                _buildTh('Status', flex: 3),
-                _buildTh('Reason', flex: 5, isLast: true),
+                _buildTh('Reason', flex: 5),
+                _buildTh('Status', flex: 2, isLast: true),
               ],
             ),
           ),
@@ -428,13 +548,6 @@ class ComparisonResultView extends GetView<ComparisonResultController> {
                         ),
                       ),
                       Expanded(
-                        flex: 3,
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: _buildStatusBadge(item.category, item.statusDisplay),
-                        ),
-                      ),
-                      Expanded(
                         flex: 5,
                         child: Text(
                           item.reason,
@@ -444,6 +557,13 @@ class ComparisonResultView extends GetView<ComparisonResultController> {
                                 ? const Color(0xFFE11D48)
                                 : AppColors.textSecondary,
                           ),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 2,
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: _buildStatusBadge(item.category, item.statusDisplay),
                         ),
                       ),
                     ],
@@ -510,7 +630,7 @@ class ComparisonResultView extends GetView<ComparisonResultController> {
               color: AppColors.textPrimary,
             ),
           ),
-          if (label != 'Part Number') ...[
+          if (label != 'Part Number' && label != 'Status') ...[
             const SizedBox(width: 4),
             const Icon(
               Icons.swap_vert,

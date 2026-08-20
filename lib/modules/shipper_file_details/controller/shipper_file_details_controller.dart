@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:get/get.dart';
+import 'package:printing/printing.dart';
 import '../../../app/routes/app_routes.dart';
 import '../../../app/widgets/common_snackbar.dart';
 import '../../shipper_files/repository/shipper_request_workflow_repository.dart';
@@ -133,12 +134,41 @@ class ShipperFileDetailsController extends GetxController {
           ),
         ),
       );
-      if (showEmbeddedView.value) await loadPdfPreview();
+      if (fileUrl.value.isNotEmpty) {
+        await loadPdfPreview();
+      }
     } catch (error) {
       salesOrderItems.clear();
       errorMessage.value = error.toString();
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  Future<void> downloadFile() async {
+    try {
+      if (pdfBytes.value != null) {
+        await Printing.sharePdf(
+          bytes: pdfBytes.value!,
+          filename: fileName.value.isNotEmpty
+              ? fileName.value
+              : 'shipper_file.pdf',
+        );
+        return;
+      }
+      if (fileUrl.value.isNotEmpty) {
+        await loadPdfPreview();
+        if (pdfBytes.value != null) {
+          await Printing.sharePdf(
+            bytes: pdfBytes.value!,
+            filename: fileName.value.isNotEmpty
+                ? fileName.value
+                : 'shipper_file.pdf',
+          );
+        }
+      }
+    } catch (e) {
+      CommonSnackbar.showError(title: 'Download failed', message: e.toString());
     }
   }
 
@@ -191,17 +221,9 @@ class ShipperFileDetailsController extends GetxController {
     isLoading.value = true;
     try {
       final existingPlanId = await _existingBundlePlanId();
-      if (existingPlanId.isNotEmpty) {
-        _openLoadPlanning(existingPlanId);
-        return;
-      }
-
-      final data = await repository.generateBundlePlan(requestId.value);
-      final bundlePlanId = _bundlePlanId(data);
-      if (bundlePlanId.isEmpty) {
-        throw Exception('Bundle plan was not created.');
-      }
-      _openLoadPlanning(bundlePlanId);
+      // Web starts at Item Analysis. Bundle generation is an explicit action
+      // inside that step, so opening this flow must not create duplicates.
+      _openLoadPlanning(existingPlanId);
     } catch (error) {
       final message = error.toString().toLowerCase();
       if (message.contains('bundle plan already exists')) {
@@ -244,7 +266,12 @@ class ShipperFileDetailsController extends GetxController {
       AppRoutes.projectLoadPlanning,
       parameters: {
         'id': leadId.value,
+        'requestId': requestId.value,
         'name': projectName.value,
+        'projectCode': projectCode.value,
+        'vendorName': vendorName.value,
+        'fileName': fileName.value,
+        'fileUrl': fileUrl.value,
         'bundlePlanId': bundlePlanId,
       },
     );

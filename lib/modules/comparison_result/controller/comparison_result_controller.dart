@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../app/services/file_export_service.dart';
+import '../../../app/utils/app_colors.dart';
+import '../../../app/utils/app_images.dart';
+import '../../shipper_file_details/controller/shipper_file_details_controller.dart';
 import '../../shipper_files/repository/shipper_request_workflow_repository.dart';
 import '../model/comparison_result_model.dart';
 import '../widgets/request_corrected_quote_dialog.dart';
@@ -332,6 +335,118 @@ class ComparisonResultController extends GetxController {
       Get.snackbar('Request failed', error.toString());
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  final RxBool isApproved = false.obs;
+
+  Future<void> approveShipment() async {
+    isLoading.value = true;
+    try {
+      if (requestId.value.isNotEmpty) {
+        await repository.approve(requestId.value);
+      }
+      isApproved.value = true;
+
+      // Update ShipperFileDetailsController if active
+      if (Get.isRegistered<ShipperFileDetailsController>()) {
+        final detailsCtrl = Get.find<ShipperFileDetailsController>();
+        detailsCtrl.status.value = 'Approved';
+        detailsCtrl.loadSalesOrderDetails();
+      }
+
+      // Show Success Dialog instead of toast/snackbar
+      Get.dialog(
+        Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Container(
+            width: 400,
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Image.asset(
+                  AppImages.icSuccessfully,
+                  height: 72,
+                  width: 72,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFDCFCE7),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.check_circle,
+                        color: Color(0xFF16A34A),
+                        size: 48,
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Shipment Approved',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'The shipment quote has been approved successfully. You can now start load planning.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: () {
+                    Get.back(); // Close dialog
+                    Get.back(); // Return to Shipper File Details view
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF16A34A),
+                    minimumSize: const Size(double.infinity, 44),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: const Text(
+                    'OK',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        barrierDismissible: false,
+      );
+    } catch (error) {
+      Get.snackbar('Approval failed', error.toString());
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> startLoadPlanning() async {
+    if (Get.isRegistered<ShipperFileDetailsController>()) {
+      Get.back();
+      Get.find<ShipperFileDetailsController>().startLoadPlanning();
     }
   }
 

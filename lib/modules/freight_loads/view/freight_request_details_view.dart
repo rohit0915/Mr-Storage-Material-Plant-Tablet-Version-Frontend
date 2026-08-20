@@ -69,9 +69,11 @@ class FreightRequestDetailsView extends GetView<FreightLoadsController> {
                                 const SizedBox(height: 4),
                                 Obx(
                                   () => Text(
-                                    '${controller.selectedLoadId.value} • Primary Steel Frame - 45,000 lbs • Status: Bidding Open',
+                                    Get.parameters['vendorName'] ??
+                                        Get.parameters['project'] ??
+                                        'Garage LLC',
                                     style: const TextStyle(
-                                      fontSize: 12,
+                                      fontSize: 13,
                                       fontWeight: FontWeight.w500,
                                       color: AppColors.textSecondary,
                                     ),
@@ -79,67 +81,6 @@ class FreightRequestDetailsView extends GetView<FreightLoadsController> {
                                 ),
                               ],
                             ),
-                          ),
-                          Row(
-                            children: [
-                              OutlinedButton.icon(
-                                onPressed: controller.exportCarrierBids,
-                                icon: const Icon(
-                                  Icons.download,
-                                  size: 14,
-                                  color: AppColors.textPrimary,
-                                ),
-                                label: const Text(
-                                  'Export',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.textPrimary,
-                                  ),
-                                ),
-                                style: OutlinedButton.styleFrom(
-                                  backgroundColor: Colors.white,
-                                  side: const BorderSide(
-                                    color: AppColors.inputBorder,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 14,
-                                    vertical: 10,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 10),
-                              ElevatedButton.icon(
-                                onPressed: () {},
-                                icon: const Icon(
-                                  Icons.edit,
-                                  size: 14,
-                                  color: Colors.white,
-                                ),
-                                label: const Text(
-                                  'Edit Request',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF2563EB),
-                                  elevation: 0,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 10,
-                                  ),
-                                ),
-                              ),
-                            ],
                           ),
                         ],
                       ),
@@ -177,49 +118,55 @@ class FreightRequestDetailsView extends GetView<FreightLoadsController> {
   }
 
   Widget _buildMetricHeaderCards() {
-    return Row(
-      children: [
-        Expanded(
-          child: _buildMetricCard(
-            title: 'Total Bids',
-            value: '5',
-            subtitle: 'From 5 verified carriers',
-            bgColor: const Color(0xFF2563EB), // Solid Blue
-            icon: Icons.attach_money,
+    return Obx(() {
+      final bidsCount = controller.carrierBidsList.isEmpty ? '1' : '${controller.carrierBidsList.length}';
+      final awardedAmount = controller.carrierBidsList.isNotEmpty
+          ? controller.carrierBidsList.first.bidAmount
+          : r'$40,000';
+      return Row(
+        children: [
+          Expanded(
+            child: _buildMetricCard(
+              title: 'Total Bids',
+              value: bidsCount,
+              subtitle: 'From invited carriers',
+              bgColor: const Color(0xFF2563EB), // Solid Blue
+              icon: Icons.local_shipping_outlined,
+            ),
           ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _buildMetricCard(
-            title: 'Lowest Bid',
-            value: r'$2,850',
-            subtitle: 'Best available rate',
-            bgColor: const Color(0xFF10B981), // Solid Green
-            icon: Icons.trending_down,
+          const SizedBox(width: 12),
+          Expanded(
+            child: _buildMetricCard(
+              title: 'Awarded Bid',
+              value: awardedAmount,
+              subtitle: 'Best available rate',
+              bgColor: const Color(0xFF16A34A), // Solid Green
+              icon: Icons.trending_down,
+            ),
           ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _buildMetricCard(
-            title: 'Average Bid',
-            value: r'$3,120',
-            subtitle: 'Market average',
-            bgColor: const Color(0xFFEA580C), // Solid Orange
-            icon: Icons.attach_money,
+          const SizedBox(width: 12),
+          Expanded(
+            child: _buildMetricCard(
+              title: 'Average Bid',
+              value: awardedAmount,
+              subtitle: 'Market average',
+              bgColor: const Color(0xFFEA580C), // Solid Orange
+              icon: Icons.bar_chart,
+            ),
           ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _buildMetricCard(
-            title: 'Potential Savings',
-            value: r'$600',
-            subtitle: 'vs highest bid',
-            bgColor: const Color(0xFFA855F7), // Solid Purple
-            icon: Icons.trending_up,
+          const SizedBox(width: 12),
+          Expanded(
+            child: _buildMetricCard(
+              title: 'Potential Savings',
+              value: r'$0',
+              subtitle: 'vs highest bid',
+              bgColor: const Color(0xFF9333EA), // Solid Purple
+              icon: Icons.bolt,
+            ),
           ),
-        ),
-      ],
-    );
+        ],
+      );
+    });
   }
 
   Widget _buildMetricCard({
@@ -279,9 +226,9 @@ class FreightRequestDetailsView extends GetView<FreightLoadsController> {
   }
 
   Widget _buildTabBar() {
-    final tabs = ['Bid Comparison (5)', 'Request Details', 'Email Exchange'];
-
     return Obx(() {
+      final count = controller.carrierBidsList.isEmpty ? 1 : controller.carrierBidsList.length;
+      final tabs = ['Bid Comparison ($count)', 'Request Details'];
       final selectedIdx = controller.selectedDetailsTabIndex.value;
       return Container(
         decoration: const BoxDecoration(
@@ -328,537 +275,647 @@ class FreightRequestDetailsView extends GetView<FreightLoadsController> {
   }
 
   Widget _buildRequestDetailsTab() {
-    return Column(
-      children: [
-        // Row 1: Load Details & Route Information
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Card 1: Load Details
-            Expanded(
-              child: Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.inputBorder),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: const [
-                        Icon(
-                          Icons.inventory_2_outlined,
-                          size: 20,
-                          color: Color(0xFFEA580C),
-                        ),
-                        SizedBox(width: 8),
-                        Text(
-                          'Load Details',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    const Text(
-                      'Description',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    const Text(
-                      'Primary Steel Frame - 45,000 lbs',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: const [
-                              Text(
-                                'Weight',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: AppColors.textSecondary,
-                                ),
-                              ),
-                              SizedBox(height: 2),
-                              Text(
-                                '45,000 lbs',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.textPrimary,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: const [
-                              Text(
-                                'Dimensions',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: AppColors.textSecondary,
-                                ),
-                              ),
-                              SizedBox(height: 2),
-                              Text(
-                                "40' x 8' x 8'",
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.textPrimary,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: const [
-                              Text(
-                                'Distance',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: AppColors.textSecondary,
-                                ),
-                              ),
-                              SizedBox(height: 2),
-                              Text(
-                                '280 miles',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.textPrimary,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: const [
-                              Text(
-                                'Material Type',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: AppColors.textSecondary,
-                                ),
-                              ),
-                              SizedBox(height: 2),
-                              Text(
-                                'Steel Beams',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.textPrimary,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: const [
-                              Text(
-                                'Equipment',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: AppColors.textSecondary,
-                                ),
-                              ),
-                              SizedBox(height: 2),
-                              Text(
-                                'Flatbed',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.textPrimary,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const Spacer(),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(width: 16),
+    return Obx(() {
+      final item = controller.selectedLoadItem;
+      final desc = (item?.description.isNotEmpty ?? false)
+          ? item!.description
+          : '22 bundle(s) for bundle plan BP-0004';
+      final weight = (item?.loadWeight.isNotEmpty ?? false) && item!.loadWeight != '-'
+          ? item.loadWeight
+          : '55,789.2 lbs';
+      final routeFrom = (item?.routeFrom.isNotEmpty ?? false)
+          ? item!.routeFrom
+          : 'Texas, United States';
+      final routeTo = (item?.routeTo.isNotEmpty ?? false)
+          ? item!.routeTo
+          : 'Califonia craft beer, 43381;43387, Mission Boulevard, Mission San Jose District, Fremont, Alameda County, California, 94537, United States';
+      final status = (item?.status.isNotEmpty ?? false)
+          ? item!.status
+          : 'Confirmed';
+      final pickupDateStr = (item?.pickupDate.isNotEmpty ?? false)
+          ? item!.pickupDate
+          : 'Aug 28, 2026 at 12:25';
+      final deliveryDateStr = (item?.deliveryDate.isNotEmpty ?? false)
+          ? item!.deliveryDate
+          : 'Aug 31, 2026 (13:26)';
 
-            // Card 2: Route Information
-            Expanded(
-              child: Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.inputBorder),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: const [
-                        Icon(
-                          Icons.location_on_outlined,
-                          size: 20,
-                          color: Color(0xFF2563EB),
-                        ),
-                        SizedBox(width: 8),
-                        Text(
-                          'Route Information',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    const Text(
-                      'Pickup Location',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: const [
-                        Icon(Icons.room, size: 16, color: Color(0xFF16A34A)),
-                        SizedBox(width: 6),
-                        Text(
-                          'Steel Mill, Pittsburgh, PA',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const Padding(
-                      padding: EdgeInsets.only(left: 22, top: 2),
-                      child: Text(
-                        '4/1/2026 at 09:00',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: AppColors.textHint,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    const Divider(height: 1, color: AppColors.divider),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'Delivery Location',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: const [
-                        Icon(Icons.room, size: 16, color: Color(0xFFDC2626)),
-                        SizedBox(width: 6),
-                        Text(
-                          'Construction Site, Austin, TX',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const Padding(
-                      padding: EdgeInsets.only(left: 22, top: 2),
-                      child: Text(
-                        '4/5/2026 at 14:00',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: AppColors.textHint,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-
-        // Row 2: Coordination & Requirements
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.inputBorder),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: const [
-                  Icon(
-                    Icons.local_shipping_outlined,
-                    size: 20,
-                    color: Color(0xFF16A34A),
-                  ),
-                  SizedBox(width: 8),
-                  Text(
-                    'Coordination & Requirements',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              const Text(
-                'Receiving POC',
-                style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
-              ),
-              const SizedBox(height: 2),
-              const Text(
-                'John Site Manager',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Special Requirements',
-                style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
-              ),
-              const SizedBox(height: 6),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 12,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFEFCE8),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: const Color(0xFFFEF08A)),
-                ),
-                child: const Text(
-                  'Crane unloading required',
-                  style: TextStyle(fontSize: 12, color: Color(0xFF854D0E)),
-                ),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Additional Notes',
-                style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
-              ),
-              const SizedBox(height: 6),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 12,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF8FAFC),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: AppColors.inputBorder),
-                ),
-                child: const Text(
-                  'Contact site supervisor 30 minutes before arrival',
-                  style: TextStyle(fontSize: 12, color: AppColors.textPrimary),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildBidComparisonTab() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Top Filter & Sort Bar
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Left Column (Load Details + Coordination & Requirements)
+          Expanded(
+            flex: 6,
+            child: Column(
               children: [
-                const Text(
-                  'All Bids',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                const SizedBox(width: 12),
+                // Card 1: Load Details
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 4,
-                  ),
+                  padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(6),
+                    borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: AppColors.inputBorder),
                   ),
-                  child: Row(
-                    children: const [
-                      Text(
-                        'Sort: ',
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: const [
+                          Icon(
+                            Icons.inventory_2_outlined,
+                            size: 22,
+                            color: Color(0xFFF97316),
+                          ),
+                          SizedBox(width: 10),
+                          Text(
+                            'Load Details',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+                      const Text(
+                        'DESCRIPTION',
                         style: TextStyle(
-                          fontSize: 11,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
                           color: AppColors.textSecondary,
+                          letterSpacing: 0.5,
                         ),
                       ),
+                      const SizedBox(height: 4),
                       Text(
-                        'Low to High',
-                        style: TextStyle(
-                          fontSize: 11,
+                        desc,
+                        style: const TextStyle(
+                          fontSize: 15,
                           fontWeight: FontWeight.bold,
                           color: AppColors.textPrimary,
                         ),
                       ),
-                      SizedBox(width: 4),
-                      Icon(
-                        Icons.keyboard_arrow_down,
-                        size: 14,
-                        color: AppColors.textSecondary,
+                      const SizedBox(height: 20),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'WEIGHT',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  weight,
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.textPrimary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: const [
+                                Text(
+                                  'DIMENSIONS',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ),
+                                SizedBox(height: 4),
+                                Text(
+                                  "51.67' L x 8.5' W x 8' H",
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.textPrimary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: const [
+                                Text(
+                                  'DISTANCE',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ),
+                                SizedBox(height: 4),
+                                Text(
+                                  '-',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.textPrimary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: const [
+                                Text(
+                                  'MATERIAL TYPE',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ),
+                                SizedBox(height: 4),
+                                Text(
+                                  'framing, panels, mixed, accessories',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.textPrimary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: const [
+                                Text(
+                                  'EQUIPMENT',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ),
+                                SizedBox(height: 4),
+                                Text(
+                                  'Crane',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.textPrimary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'STATUS',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  status,
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.textPrimary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // Card 2: Coordination & Requirements
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.inputBorder),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: const [
+                          Icon(
+                            Icons.local_shipping_outlined,
+                            size: 22,
+                            color: Color(0xFF16A34A),
+                          ),
+                          SizedBox(width: 10),
+                          Text(
+                            'Coordination & Requirements',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+                      const Text(
+                        'RECEIVING POC',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      RichText(
+                        text: const TextSpan(
+                          style: TextStyle(fontSize: 14, color: AppColors.textPrimary),
+                          children: [
+                            TextSpan(
+                              text: 'Jouns ',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            TextSpan(
+                              text: '(94234325235)',
+                              style: TextStyle(color: AppColors.textSecondary),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      const Text(
+                        'SPECIAL REQUIREMENTS',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 12,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFEFCE8),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: const Color(0xFFFEF08A)),
+                        ),
+                        child: const Text(
+                          '-',
+                          style: TextStyle(fontSize: 12, color: Color(0xFF854D0E)),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      const Text(
+                        'ADDITIONAL NOTES',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 12,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF8FAFC),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: AppColors.inputBorder),
+                        ),
+                        child: const Text(
+                          '-',
+                          style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                        ),
                       ),
                     ],
                   ),
                 ),
               ],
             ),
-            const Text(
-              r'$2,850 - $3,450',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF16A34A),
+          ),
+          const SizedBox(width: 20),
+
+          // Right Column (Route Information)
+          Expanded(
+            flex: 5,
+            child: Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.inputBorder),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: const [
+                      Icon(
+                        Icons.location_on_outlined,
+                        size: 22,
+                        color: Color(0xFF2563EB),
+                      ),
+                      SizedBox(width: 10),
+                      Text(
+                        'Route Information',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  IntrinsicHeight(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // Left Timeline Axis Track (Node 1 -> Line -> Node 2)
+                        Column(
+                          children: [
+                            Container(
+                              width: 16,
+                              height: 16,
+                              margin: const EdgeInsets.only(top: 2),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(color: const Color(0xFF16A34A), width: 3),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                width: 2,
+                                margin: const EdgeInsets.symmetric(vertical: 4),
+                                color: const Color(0xFFCBD5E1),
+                              ),
+                            ),
+                            Container(
+                              width: 16,
+                              height: 16,
+                              margin: const EdgeInsets.only(bottom: 2),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(color: const Color(0xFFEF4444), width: 3),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(width: 12),
+
+                        // Right Content Column (Pickup + Delivery)
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Pickup Section
+                              const Text(
+                                'PICKUP LOCATION',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  const Icon(Icons.location_on, size: 16, color: Color(0xFF16A34A)),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    routeFrom,
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.textPrimary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  const Icon(Icons.access_time, size: 13, color: AppColors.textSecondary),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    pickupDateStr,
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      color: AppColors.textSecondary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+
+                              const SizedBox(height: 28), // Gap between Pickup and Delivery
+
+                              // Delivery Section
+                              const Text(
+                                'DELIVERY LOCATION',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Icon(Icons.location_on, size: 16, color: Color(0xFFEF4444)),
+                                  const SizedBox(width: 4),
+                                  Expanded(
+                                    child: Text(
+                                      routeTo,
+                                      style: const TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.textPrimary,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  const Icon(Icons.access_time, size: 13, color: AppColors.textSecondary),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    deliveryDateStr,
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      color: AppColors.textSecondary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
-        const SizedBox(height: 16),
+          ),
+        ],
+      );
+    });
+  }
 
-        // Bid Card #1 (Awarded)
-        _buildBidCard(
-          rank: '#1',
-          isRankOne: true,
-          carrierName: 'QuickFreight Solutions',
-          rating: '4.8',
-          onTimeDelivery: 'On-time delivery 89%',
-          submittedDate: 'Submitted 3/20/2026',
-          transitTime: 'Transit time: 1 day',
-          bidAmount: r'$2,850',
-          bidSubtitle: 'LOWEST BID',
-          notes: 'Best rate available, experienced with steel transport',
-          isAwarded: true,
-        ),
-        const SizedBox(height: 12),
+  Widget _buildBidComparisonTab() {
+    return Obx(() {
+      final bids = controller.carrierBidsList;
+      final hasBids = bids.isNotEmpty;
 
-        // Bid Card #2
-        _buildBidCard(
-          rank: '#2',
-          isRankOne: false,
-          carrierName: 'National Haulers Inc.',
-          rating: '4.5',
-          onTimeDelivery: 'On-time delivery 89%',
-          submittedDate: 'Submitted 3/20/2026',
-          transitTime: 'Transit time: 1 day',
-          bidAmount: r'$2,950',
-          bidSubtitle: r'+$100 more',
-          notes: 'Includes insurance coverage',
-        ),
-        const SizedBox(height: 12),
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Top Filter & Sort Bar
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  const Text(
+                    'All Bids',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: AppColors.inputBorder),
+                    ),
+                    child: Row(
+                      children: const [
+                        Icon(Icons.tune, size: 14, color: AppColors.textSecondary),
+                        SizedBox(width: 6),
+                        Text(
+                          'Sort: ',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                        Text(
+                          'Low to High',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        SizedBox(width: 4),
+                        Icon(
+                          Icons.keyboard_arrow_down,
+                          size: 14,
+                          color: AppColors.textSecondary,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              RichText(
+                text: const TextSpan(
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                  children: [
+                    TextSpan(text: r'$40,000', style: TextStyle(color: Color(0xFF16A34A))),
+                    TextSpan(text: r'  -  ', style: TextStyle(color: AppColors.textSecondary)),
+                    TextSpan(text: r'$40,000', style: TextStyle(color: Color(0xFFEF4444))),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
 
-        // Bid Card #3
-        _buildBidCard(
-          rank: '#3',
-          isRankOne: false,
-          carrierName: 'Regional Transport Co.',
-          rating: '4.2',
-          onTimeDelivery: 'On-time delivery 89%',
-          submittedDate: 'Submitted 3/21/2026',
-          transitTime: 'Transit time: 1 day',
-          bidAmount: r'$3,100',
-          bidSubtitle: r'+$250 more',
-          notes: 'Guaranteed delivery window',
-        ),
-        const SizedBox(height: 12),
-
-        // Bid Card #4
-        _buildBidCard(
-          rank: '#4',
-          isRankOne: false,
-          carrierName: 'FastFreight Logistics',
-          rating: '4.9',
-          onTimeDelivery: 'On-time delivery 89%',
-          submittedDate: 'Submitted 3/21/2026',
-          transitTime: 'Transit time: 1 day',
-          bidAmount: r'$3,250',
-          bidSubtitle: r'+$400 more',
-          notes: 'Premium service with tracking',
-        ),
-        const SizedBox(height: 12),
-
-        // Bid Card #5
-        _buildBidCard(
-          rank: '#5',
-          isRankOne: false,
-          carrierName: 'Budget Carriers LLC',
-          rating: '3.9',
-          onTimeDelivery: 'On-time delivery 89%',
-          submittedDate: 'Submitted 3/22/2026',
-          transitTime: 'Transit time: 1 day',
-          bidAmount: r'$3,450',
-          bidSubtitle: r'+$600 more',
-          notes: 'Standard service',
-        ),
-      ],
-    );
+          if (hasBids)
+            Column(
+              children: List.generate(bids.length, (index) {
+                final bid = bids[index];
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: _buildBidCard(
+                    rank: '#${index + 1}',
+                    isRankOne: index == 0,
+                    carrierName: bid.carrierName,
+                    rating: bid.rating > 0 ? '${bid.rating}' : '',
+                    onTimeDelivery: '',
+                    submittedDate: 'Submitted On: 19/08/2026',
+                    transitTime: bid.deliveryDays,
+                    bidAmount: bid.bidAmount,
+                    bidSubtitle: index == 0 ? 'LOWEST BID' : '',
+                    notes: '—',
+                    isAwarded: true,
+                  ),
+                );
+              }),
+            )
+          else
+            _buildBidCard(
+              rank: '#1',
+              isRankOne: true,
+              carrierName: 'Ayesha LLC',
+              rating: '',
+              onTimeDelivery: '',
+              submittedDate: 'Submitted On: 19/08/2026',
+              transitTime: '',
+              bidAmount: r'$40,000',
+              bidSubtitle: 'LOWEST BID',
+              notes: '—',
+              isAwarded: true,
+            ),
+        ],
+      );
+    });
   }
 
   Widget _buildBidCard({
@@ -930,46 +987,50 @@ class FreightRequestDetailsView extends GetView<FreightLoadsController> {
                     Wrap(
                       spacing: 8,
                       children: [
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.star,
-                              size: 12,
-                              color: Color(0xFFF59E0B),
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              rating,
-                              style: const TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.textPrimary,
+                        if (rating.isNotEmpty)
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.star,
+                                size: 12,
+                                color: Color(0xFFF59E0B),
                               ),
+                              const SizedBox(width: 4),
+                              Text(
+                                rating,
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.textPrimary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        if (onTimeDelivery.isNotEmpty)
+                          Text(
+                            '• $onTimeDelivery',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: AppColors.textSecondary,
                             ),
-                          ],
-                        ),
-                        Text(
-                          '• $onTimeDelivery',
-                          style: const TextStyle(
-                            fontSize: 11,
-                            color: AppColors.textSecondary,
                           ),
-                        ),
-                        Text(
-                          '• $submittedDate',
-                          style: const TextStyle(
-                            fontSize: 11,
-                            color: AppColors.textSecondary,
+                        if (submittedDate.isNotEmpty)
+                          Text(
+                            submittedDate,
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: AppColors.textSecondary,
+                            ),
                           ),
-                        ),
-                        Text(
-                          '• $transitTime',
-                          style: const TextStyle(
-                            fontSize: 11,
-                            color: AppColors.textSecondary,
+                        if (transitTime.isNotEmpty)
+                          Text(
+                            '• $transitTime',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: AppColors.textSecondary,
+                            ),
                           ),
-                        ),
                       ],
                     ),
                   ],
@@ -981,9 +1042,10 @@ class FreightRequestDetailsView extends GetView<FreightLoadsController> {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   const Text(
-                    'Bid Amount',
+                    'BID AMOUNT',
                     style: TextStyle(
                       fontSize: 10,
+                      fontWeight: FontWeight.bold,
                       color: AppColors.textSecondary,
                     ),
                   ),
@@ -998,17 +1060,19 @@ class FreightRequestDetailsView extends GetView<FreightLoadsController> {
                           : AppColors.textPrimary,
                     ),
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    bidSubtitle,
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                      color: isRankOne
-                          ? const Color(0xFF166534)
-                          : AppColors.textHint,
+                  if (bidSubtitle.isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      bidSubtitle,
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: isRankOne
+                            ? const Color(0xFF166534)
+                            : AppColors.textHint,
+                      ),
                     ),
-                  ),
+                  ],
                 ],
               ),
             ],
@@ -1052,99 +1116,124 @@ class FreightRequestDetailsView extends GetView<FreightLoadsController> {
           ),
 
           const SizedBox(height: 12),
-          Row(
-            children: [
-              ElevatedButton.icon(
-                onPressed: () => controller.showAwardLoadDialog(),
-                icon: const Icon(
-                  Icons.workspace_premium,
-                  size: 14,
-                  color: Colors.white,
-                ),
-                label: const Text(
-                  'Award Load',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
+          if (isAwarded)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              decoration: BoxDecoration(
+                color:   AppColors. white,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0xFF86EFAC)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: const [
+                  Icon(Icons.label_outlined, size: 14, color: Color(0xFF16A34A)),
+                  SizedBox(width: 6),
+                  Text(
+                    'Awarded Load',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF16A34A),
+                    ),
+                  ),
+                ],
+              ),
+            )
+          else
+            Row(
+              children: [
+                ElevatedButton.icon(
+                  onPressed: () => controller.showAwardLoadDialog(),
+                  icon: const Icon(
+                    Icons.workspace_premium,
+                    size: 14,
                     color: Colors.white,
                   ),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF16A34A),
-                  elevation: 0,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 8,
+                  label: const Text(
+                    'Award Load',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF16A34A),
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 8,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              ElevatedButton.icon(
-                onPressed: () => controller.showRequestRevisionDialog(),
-                icon: const Icon(
-                  Icons.autorenew,
-                  size: 14,
-                  color: Colors.white,
-                ),
-                label: const Text(
-                  'Request Revision',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
+                const SizedBox(width: 8),
+                ElevatedButton.icon(
+                  onPressed: () => controller.showRequestRevisionDialog(),
+                  icon: const Icon(
+                    Icons.autorenew,
+                    size: 14,
                     color: Colors.white,
                   ),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFEA580C),
-                  elevation: 0,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 8,
+                  label: const Text(
+                    'Request Revision',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFEA580C),
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 8,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              OutlinedButton.icon(
-                onPressed: () {
-                  Get.snackbar(
-                    'Decline',
-                    'Bid declined',
-                    snackPosition: SnackPosition.BOTTOM,
-                  );
-                },
-                icon: const Icon(
-                  Icons.cancel_outlined,
-                  size: 14,
-                  color: Color(0xFFEF4444),
-                ),
-                label: const Text(
-                  'Decline',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
+                const SizedBox(width: 8),
+                OutlinedButton.icon(
+                  onPressed: () {
+                    Get.snackbar(
+                      'Decline',
+                      'Bid declined',
+                      snackPosition: SnackPosition.BOTTOM,
+                    );
+                  },
+                  icon: const Icon(
+                    Icons.cancel_outlined,
+                    size: 14,
                     color: Color(0xFFEF4444),
                   ),
-                ),
-                style: OutlinedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  side: const BorderSide(color: Color(0xFFFCA5A5)),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 8,
+                  label: const Text(
+                    'Decline',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFFEF4444),
+                    ),
                   ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                  style: OutlinedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    side: const BorderSide(color: Color(0xFFFCA5A5)),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 8,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
         ],
       ),
     );

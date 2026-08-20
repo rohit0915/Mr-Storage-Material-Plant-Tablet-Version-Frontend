@@ -195,7 +195,8 @@ class LoadPlanningView extends GetView<LoadPlanningController> {
                           controller.projectsList.every(
                             (item) => item.isSelected,
                           ),
-                      onChanged: (val) => controller.toggleSelectAllProjects(val),
+                      onChanged: (val) =>
+                          controller.toggleSelectAllProjects(val),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(4),
                       ),
@@ -223,7 +224,9 @@ class LoadPlanningView extends GetView<LoadPlanningController> {
                 return IntrinsicHeight(
                   child: Container(
                     decoration: const BoxDecoration(
-                      border: Border(bottom: BorderSide(color: Color(0xFFF1F5F9))),
+                      border: Border(
+                        bottom: BorderSide(color: Color(0xFFF1F5F9)),
+                      ),
                     ),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -292,7 +295,9 @@ class LoadPlanningView extends GetView<LoadPlanningController> {
                             icon: Container(
                               padding: const EdgeInsets.all(4),
                               decoration: BoxDecoration(
-                                border: Border.all(color: AppColors.inputBorder),
+                                border: Border.all(
+                                  color: AppColors.inputBorder,
+                                ),
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: const Icon(
@@ -317,7 +322,12 @@ class LoadPlanningView extends GetView<LoadPlanningController> {
     );
   }
 
-  Widget _buildTh(String label, {int flex = 2, double? width, bool isLast = false}) {
+  Widget _buildTh(
+    String label, {
+    int flex = 2,
+    double? width,
+    bool isLast = false,
+  }) {
     return _buildThWidget(
       Text(
         label,
@@ -333,13 +343,20 @@ class LoadPlanningView extends GetView<LoadPlanningController> {
     );
   }
 
-  Widget _buildThWidget(Widget child, {int flex = 2, double? width, bool isLast = false}) {
+  Widget _buildThWidget(
+    Widget child, {
+    int flex = 2,
+    double? width,
+    bool isLast = false,
+  }) {
     final container = Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       decoration: BoxDecoration(
         color: const Color(0xFFF8FAFC),
         border: Border(
-          right: isLast ? BorderSide.none : const BorderSide(color: Color(0xFFE2E8F0)),
+          right: isLast
+              ? BorderSide.none
+              : const BorderSide(color: Color(0xFFE2E8F0)),
         ),
       ),
       alignment: Alignment.centerLeft,
@@ -349,12 +366,19 @@ class LoadPlanningView extends GetView<LoadPlanningController> {
     return Expanded(flex: flex, child: container);
   }
 
-  Widget _buildTdWidget(Widget child, {int flex = 2, double? width, bool isLast = false}) {
+  Widget _buildTdWidget(
+    Widget child, {
+    int flex = 2,
+    double? width,
+    bool isLast = false,
+  }) {
     final container = Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       decoration: BoxDecoration(
         border: Border(
-          right: isLast ? BorderSide.none : const BorderSide(color: Color(0xFFF1F5F9)),
+          right: isLast
+              ? BorderSide.none
+              : const BorderSide(color: Color(0xFFF1F5F9)),
         ),
       ),
       alignment: Alignment.centerLeft,

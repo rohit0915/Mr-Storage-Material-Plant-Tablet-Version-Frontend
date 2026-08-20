@@ -12,4 +12,5 @@ class AppImages {
   static const String blueprint = '$basePath/img_blueprint.png';
   static const String quickenSteelLogo = '$basePath/img_quicken_steel_logo.png';
   static const String qrCode = '$basePath/img_qr_code.png';
+  static const String icSuccessfully = 'assets/icons/ic_successfully.png';
 }

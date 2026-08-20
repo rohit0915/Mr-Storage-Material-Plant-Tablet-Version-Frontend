@@ -51,6 +51,14 @@ class ApiEndpoints {
       'plant/packing-lists/$packingListId';
   static String plantPackingListPlan(String packingListPlanId) =>
       'plant/packing-list-plans/$packingListPlanId';
+  static String plantPackingListPlanConfirm(String packingListPlanId) =>
+      'plant/packing-list-plans/$packingListPlanId/confirm';
+  static String plantProjectConfirmBundles(String leadId) =>
+      'plant/projects/$leadId/load-planning/confirm-bundles';
+  static String plantProjectGenerateTruckPlan(String leadId) =>
+      'plant/projects/$leadId/load-planning/generate-truck-plan';
+  static String plantProjectConfirmTruckPlan(String leadId) =>
+      'plant/projects/$leadId/load-planning/truck-plan/confirm';
   static const String plantDeliveriesStats = 'plant/deliveries/stats';
   static const String plantFreightStats = 'plant/deliveries/freight/stats';
   static const String plantFreightLoads = 'plant/deliveries/freight';
@@ -143,6 +151,8 @@ class ApiEndpoints {
       'plant/bundle-plans/$bundlePlanId/bundles';
   static String plantBundlePlanFreightAutofill(String bundlePlanId) =>
       'plant/bundle-plans/$bundlePlanId/freight-autofill';
+  static String plantBundlePlanGeneratePackingList(String bundlePlanId) =>
+      'plant/bundle-plans/$bundlePlanId/packing-list-plan/generate';
   static String plantDeliverySendBids(String deliveryId) =>
       'plant/deliveries/$deliveryId/send-bids';
 }

@@ -21,6 +21,8 @@ class BundlePlanRepository {
   ) => _post(ApiEndpoints.plantBundlePlanBundles(id), payload);
   Future<Map<String, dynamic>> freightAutofill(String id) =>
       _get(ApiEndpoints.plantBundlePlanFreightAutofill(id));
+  Future<Map<String, dynamic>> generatePackingList(String id) =>
+      _post(ApiEndpoints.plantBundlePlanGeneratePackingList(id));
 
   Future<Map<String, dynamic>> _get(String path) async =>
       _data((await apiClient.get(path)).data);

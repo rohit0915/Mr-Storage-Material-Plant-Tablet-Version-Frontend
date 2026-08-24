@@ -482,7 +482,7 @@ class ProjectShipperFilesView extends GetView<ShipperFilesController> {
                   _buildTh('Upload Date', flex: 3),
                   _buildTh('Rate', flex: 2),
                   _buildTh('File Status', flex: 3),
-                  _buildTh('Action', width: 56, isLast: true),
+                  _buildTh('Action', width: 72, isLast: true),
                 ],
               ),
             ),
@@ -611,31 +611,37 @@ class ProjectShipperFilesView extends GetView<ShipperFilesController> {
                             ),
                             flex: 3,
                           ),
-                          // Action Column with Eye Icon Button
+                          // Action Column with Eye Icon Button (Shown ONLY when file is uploaded/received)
                           _buildTdWidget(
-                            Center(
-                              child: Container(
-                                width: 32,
-                                height: 32,
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF4F46E5),
+                            Builder(builder: (context) {
+                              final statusLower = item.status.toLowerCase();
+                              final hasFile = item.fileName.isNotEmpty &&
+                                  item.fileName != '-' &&
+                                  !statusLower.contains('sent');
+                              if (!hasFile) {
+                                return const SizedBox.shrink();
+                              }
+                              return Center(
+                                child: InkWell(
+                                  onTap: () => controller.openShipperFileDetails(item),
                                   borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: IconButton(
-                                  padding: EdgeInsets.zero,
-                                  icon: const Icon(
-                                    Icons.remove_red_eye_outlined,
-                                    color: Colors.white,
-                                    size: 18,
+                                  child: Container(
+                                    width: 32,
+                                    height: 32,
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF4F46E5),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: const Icon(
+                                      Icons.remove_red_eye_outlined,
+                                      color: Colors.white,
+                                      size: 16,
+                                    ),
                                   ),
-                                  onPressed: () {
-                                    controller.openShipperFileDetails(item);
-                                  },
-                                  tooltip: 'View Shipper File Details',
                                 ),
-                              ),
-                            ),
-                            width: 56,
+                              );
+                            }),
+                            width: 72,
                             isLast: true,
                           ),
                         ],

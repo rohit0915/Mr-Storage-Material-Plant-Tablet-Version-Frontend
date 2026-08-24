@@ -101,11 +101,12 @@ class BomFilesDetailsView extends GetView<BomFilesDetailsController> {
             final unpriced =
                 controller.missingSummary.value?.missingItemQty ?? 0;
 
+            final isConsolidatedMode = Get.parameters['mode'] == 'consolidated';
             if (isConfirmed) {
               return Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Download Excel Button (Shown only when BOM is present & confirmed)
+                  // Download Excel Button (Shown when BOM is present & confirmed)
                   ElevatedButton.icon(
                     onPressed: () => controller.downloadExcel(),
                     icon: Container(
@@ -141,31 +142,33 @@ class BomFilesDetailsView extends GetView<BomFilesDetailsController> {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 10),
+                  if (isConsolidatedMode) ...[
+                    const SizedBox(width: 10),
 
-                  // Share with Shippers Button (Shown only when BOM is present & confirmed)
-                  ElevatedButton(
-                    onPressed: () => controller.shareWithShippers(),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF7C3AED),
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                    // Share with Shippers Button (Shown ONLY when mode is consolidated)
+                    ElevatedButton(
+                      onPressed: () => controller.shareWithShippers(),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF7C3AED),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 18,
+                          vertical: 12,
+                        ),
                       ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 18,
-                        vertical: 12,
+                      child: const Text(
+                        'Share with Shippers',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
-                    child: const Text(
-                      'Share with Shippers',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
+                  ],
                 ],
               );
             }

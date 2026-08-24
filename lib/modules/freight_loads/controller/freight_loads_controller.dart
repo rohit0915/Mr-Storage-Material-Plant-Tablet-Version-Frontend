@@ -18,11 +18,14 @@ class FreightLoadsController extends GetxController {
   FreightLoadsController({required this.repository});
 
   final RxBool isLoading = true.obs;
+  final RxBool isDetailsLoading = false.obs;
   final RxString errorMessage = ''.obs;
   final RxList<FreightLoadSummaryStatModel> summaryStats =
       <FreightLoadSummaryStatModel>[].obs;
   final RxList<FreightLoadItemModel> freightLoadsList =
       <FreightLoadItemModel>[].obs;
+  final Rx<FreightLoadItemModel?> detailLoadItem =
+      Rx<FreightLoadItemModel?>(null);
   final RxList<CarrierBidModel> carrierBidsList = <CarrierBidModel>[].obs;
   final RxInt selectedDetailsTabIndex = 1.obs;
   final RxString selectedLoadId = ''.obs;
@@ -50,8 +53,16 @@ class FreightLoadsController extends GetxController {
     }
     loadData();
     if (selectedLoadId.value.isNotEmpty) {
-      loadCarrierBidsData(selectedLoadId.value);
+      initDetails(selectedLoadId.value);
     }
+  }
+
+  void initDetails(String id) {
+    if (id.isEmpty) return;
+    selectedLoadId.value = id;
+    detailLoadItem.value = null;
+    carrierBidsList.clear();
+    loadCarrierBidsData(id);
   }
 
   @override
@@ -232,6 +243,8 @@ class FreightLoadsController extends GetxController {
         ? data['requests'] as List
         : data['deliveries'] is List
         ? data['deliveries'] as List
+        : data['data'] is List
+        ? data['data'] as List
         : const [];
     totalResults.value = _integer(data['total'], fallback: raw.length);
     freightLoadsList.assignAll(
@@ -240,17 +253,19 @@ class FreightLoadsController extends GetxController {
         final project = _map(item['project'] ?? item['lead']);
         final route = _map(item['route']);
         final loadSize = _map(item['loadSize']);
+        final poc = _map(item['receivingPoc'] ?? item['poc']);
+
         return FreightLoadItemModel(
           id: _text(item['_id'] ?? item['id']),
           requestId: _text(
             item['deliveryNumber'] ?? item['requestId'] ?? item['_id'],
           ),
           requestedDate: _date(item['requestedAt'] ?? item['createdAt']),
-          project: _text(item['projectName'] ?? project['projectName']),
+          project: _text(item['projectName'] ?? project['projectName'] ?? project['name']),
           description: _text(item['description'] ?? item['itemDescription']),
-          routeFrom: _text(item['pickupLocation'] ?? route['from']),
+          routeFrom: _text(item['pickupLocation'] ?? route['from'] ?? route['pickupLocation']),
           routeTo: _text(
-            item['deliveryLocation'] ?? item['siteLocation'] ?? route['to'],
+            item['deliveryLocation'] ?? item['siteLocation'] ?? route['to'] ?? route['deliveryLocation'],
           ),
           pickupDate: _date(item['pickupDate']),
           deliveryDate: _date(item['deliveryDate']),
@@ -260,18 +275,27 @@ class FreightLoadsController extends GetxController {
                     : '${item['bidCount']}'
               : _money(item['awardedBidAmount']),
           status: _status(item['status']),
-          loadWeight: loadSize['weight'] == null
+          loadWeight: loadSize['weight'] == null && item['weight'] == null
               ? '-'
-              : '${_number(loadSize['weight'])} lbs',
-          packageCount: loadSize['packageCount'] == null
+              : '${_number(loadSize['weight'] ?? item['weight'])} lbs',
+          packageCount: loadSize['packageCount'] == null && item['packageCount'] == null
               ? ''
-              : '${loadSize['packageCount']} packages',
+              : '${loadSize['packageCount'] ?? item['packageCount']} packages',
+          dimensions: _formatDimensions(loadSize['dimensions'] ?? item['dimensions']),
+          distance: _text(route['distance'] ?? item['distance']),
+          materialType: _formatListOrString(item['materialType'] ?? item['material']),
+          equipment: _formatListOrString(item['equipment'] ?? item['loadingEquipment']),
+          receivingPocName: _text(poc['name'] ?? item['pocName'] ?? item['receivingPocName']),
+          receivingPocPhone: _text(poc['phone'] ?? item['pocPhone'] ?? item['receivingPocPhone']),
+          specialRequirements: _text(item['specialRequirements'] ?? item['requirements']),
+          additionalNotes: _text(item['additionalNotes'] ?? item['notes']),
         );
       }),
     );
   }
 
   FreightLoadItemModel? get selectedLoadItem {
+    if (detailLoadItem.value != null) return detailLoadItem.value;
     if (selectedLoadId.value.isEmpty) return null;
     return freightLoadsList.firstWhereOrNull(
       (item) => item.id == selectedLoadId.value || item.requestId == selectedLoadId.value,
@@ -308,19 +332,28 @@ class FreightLoadsController extends GetxController {
   }
 
   void openFreightRequestDetails(FreightLoadItemModel item) {
-    selectedLoadId.value = item.id.isEmpty ? item.requestId : item.id;
+    final id = item.id.isNotEmpty ? item.id : item.requestId;
+    initDetails(id);
     Get.toNamed(
       AppRoutes.freightRequestDetails,
-      parameters: {'id': selectedLoadId.value},
+      parameters: {'id': id},
     );
   }
 
   Future<void> loadCarrierBidsData(String deliveryId) async {
+    if (deliveryId.isEmpty) return;
+    isDetailsLoading.value = true;
     try {
-      final data = await repository.bids(deliveryId);
-      final raw = data['bids'] is List ? data['bids'] as List : const [];
+      final results = await Future.wait([
+        repository.bids(deliveryId).catchError((_) => <String, dynamic>{}),
+        repository.freightDetail(deliveryId).catchError((_) => <String, dynamic>{}),
+      ]);
+      final bidsData = results[0];
+      final detailData = results[1];
+
+      final rawBids = bidsData['bids'] is List ? bidsData['bids'] as List : const [];
       carrierBidsList.assignAll(
-        raw.whereType<Map>().map((entry) {
+        rawBids.whereType<Map>().map((entry) {
           final item = Map<String, dynamic>.from(entry);
           final carrier = _map(item['carrier']);
           final ratingValue = item['rating'] is num
@@ -338,9 +371,142 @@ class FreightLoadsController extends GetxController {
           );
         }),
       );
+
+      if (detailData.isNotEmpty) {
+        final rootMap = detailData['data'] is Map
+            ? Map<String, dynamic>.from(detailData['data'])
+            : detailData;
+        final rawItem = rootMap['delivery'] is Map
+            ? Map<String, dynamic>.from(rootMap['delivery'])
+            : rootMap['request'] is Map
+                ? Map<String, dynamic>.from(rootMap['request'])
+                : rootMap;
+
+        if (rawItem.isNotEmpty) {
+          final form = _map(rawItem['formDetails']);
+          final sched = _map(rawItem['deliverySchedule']);
+          final info = _map(rawItem['deliveryInformation']);
+          final pocDetails = _map(rawItem['receivingPocDetails']);
+          final project = _map(rawItem['project'] ?? rawItem['lead']);
+          final route = _map(rawItem['route']);
+          final loadSize = _map(rawItem['loadSize']);
+          final poc = _map(rawItem['receivingPoc'] ?? rawItem['poc']);
+          final delType = _map(rawItem['deliveryTypeAndSize']);
+
+          final descVal = _text(
+            form['loadDescription'] ??
+            form['description'] ??
+            info['description'] ??
+            rawItem['description'] ??
+            rawItem['itemDescription'],
+          );
+
+          final rawWeight = form['loadWeight'] ??
+              loadSize['weight'] ??
+              rawItem['weight'] ??
+              delType['totalWeight'];
+          final weightVal = rawWeight == null ? '-' : '${_number(rawWeight)} lbs';
+
+          final dimVal = _formatDimensions(
+            form['dimensions'] ?? loadSize['dimensions'] ?? rawItem['dimensions'],
+          );
+
+          final distVal = _text(form['distance'] ?? route['distance'] ?? rawItem['distance']);
+
+          final matVal = _formatListOrString(
+            form['materialType'] ??
+            info['materialCategory'] ??
+            rawItem['materialType'] ??
+            rawItem['material'],
+          );
+
+          final eqVal = _formatListOrString(
+            form['loadingEquipment'] ??
+            rawItem['equipmentRequirement'] ??
+            rawItem['equipment'] ??
+            rawItem['loadingEquipment'],
+          );
+
+          final pickupLoc = _text(
+            form['pickupLocation'] ??
+            sched['pickupAddress'] ??
+            rawItem['pickupLocation'] ??
+            route['from'] ??
+            route['pickupLocation'],
+          );
+
+          final deliveryLoc = _text(
+            form['deliveryLocation'] ??
+            sched['dropoffAddress'] ??
+            rawItem['deliveryLocation'] ??
+            rawItem['siteLocation'] ??
+            route['to'] ??
+            route['deliveryLocation'],
+          );
+
+          final pDate = form['pickupDate'] ?? sched['pickupDate'] ?? info['pickupDate'] ?? rawItem['pickupDate'];
+          final pTime = form['pickupTime'] ?? rawItem['pickupTime'];
+          final pickupDateStr = _formatDateTimeStr(pDate, pTime);
+
+          final dDate = form['deliveryDate'] ?? sched['deliveryDate'] ?? rawItem['deliveryDate'];
+          final dTime = form['deliveryTime'] ?? rawItem['deliveryTime'];
+          final deliveryDateStr = _formatDateTimeStr(dDate, dTime);
+
+          final pocNameStr = _text(
+            form['receivingPoc'] ??
+            pocDetails['receivingPoc'] ??
+            poc['name'] ??
+            rawItem['pocName'] ??
+            rawItem['receivingPocName'],
+          );
+          final pocPhoneStr = _text(
+            form['pickupContactPhone'] ??
+            pocDetails['pickupContactPhone'] ??
+            poc['phone'] ??
+            rawItem['pocPhone'] ??
+            rawItem['receivingPocPhone'],
+          );
+
+          final specReq = _text(form['specialRequirements'] ?? rawItem['specialRequirements'] ?? rawItem['requirements']);
+          final addNotes = _text(form['additionalNotes'] ?? rawItem['additionalNotes'] ?? rawItem['notes']);
+
+          detailLoadItem.value = FreightLoadItemModel(
+            id: _text(rawItem['deliveryId'] ?? rawItem['_id'] ?? rawItem['id']),
+            requestId: _text(
+              rawItem['deliveryNumber'] ?? rawItem['requestId'] ?? rawItem['_id'],
+            ),
+            requestedDate: _date(rawItem['requestedAt'] ?? rawItem['createdAt']),
+            project: _text(rawItem['projectName'] ?? project['projectName'] ?? project['name']),
+            description: descVal,
+            routeFrom: pickupLoc,
+            routeTo: deliveryLoc,
+            pickupDate: pickupDateStr,
+            deliveryDate: deliveryDateStr,
+            bids: rawItem['awardedBidAmount'] == null
+                ? rawItem['bidCount'] == null
+                      ? '-'
+                      : '${rawItem['bidCount']}'
+                : _money(rawItem['awardedBidAmount']),
+            status: _status(rawItem['status']),
+            loadWeight: weightVal,
+            packageCount: form['packageCount'] == null && loadSize['packageCount'] == null
+                ? ''
+                : '${form['packageCount'] ?? loadSize['packageCount']} packages',
+            dimensions: dimVal,
+            distance: distVal,
+            materialType: matVal,
+            equipment: eqVal,
+            receivingPocName: pocNameStr,
+            receivingPocPhone: pocPhoneStr,
+            specialRequirements: specReq,
+            additionalNotes: addNotes,
+          );
+        }
+      }
     } catch (error) {
       errorMessage.value = error.toString();
-      carrierBidsList.clear();
+    } finally {
+      isDetailsLoading.value = false;
     }
   }
 
@@ -395,7 +561,30 @@ class FreightLoadsController extends GetxController {
 
   Map<String, dynamic> _map(dynamic value) =>
       value is Map ? Map<String, dynamic>.from(value) : {};
-  String _text(dynamic value) => (value ?? '-').toString();
+  String _text(dynamic value) {
+    if (value == null) return '-';
+    final str = value.toString().trim();
+    if (str.isEmpty || str == 'null' || str == 'undefined') return '-';
+    return str;
+  }
+
+  String _formatDateTimeStr(dynamic dateVal, dynamic timeVal) {
+    if (dateVal == null || dateVal.toString().isEmpty || dateVal.toString() == '-') return '-';
+    final date = DateTime.tryParse(dateVal.toString())?.toLocal();
+    if (date == null) return dateVal.toString();
+
+    final months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    final monthStr = months[date.month - 1];
+    final formattedDate = '$monthStr ${date.day}, ${date.year}';
+    final tStr = timeVal?.toString().trim() ?? '';
+    if (tStr.isNotEmpty && tStr != '-') {
+      return '$formattedDate at $tStr';
+    }
+    return formattedDate;
+  }
   String _money(dynamic value) {
     final amount = value is num ? value : num.tryParse('$value');
     return amount == null ? '-' : '\$${amount.toStringAsFixed(0)}';
@@ -432,4 +621,43 @@ class FreightLoadsController extends GetxController {
             : '${word[0].toUpperCase()}${word.substring(1).toLowerCase()}',
       )
       .join(' ');
+
+  String _formatDimensions(dynamic val) {
+    if (val == null) return '-';
+    if (val is Map) {
+      final l = val['lengthFeet'] ?? val['length'] ?? val['l'] ?? val['L'];
+      final w = val['widthFeet'] ?? val['width'] ?? val['w'] ?? val['W'];
+      final h = val['heightFeet'] ?? val['height'] ?? val['h'] ?? val['H'];
+      if (l != null || w != null || h != null) {
+        return "${l ?? 0}' L x ${w ?? 0}' W x ${h ?? 0}' H";
+      }
+      final cleanValues = val.values.where((v) => v != null).join(' x ');
+      return cleanValues.isEmpty ? '-' : cleanValues;
+    }
+    if (val is List) {
+      if (val.isEmpty) return '-';
+      if (val.length >= 3) {
+        return "${val[0]}' L x ${val[1]}' W x ${val[2]}' H";
+      }
+      return val.join(' x ');
+    }
+    final str = val.toString().trim();
+    if (str.isEmpty || str == '{}' || str == '[]' || str == 'null') return '-';
+    return str;
+  }
+
+  String _formatListOrString(dynamic val) {
+    if (val == null) return '-';
+    if (val is List) {
+      if (val.isEmpty) return '-';
+      return val.map((e) => e.toString().trim()).where((e) => e.isNotEmpty).join(', ');
+    }
+    final str = val.toString().trim();
+    if (str.isEmpty || str == '[]' || str == 'null') return '-';
+    if (str.startsWith('[') && str.endsWith(']')) {
+      final clean = str.substring(1, str.length - 1).replaceAll('"', '').replaceAll("'", '');
+      return clean.trim().isEmpty ? '-' : clean.trim();
+    }
+    return str;
+  }
 }

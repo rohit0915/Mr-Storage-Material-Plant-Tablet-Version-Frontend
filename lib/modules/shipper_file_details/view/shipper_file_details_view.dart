@@ -92,6 +92,7 @@ class ShipperFileDetailsView extends GetView<ShipperFileDetailsController> {
 
   Widget _buildHeaderToolbar() {
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         ElevatedButton.icon(
           onPressed: () => Get.back(),
@@ -126,8 +127,12 @@ class ShipperFileDetailsView extends GetView<ShipperFileDetailsController> {
 
         // Download File & Action Buttons
         Obx(() {
-          final isApproved = controller.status.value.toLowerCase() == 'approved';
-          return Row(
+          final statusLower = controller.status.value.toLowerCase();
+          final isApproved = statusLower == 'approved' || statusLower == 'confirmed';
+          return Wrap(
+            spacing: 12,
+            runSpacing: 10,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               OutlinedButton.icon(
                 onPressed: () => controller.downloadFile(),
@@ -153,18 +158,17 @@ class ShipperFileDetailsView extends GetView<ShipperFileDetailsController> {
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 ),
               ),
-              const SizedBox(width: 10),
 
-              // View Comparison Detail Button
+              // Order Verification Button matching Web
               ElevatedButton.icon(
                 onPressed: () => controller.openOrderVerificationDialog(),
                 icon: const Icon(
-                  Icons.remove_red_eye_outlined,
+                  Icons.balance_outlined,
                   size: 16,
                   color: Colors.white,
                 ),
                 label: const Text(
-                  'View Comparison Detail',
+                  'Order Verification',
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
@@ -172,7 +176,7 @@ class ShipperFileDetailsView extends GetView<ShipperFileDetailsController> {
                   ),
                 ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2563EB),
+                  backgroundColor: const Color(0xFF8B5CF6),
                   elevation: 0,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -182,7 +186,6 @@ class ShipperFileDetailsView extends GetView<ShipperFileDetailsController> {
               ),
 
               if (isApproved) ...[
-                const SizedBox(width: 10),
                 ElevatedButton(
                   onPressed: () => controller.startLoadPlanning(),
                   style: ElevatedButton.styleFrom(

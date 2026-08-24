@@ -7,8 +7,17 @@ class NotificationRepository {
   Future<Map<String, dynamic>> list() async {
     final response = await apiClient.get(ApiEndpoints.notificationList);
     final body = response.data;
-    if (body is Map && body['success'] == true && body['data'] is Map) {
-      return Map<String, dynamic>.from(body['data'] as Map);
+    if (body is Map) {
+      final mapBody = Map<String, dynamic>.from(body);
+      final dataField = mapBody['data'];
+      if (dataField is Map) {
+        return Map<String, dynamic>.from(dataField);
+      } else if (dataField is List) {
+        return {'notifications': dataField, ...mapBody};
+      }
+      return mapBody;
+    } else if (body is List) {
+      return {'notifications': body};
     }
     return {};
   }

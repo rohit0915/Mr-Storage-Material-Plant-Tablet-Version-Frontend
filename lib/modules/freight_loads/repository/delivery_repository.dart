@@ -54,6 +54,14 @@ class DeliveryRepository {
   Future<Map<String, dynamic>> allStats() =>
       _getMap(ApiEndpoints.plantDeliveriesStats);
 
+  Future<Map<String, dynamic>> freightDetail(String deliveryId) async {
+    try {
+      return await _getMap(ApiEndpoints.plantDeliveryDetail(deliveryId));
+    } catch (_) {
+      return await _getMap('${ApiEndpoints.plantFreightLoads}/$deliveryId');
+    }
+  }
+
   Future<Map<String, dynamic>> bids(String deliveryId) => _getMap(
     ApiEndpoints.plantDeliveryBids(deliveryId),
     query: const {'sort': 'low_to_high'},
@@ -106,8 +114,17 @@ class DeliveryRepository {
   }) async {
     final response = await apiClient.get(endpoint, queryParameters: query);
     final body = response.data;
-    if (body is Map && body['success'] == true && body['data'] is Map) {
-      return Map<String, dynamic>.from(body['data'] as Map);
+    if (body is Map) {
+      final mapBody = Map<String, dynamic>.from(body);
+      final dataField = mapBody['data'];
+      if (dataField is Map) {
+        return Map<String, dynamic>.from(dataField);
+      } else if (dataField is List) {
+        return {'dates': dataField, 'calendar': dataField, 'deliveries': dataField, 'items': dataField, ...mapBody};
+      }
+      return mapBody;
+    } else if (body is List) {
+      return {'dates': body, 'calendar': body, 'deliveries': body, 'items': body};
     }
     return {};
   }

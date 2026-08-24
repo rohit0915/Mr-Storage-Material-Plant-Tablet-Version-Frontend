@@ -137,7 +137,6 @@ class PlantSocketService extends GetxService {
         ? Map<String, dynamic>.from(data)
         : <String, dynamic>{'data': data};
     _events.add(PlantSocketEvent(name, payload));
-    final message = _message(name, payload);
     if (name == 'shipper_file_submitted') {
       final vendorName = (payload['vendorName'] ?? payload['shipperName'] ?? payload['name'] ?? 'Namra').toString();
       final quoteVal = (payload['quoteValue'] ?? payload['amount'] ?? payload['rate'] ?? '\$100,000').toString();
@@ -149,10 +148,6 @@ class PlantSocketService extends GetxService {
         leadId: leadId.isNotEmpty ? leadId : null,
         requestId: requestId.isNotEmpty ? requestId : null,
       );
-    } else if (name.endsWith('_failed')) {
-      CommonSnackbar.showError(title: 'Live update', message: message);
-    } else {
-      CommonSnackbar.showSuccess(title: 'Live update', message: message);
     }
   }
 
@@ -171,33 +166,6 @@ class PlantSocketService extends GetxService {
         title: 'Chat error',
         message: payload['message']?.toString() ?? 'Unable to update chat.',
       );
-    }
-  }
-
-  String _message(String event, Map<String, dynamic> data) {
-    switch (event) {
-      case 'project_assigned':
-        return '${data['projectName'] ?? 'A project'} was assigned to plant.';
-      case 'bom_extraction_complete':
-        return 'BOM extraction completed for Building ${data['buildingNumber'] ?? '-'}.';
-      case 'bom_extraction_failed':
-        return 'BOM extraction failed: ${data['error'] ?? 'Unknown error'}';
-      case 'bom_review_complete':
-        return 'Building ${data['buildingNumber'] ?? '-'} BOM was ${data['action'] ?? 'reviewed'}.';
-      case 'shipper_file_submitted':
-        return '${data['vendorName'] ?? 'A vendor'} submitted a shipper file.';
-      case 'all_shipper_files_submitted':
-        return 'All ${data['vendorCount'] ?? ''} shipper files were submitted.';
-      case 'shipper_comparison_complete':
-        return 'Shipper quote comparison completed.';
-      case 'shipper_comparison_failed':
-        return 'Shipper comparison failed: ${data['error'] ?? 'Unknown error'}';
-      case 'freight_bid_submitted':
-        return '${data['carrierName'] ?? 'A carrier'} submitted a freight bid.';
-      case 'all_freight_bids_submitted':
-        return 'All freight bids were submitted for ${data['deliveryNumber'] ?? 'the delivery'}.';
-      default:
-        return 'New plant update received.';
     }
   }
 

@@ -17,7 +17,12 @@ class ItemCostModel {
   final String costUnit;
   final double? mbsCost;
   final double? currentMarketCost;
+  final double laborCost;
+  final double additionalCost;
+  final double materialCost;
   final String description;
+  final String isFrameType;
+  final String status;
   bool isSelected;
 
   ItemCostModel({
@@ -27,7 +32,12 @@ class ItemCostModel {
     required this.costUnit,
     this.mbsCost,
     this.currentMarketCost,
+    this.laborCost = 0.0,
+    this.additionalCost = 0.0,
+    this.materialCost = 0.0,
     required this.description,
+    this.isFrameType = 'Standard',
+    this.status = 'Active',
     this.isSelected = false,
   });
 
@@ -38,7 +48,12 @@ class ItemCostModel {
     String? costUnit,
     double? mbsCost,
     double? currentMarketCost,
+    double? laborCost,
+    double? additionalCost,
+    double? materialCost,
     String? description,
+    String? isFrameType,
+    String? status,
     bool? isSelected,
   }) {
     return ItemCostModel(
@@ -48,7 +63,12 @@ class ItemCostModel {
       costUnit: costUnit ?? this.costUnit,
       mbsCost: mbsCost ?? this.mbsCost,
       currentMarketCost: currentMarketCost ?? this.currentMarketCost,
+      laborCost: laborCost ?? this.laborCost,
+      additionalCost: additionalCost ?? this.additionalCost,
+      materialCost: materialCost ?? this.materialCost,
       description: description ?? this.description,
+      isFrameType: isFrameType ?? this.isFrameType,
+      status: status ?? this.status,
       isSelected: isSelected ?? this.isSelected,
     );
   }

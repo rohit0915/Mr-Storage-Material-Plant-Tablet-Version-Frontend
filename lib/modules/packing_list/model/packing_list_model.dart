@@ -25,6 +25,9 @@ class PackingListItemModel {
   final String destination;
   final String date;
   final String status;
+  final int totalItems;
+  final List<BundleListItemModel> bundleList;
+  final Map<String, dynamic> rawData;
   bool isSelected;
 
   PackingListItemModel({
@@ -36,6 +39,9 @@ class PackingListItemModel {
     required this.destination,
     required this.date,
     required this.status,
+    this.totalItems = 36,
+    this.bundleList = const [],
+    this.rawData = const {},
     this.isSelected = false,
   });
 }
@@ -64,16 +70,22 @@ class BundleListItemModel {
   final int id;
   final String bundleId;
   final String profile;
+  final String partNumber;
   final String items;
+  final int quantity;
   final String length;
   final String unitWeight;
+  final String status;
 
   BundleListItemModel({
     required this.id,
     required this.bundleId,
     required this.profile,
+    required this.partNumber,
     required this.items,
+    required this.quantity,
     required this.length,
     required this.unitWeight,
+    required this.status,
   });
 }

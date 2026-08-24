@@ -22,6 +22,27 @@ class QrLabelsController extends GetxController {
   final RxList<String> projectOptions = <String>[].obs;
   List<String> get availableProjects => projectOptions;
 
+  final showingBundlesView = false.obs;
+  final selectedPackingId = 'PL-001'.obs;
+  final packingListItems = <PackingListQrItemModel>[
+    PackingListQrItemModel(
+      packingId: 'PL-001',
+      loadId: 'BP-0007',
+      truck: '53 ft Semi',
+      bundlesCount: 18,
+      weight: '44,651.8 LBS',
+      status: 'confirmed',
+    ),
+    PackingListQrItemModel(
+      packingId: 'PL-002',
+      loadId: 'BP-0007',
+      truck: '40 ft Hot Shot',
+      bundlesCount: 4,
+      weight: '11,137.4 LBS',
+      status: 'confirmed',
+    ),
+  ].obs;
+
   @override
   void onInit() {
     super.onInit();
@@ -103,118 +124,124 @@ class QrLabelsController extends GetxController {
     }
   }
 
-  Future<void> loadBundleLabelsData(String id) async {
+  Future<void> loadBundleLabelsData(String targetId) async {
     isLoading.value = true;
     errorMessage.value = '';
     try {
-      final data = await repository.fetchPackingList(id);
-      final directBundles = data['bundles'] is List
-          ? data['bundles'] as List
-          : const [];
-      final trucks = data['trucks'] is List ? data['trucks'] as List : const [];
-      final truckBundles = <dynamic>[];
-      for (final rawTruck in trucks.whereType<Map>()) {
-        final truck = Map<String, dynamic>.from(rawTruck);
-        if (truck['bundles'] is List) {
-          for (final bundle in truck['bundles'] as List) {
-            if (bundle is Map) truckBundles.add({...bundle, '_truck': truck});
-          }
+      if (projectsList.isEmpty) {
+        await loadProjectsData();
+      }
+
+      String planId = targetId;
+      ProjectQrLabelsSummaryModel? matchedProject;
+
+      for (final p in projectsList) {
+        if (p.id == targetId || p.displayProjectId == targetId || p.projectName.toLowerCase() == targetId.toLowerCase()) {
+          matchedProject = p;
+          planId = p.id;
+          selectedProjectName.value = p.projectName;
+          break;
         }
       }
-      final bundles = directBundles.isNotEmpty ? directBundles : truckBundles;
-      bundleLabelsList.assignAll(
-        bundles.whereType<Map>().map((raw) {
-          final item = Map<String, dynamic>.from(raw);
-          final truck = _map(item['_truck'] ?? item['truck']);
-          final parts = item['items'] is List
-              ? item['items'] as List
-              : const [];
-          return BundleQrLabelItemModel(
-            bundleId: (item['bundleId'] ?? item['_id'] ?? 'N/A').toString(),
-            loadId:
-                (item['loadId'] ?? truck['loadId'] ?? truck['truckId'] ?? 'N/A')
-                    .toString(),
-            parts:
-                (item['partNumber'] ??
-                        item['parts'] ??
-                        (parts.isNotEmpty ? parts.length : 0))
-                    .toString(),
-            weight: _weight(item['totalWeight'] ?? item['weight']),
-            length: (item['length'] ?? item['maxLength'] ?? 'N/A').toString(),
-            status: _status(item['qrStatus'] ?? item['status'] ?? 'Generated'),
-            shipper:
-                (item['shipperReference'] ??
-                        item['shipper'] ??
-                        data['shipperReference'] ??
-                        'N/A')
-                    .toString(),
-          );
-        }),
-      );
 
-      if (bundleLabelsList.isEmpty) {
-        bundleLabelsList.assignAll([
-          BundleQrLabelItemModel(
-            bundleId: 'BDL-001',
-            loadId: 'LD-4081',
-            parts: 'PRT-101..124',
-            weight: '1,200 lbs',
-            length: '32 ft',
-            status: 'Generated',
-            shipper: 'SHP-FILE-001',
-          ),
-          BundleQrLabelItemModel(
-            bundleId: 'BDL-002',
-            loadId: 'LD-4082',
-            parts: 'PRT-201..218',
-            weight: '4,500 lbs',
-            length: '40 ft',
-            status: 'Printed',
-            shipper: 'SHP-FILE-002',
-          ),
-        ]);
+      var planData = await repository.fetchPackingListPlan(planId);
+      if (planData.isEmpty && matchedProject != null) {
+        planData = await repository.fetchPackingListPlan(matchedProject.id);
       }
+      if (planData.isEmpty) {
+        planData = await repository.fetchPackingList(planId);
+      }
+
+      final planInfo = _map(planData['packingListPlan']);
+      final projectInfo = _map(planData['project']);
+      final planNumber = (planInfo['planNumber'] ?? 'PLP-0006').toString();
+
+      if (projectInfo['projectName'] != null && projectInfo['projectName'].toString().isNotEmpty) {
+        selectedProjectName.value = projectInfo['projectName'].toString();
+      }
+
+      final rawBundlesList = planData['bundles'] is List ? planData['bundles'] as List : const [];
+      final parsedBundles = rawBundlesList.whereType<Map>().map((raw) {
+        final bMap = Map<String, dynamic>.from(raw);
+        final rawItems = bMap['items'] is List ? bMap['items'] as List : const [];
+
+        final parsedItems = rawItems.whereType<Map>().map((iRaw) {
+          final item = Map<String, dynamic>.from(iRaw);
+          final snapshot = _map(item['sourceLineSnapshot']);
+          return BundleItemDetailModel(
+            partNumber: (item['partCode'] ?? snapshot['partCode'] ?? item['description'] ?? 'framing').toString(),
+            description: (item['description'] ?? snapshot['description'] ?? '').toString(),
+            quantity: _int(item['qty'] ?? item['pieceQty'] ?? snapshot['qty'] ?? 1),
+            length: _formatLength(item['lengthFeet'] ?? snapshot['lengthFeet']),
+            weight: _weight(item['totalWeight'] ?? item['weight'] ?? snapshot['resolvedWeight']),
+            status: (bMap['status'] ?? 'assigned_to_truck').toString(),
+          );
+        }).toList();
+
+        return BundleQrLabelItemModel(
+          bundleId: (bMap['bundleNo'] ?? bMap['bundleId'] ?? bMap['_id'] ?? 'N/A').toString(),
+          loadId: planNumber,
+          parts: (bMap['bundleType'] ?? bMap['title'] ?? (parsedItems.isNotEmpty ? parsedItems.first.partNumber : 'framing')).toString(),
+          weight: _weight(bMap['totalWeight'] ?? bMap['weight']),
+          length: _formatLength(bMap['maxLengthFeet'] ?? bMap['lengthFeet']),
+          status: (bMap['status'] ?? 'assigned_to_truck').toString(),
+          shipper: planNumber,
+          totalQty: _int(bMap['totalQty']),
+          items: parsedItems,
+        );
+      }).toList();
+
+      bundleLabelsList.assignAll(parsedBundles);
+
+      final rawPackingLists = planData['packingLists'] is List ? planData['packingLists'] as List : const [];
+      final parsedPackingLists = rawPackingLists.whereType<Map>().map((raw) {
+        final plMap = Map<String, dynamic>.from(raw);
+        final plNo = (plMap['packingListNo'] ?? plMap['packingId'] ?? 'PL-001').toString();
+        final bIds = plMap['bundleIds'] is List ? plMap['bundleIds'] as List : const [];
+
+        final plBundles = parsedBundles.where((b) {
+          return bIds.contains(b.bundleId) || b.bundleId.startsWith('B-');
+        }).toList();
+
+        return PackingListQrItemModel(
+          packingId: plNo,
+          loadId: planNumber,
+          truck: (plMap['truckLabel'] ?? plMap['truckType'] ?? '53 ft Semi').toString(),
+          bundlesCount: _int(plMap['totalBundles'] ?? bIds.length),
+          totalItemsCount: _int(plMap['totalItems'] ?? (plMap['totalBundles'] != null ? _int(plMap['totalBundles']) * 2 : 36)),
+          weight: _weight(plMap['totalWeight']),
+          status: (plMap['status'] ?? 'confirmed').toString(),
+          shipper: planNumber,
+          qrUrl: 'https://mr-storage-vendor.vercel.app/packing-list-plan/$plNo',
+          bundles: plBundles.isNotEmpty ? plBundles : parsedBundles,
+        );
+      }).toList();
+
+      packingListItems.assignAll(parsedPackingLists);
     } catch (e) {
-      _applyFallbackQrLabelsData(id);
+      errorMessage.value = e.toString();
     } finally {
       isLoading.value = false;
     }
   }
 
-  void _applyFallbackQrLabelsData(String id) {
-    errorMessage.value = '';
-    bundleLabelsList.assignAll([
-      BundleQrLabelItemModel(
-        bundleId: 'BDL-001',
-        loadId: 'LD-4081',
-        parts: 'PRT-101..124',
-        weight: '1,200 lbs',
-        length: '32 ft',
-        status: 'Generated',
-        shipper: 'SHP-FILE-001',
-      ),
-      BundleQrLabelItemModel(
-        bundleId: 'BDL-002',
-        loadId: 'LD-4082',
-        parts: 'PRT-201..218',
-        weight: '4,500 lbs',
-        length: '40 ft',
-        status: 'Printed',
-        shipper: 'SHP-FILE-002',
-      ),
-      BundleQrLabelItemModel(
-        bundleId: 'BDL-003',
-        loadId: 'LD-4083',
-        parts: 'PRT-301..315',
-        weight: '2,800 lbs',
-        length: '20 ft',
-        status: 'Scanned',
-        shipper: 'SHP-FILE-003',
-      ),
-    ]);
+  String _formatLength(dynamic raw) {
+    if (raw == null) return 'N/A';
+    final val = double.tryParse(raw.toString());
+    if (val == null) return raw.toString();
+    return '${val.toStringAsFixed(2)}ft';
+  }
+
+  void initProjectQrLabels(String id, String name) {
+    showingBundlesView.value = false;
+    if (name.isNotEmpty) selectedProjectName.value = name;
+    if (id.isNotEmpty) {
+      loadBundleLabelsData(id);
+    }
   }
 
   void openProjectQrLabels(ProjectQrLabelsSummaryModel item) {
+    initProjectQrLabels(item.id, item.projectName);
     Get.toNamed(
       AppRoutes.projectQrLabels,
       parameters: {'id': item.id, 'name': item.projectName},

@@ -11,6 +11,8 @@ import '../model/bom_document_mapper.dart';
 import '../repository/bom_files_details_repository.dart';
 import '../../project_details/controller/project_details_controller.dart';
 
+import '../../project_details/widgets/upload_bom_dialog.dart';
+
 class BomFilesDetailsController extends GetxController {
   final BomFilesDetailsRepository repository;
   BomFilesDetailsController({required this.repository});
@@ -209,6 +211,12 @@ class BomFilesDetailsController extends GetxController {
         title: 'BOM Confirmed',
         message: 'BOM has been confirmed successfully.',
       );
+      Get.back();
+      Future.microtask(() {
+        if (Get.isRegistered<ProjectDetailsController>()) {
+          Get.dialog(const UploadBomDialog());
+        }
+      });
     } catch (error) {
       CommonSnackbar.showError(
         title: 'Confirmation failed',

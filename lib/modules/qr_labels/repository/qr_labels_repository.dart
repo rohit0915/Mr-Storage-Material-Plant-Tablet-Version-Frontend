@@ -9,6 +9,8 @@ class QrLabelsRepository {
       _get(ApiEndpoints.plantPackingListProjects);
   Future<Map<String, dynamic>> fetchPackingList(String id) =>
       _get(ApiEndpoints.plantPackingList(id));
+  Future<Map<String, dynamic>> fetchPackingListPlan(String planId) =>
+      _get(ApiEndpoints.plantPackingListPlan(planId));
 
   Future<Map<String, dynamic>> _get(String path) async {
     final response = await apiClient.get(path);

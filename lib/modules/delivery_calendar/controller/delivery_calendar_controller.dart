@@ -33,32 +33,37 @@ class DeliveryCalendarController extends GetxController {
       final data = await repository.calendar(from: range.$1, to: range.$2);
       final dateGroups = data['dates'] is List
           ? data['dates'] as List
-          : const [];
+          : data['deliveries'] is List
+              ? data['deliveries'] as List
+              : data['calendar'] is List
+                  ? data['calendar'] as List
+                  : data['items'] is List
+                      ? data['items'] as List
+                      : const [];
       final raw = <Map<String, dynamic>>[];
       var total = 0;
       for (final groupValue in dateGroups.whereType<Map>()) {
         final group = Map<String, dynamic>.from(groupValue);
-        final groupDate = group['date'];
+        final groupDate = group['date'] ?? group['deliveryDate'] ?? group['createdAt'];
         final groupDeliveries = group['deliveries'] is List
             ? group['deliveries'] as List
-            : const [];
-        total += _integer(group['totalDeliveries'], groupDeliveries.length);
-        for (final deliveryValue in groupDeliveries.whereType<Map>()) {
+            : null;
+        if (groupDeliveries != null) {
+          total += _integer(group['totalDeliveries'], groupDeliveries.length);
+          for (final deliveryValue in groupDeliveries.whereType<Map>()) {
+            raw.add({
+              ...Map<String, dynamic>.from(deliveryValue),
+              '_calendarDate': groupDate,
+            });
+          }
+        } else {
           raw.add({
-            ...Map<String, dynamic>.from(deliveryValue),
+            ...group,
             '_calendarDate': groupDate,
           });
         }
       }
-      // Retain compatibility with an older flat response shape.
-      if (raw.isEmpty && data['calendar'] is List) {
-        raw.addAll(
-          (data['calendar'] as List).whereType<Map>().map(
-            Map<String, dynamic>.from,
-          ),
-        );
-        total = raw.length;
-      }
+      if (total == 0) total = raw.length;
       totalDeliveries.value = total;
       deliveriesList.assignAll(
         raw.map((item) {

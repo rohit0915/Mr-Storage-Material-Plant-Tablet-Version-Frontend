@@ -28,6 +28,14 @@ class FreightLoadItemModel {
   final String status; // 'Awarded', 'Requested', 'Bids Received'
   final String loadWeight;
   final String packageCount;
+  final String dimensions;
+  final String distance;
+  final String materialType;
+  final String equipment;
+  final String receivingPocName;
+  final String receivingPocPhone;
+  final String specialRequirements;
+  final String additionalNotes;
   bool isSelected;
 
   FreightLoadItemModel({
@@ -44,6 +52,14 @@ class FreightLoadItemModel {
     required this.status,
     this.loadWeight = '-',
     this.packageCount = '',
+    this.dimensions = '-',
+    this.distance = '-',
+    this.materialType = '-',
+    this.equipment = '-',
+    this.receivingPocName = '-',
+    this.receivingPocPhone = '',
+    this.specialRequirements = '-',
+    this.additionalNotes = '-',
     this.isSelected = false,
   });
 }

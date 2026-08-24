@@ -28,7 +28,11 @@ class NotificationHistoryController extends GetxController {
       final data = await repository.list();
       final raw = data['notifications'] is List
           ? data['notifications'] as List
-          : const [];
+          : data['data'] is List
+              ? data['data'] as List
+              : data['items'] is List
+                  ? data['items'] as List
+                  : const [];
       allNotifications.assignAll(
         raw.whereType<Map>().map((entry) {
           final item = Map<String, dynamic>.from(entry);

@@ -340,6 +340,8 @@ class ComparisonResultController extends GetxController {
 
   final RxBool isApproved = false.obs;
 
+  bool get isFullyMatched => partMissing.value == 0 && notMatch.value == 0 && extraItems.value == 0;
+
   Future<void> approveShipment() async {
     isLoading.value = true;
     try {

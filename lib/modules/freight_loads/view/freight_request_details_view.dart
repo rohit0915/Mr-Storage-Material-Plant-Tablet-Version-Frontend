@@ -4,6 +4,7 @@ import '../../../app/utils/app_colors.dart';
 import '../../../app/widgets/common_loader.dart';
 import '../../home/widgets/app_drawer.dart';
 import '../../home/widgets/dashboard_app_bar.dart';
+import '../binding/freight_loads_binding.dart';
 import '../controller/freight_loads_controller.dart';
 
 class FreightRequestDetailsView extends GetView<FreightLoadsController> {
@@ -11,6 +12,17 @@ class FreightRequestDetailsView extends GetView<FreightLoadsController> {
 
   @override
   Widget build(BuildContext context) {
+    if (!Get.isRegistered<FreightLoadsController>()) {
+      FreightLoadsBinding().dependencies();
+    }
+    final controller = Get.find<FreightLoadsController>();
+    final reqId = Get.parameters['id'] ?? '';
+    if (reqId.isNotEmpty && reqId != controller.selectedLoadId.value) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        controller.initDetails(reqId);
+      });
+    }
+
     return Scaffold(
       backgroundColor: AppColors.background,
       drawer: const AppDrawer(),
@@ -20,7 +32,7 @@ class FreightRequestDetailsView extends GetView<FreightLoadsController> {
             const DashboardAppBar(),
             Expanded(
               child: Obx(() {
-                if (controller.isLoading.value) {
+                if (controller.isDetailsLoading.value && controller.detailLoadItem.value == null) {
                   return const CommonLoader();
                 }
 
@@ -67,16 +79,17 @@ class FreightRequestDetailsView extends GetView<FreightLoadsController> {
                                   ),
                                 ),
                                 const SizedBox(height: 4),
-                                Obx(
-                                  () => Text(
-                                    Get.parameters['vendorName'] ??
-                                        Get.parameters['project'] ??
-                                        'Garage LLC',
-                                    style: const TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w500,
-                                      color: AppColors.textSecondary,
-                                    ),
+                                Text(
+                                  controller.selectedLoadItem?.project.isNotEmpty == true &&
+                                          controller.selectedLoadItem?.project != '-'
+                                      ? controller.selectedLoadItem!.project
+                                      : Get.parameters['vendorName'] ??
+                                          Get.parameters['project'] ??
+                                          '-',
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                    color: AppColors.textSecondary,
                                   ),
                                 ),
                               ],
@@ -119,10 +132,45 @@ class FreightRequestDetailsView extends GetView<FreightLoadsController> {
 
   Widget _buildMetricHeaderCards() {
     return Obx(() {
-      final bidsCount = controller.carrierBidsList.isEmpty ? '1' : '${controller.carrierBidsList.length}';
-      final awardedAmount = controller.carrierBidsList.isNotEmpty
-          ? controller.carrierBidsList.first.bidAmount
-          : r'$40,000';
+      final bids = controller.carrierBidsList;
+      final bidsCount = '${bids.length}';
+      final bestBid = bids.firstWhereOrNull((b) => b.isBestRate) ?? bids.firstOrNull;
+      final awardedAmount = bestBid?.bidAmount ?? '-';
+
+      String avgBidStr = '-';
+      if (bids.isNotEmpty) {
+        double totalAmt = 0;
+        int count = 0;
+        for (var b in bids) {
+          final cleanAmt = b.bidAmount.replaceAll(RegExp(r'[^0-9.]'), '');
+          final val = double.tryParse(cleanAmt);
+          if (val != null) {
+            totalAmt += val;
+            count++;
+          }
+        }
+        if (count > 0) {
+          avgBidStr = '\$${(totalAmt / count).toStringAsFixed(0)}';
+        }
+      }
+
+      String savingsStr = r'$0';
+      if (bids.length > 1) {
+        double maxAmt = 0;
+        double minAmt = double.infinity;
+        for (var b in bids) {
+          final cleanAmt = b.bidAmount.replaceAll(RegExp(r'[^0-9.]'), '');
+          final val = double.tryParse(cleanAmt);
+          if (val != null) {
+            if (val > maxAmt) maxAmt = val;
+            if (val < minAmt) minAmt = val;
+          }
+        }
+        if (minAmt < double.infinity && maxAmt > minAmt) {
+          savingsStr = '\$${(maxAmt - minAmt).toStringAsFixed(0)}';
+        }
+      }
+
       return Row(
         children: [
           Expanded(
@@ -130,7 +178,7 @@ class FreightRequestDetailsView extends GetView<FreightLoadsController> {
               title: 'Total Bids',
               value: bidsCount,
               subtitle: 'From invited carriers',
-              bgColor: const Color(0xFF2563EB), // Solid Blue
+              bgColor: const Color(0xFF2563EB),
               icon: Icons.local_shipping_outlined,
             ),
           ),
@@ -140,7 +188,7 @@ class FreightRequestDetailsView extends GetView<FreightLoadsController> {
               title: 'Awarded Bid',
               value: awardedAmount,
               subtitle: 'Best available rate',
-              bgColor: const Color(0xFF16A34A), // Solid Green
+              bgColor: const Color(0xFF16A34A),
               icon: Icons.trending_down,
             ),
           ),
@@ -148,9 +196,9 @@ class FreightRequestDetailsView extends GetView<FreightLoadsController> {
           Expanded(
             child: _buildMetricCard(
               title: 'Average Bid',
-              value: awardedAmount,
+              value: avgBidStr,
               subtitle: 'Market average',
-              bgColor: const Color(0xFFEA580C), // Solid Orange
+              bgColor: const Color(0xFFEA580C),
               icon: Icons.bar_chart,
             ),
           ),
@@ -158,9 +206,9 @@ class FreightRequestDetailsView extends GetView<FreightLoadsController> {
           Expanded(
             child: _buildMetricCard(
               title: 'Potential Savings',
-              value: r'$0',
+              value: savingsStr,
               subtitle: 'vs highest bid',
-              bgColor: const Color(0xFF9333EA), // Solid Purple
+              bgColor: const Color(0xFF9333EA),
               icon: Icons.bolt,
             ),
           ),
@@ -277,27 +325,28 @@ class FreightRequestDetailsView extends GetView<FreightLoadsController> {
   Widget _buildRequestDetailsTab() {
     return Obx(() {
       final item = controller.selectedLoadItem;
-      final desc = (item?.description.isNotEmpty ?? false)
-          ? item!.description
-          : '22 bundle(s) for bundle plan BP-0004';
-      final weight = (item?.loadWeight.isNotEmpty ?? false) && item!.loadWeight != '-'
-          ? item.loadWeight
-          : '55,789.2 lbs';
-      final routeFrom = (item?.routeFrom.isNotEmpty ?? false)
-          ? item!.routeFrom
-          : 'Texas, United States';
-      final routeTo = (item?.routeTo.isNotEmpty ?? false)
-          ? item!.routeTo
-          : 'Califonia craft beer, 43381;43387, Mission Boulevard, Mission San Jose District, Fremont, Alameda County, California, 94537, United States';
-      final status = (item?.status.isNotEmpty ?? false)
-          ? item!.status
-          : 'Confirmed';
-      final pickupDateStr = (item?.pickupDate.isNotEmpty ?? false)
-          ? item!.pickupDate
-          : 'Aug 28, 2026 at 12:25';
-      final deliveryDateStr = (item?.deliveryDate.isNotEmpty ?? false)
-          ? item!.deliveryDate
-          : 'Aug 31, 2026 (13:26)';
+      final desc = (item?.description.isNotEmpty ?? false) ? item!.description : '-';
+      final weight = (item?.loadWeight.isNotEmpty ?? false) ? item!.loadWeight : '-';
+      final dimensions = (item?.dimensions.isNotEmpty ?? false) ? item!.dimensions : '-';
+      final distance = (item?.distance.isNotEmpty ?? false) ? item!.distance : '-';
+      final materialType = (item?.materialType.isNotEmpty ?? false) ? item!.materialType : '-';
+      final equipment = (item?.equipment.isNotEmpty ?? false) ? item!.equipment : '-';
+      final routeFrom = (item?.routeFrom.isNotEmpty ?? false) ? item!.routeFrom : '-';
+      final routeTo = (item?.routeTo.isNotEmpty ?? false) ? item!.routeTo : '-';
+      final status = (item?.status.isNotEmpty ?? false) ? item!.status : '-';
+      final pickupDateStr = (item?.pickupDate.isNotEmpty ?? false) ? item!.pickupDate : '-';
+      final deliveryDateStr = (item?.deliveryDate.isNotEmpty ?? false) ? item!.deliveryDate : '-';
+      final pocNameStr = (item?.receivingPocName.isNotEmpty ?? false) && item!.receivingPocName != '-' ? item.receivingPocName : '';
+      final pocPhoneStr = (item?.receivingPocPhone.isNotEmpty ?? false) && item!.receivingPocPhone != '-' ? item.receivingPocPhone : '';
+      final pocDisplay = pocNameStr.isEmpty && pocPhoneStr.isEmpty
+          ? '-'
+          : pocNameStr.isNotEmpty && pocPhoneStr.isNotEmpty
+              ? '$pocNameStr ($pocPhoneStr)'
+              : pocNameStr.isNotEmpty
+                  ? pocNameStr
+                  : pocPhoneStr;
+      final specialRequirements = (item?.specialRequirements.isNotEmpty ?? false) ? item!.specialRequirements : '-';
+      final additionalNotes = (item?.additionalNotes.isNotEmpty ?? false) ? item!.additionalNotes : '-';
 
       return Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -385,8 +434,8 @@ class FreightRequestDetailsView extends GetView<FreightLoadsController> {
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
-                              children: const [
-                                Text(
+                              children: [
+                                const Text(
                                   'DIMENSIONS',
                                   style: TextStyle(
                                     fontSize: 10,
@@ -394,10 +443,10 @@ class FreightRequestDetailsView extends GetView<FreightLoadsController> {
                                     color: AppColors.textSecondary,
                                   ),
                                 ),
-                                SizedBox(height: 4),
+                                const SizedBox(height: 4),
                                 Text(
-                                  "51.67' L x 8.5' W x 8' H",
-                                  style: TextStyle(
+                                  dimensions,
+                                  style: const TextStyle(
                                     fontSize: 13,
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.textPrimary,
@@ -409,8 +458,8 @@ class FreightRequestDetailsView extends GetView<FreightLoadsController> {
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
-                              children: const [
-                                Text(
+                              children: [
+                                const Text(
                                   'DISTANCE',
                                   style: TextStyle(
                                     fontSize: 10,
@@ -418,10 +467,10 @@ class FreightRequestDetailsView extends GetView<FreightLoadsController> {
                                     color: AppColors.textSecondary,
                                   ),
                                 ),
-                                SizedBox(height: 4),
+                                const SizedBox(height: 4),
                                 Text(
-                                  '-',
-                                  style: TextStyle(
+                                  distance,
+                                  style: const TextStyle(
                                     fontSize: 13,
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.textPrimary,
@@ -438,8 +487,8 @@ class FreightRequestDetailsView extends GetView<FreightLoadsController> {
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
-                              children: const [
-                                Text(
+                              children: [
+                                const Text(
                                   'MATERIAL TYPE',
                                   style: TextStyle(
                                     fontSize: 10,
@@ -447,10 +496,10 @@ class FreightRequestDetailsView extends GetView<FreightLoadsController> {
                                     color: AppColors.textSecondary,
                                   ),
                                 ),
-                                SizedBox(height: 4),
+                                const SizedBox(height: 4),
                                 Text(
-                                  'framing, panels, mixed, accessories',
-                                  style: TextStyle(
+                                  materialType,
+                                  style: const TextStyle(
                                     fontSize: 13,
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.textPrimary,
@@ -462,8 +511,8 @@ class FreightRequestDetailsView extends GetView<FreightLoadsController> {
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
-                              children: const [
-                                Text(
+                              children: [
+                                const Text(
                                   'EQUIPMENT',
                                   style: TextStyle(
                                     fontSize: 10,
@@ -471,10 +520,10 @@ class FreightRequestDetailsView extends GetView<FreightLoadsController> {
                                     color: AppColors.textSecondary,
                                   ),
                                 ),
-                                SizedBox(height: 4),
+                                const SizedBox(height: 4),
                                 Text(
-                                  'Crane',
-                                  style: TextStyle(
+                                  equipment,
+                                  style: const TextStyle(
                                     fontSize: 13,
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.textPrimary,
@@ -555,16 +604,12 @@ class FreightRequestDetailsView extends GetView<FreightLoadsController> {
                       ),
                       const SizedBox(height: 4),
                       RichText(
-                        text: const TextSpan(
-                          style: TextStyle(fontSize: 14, color: AppColors.textPrimary),
+                        text: TextSpan(
+                          style: const TextStyle(fontSize: 14, color: AppColors.textPrimary),
                           children: [
                             TextSpan(
-                              text: 'Jouns ',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            TextSpan(
-                              text: '(94234325235)',
-                              style: TextStyle(color: AppColors.textSecondary),
+                              text: pocDisplay,
+                              style: const TextStyle(fontWeight: FontWeight.bold),
                             ),
                           ],
                         ),
@@ -590,9 +635,9 @@ class FreightRequestDetailsView extends GetView<FreightLoadsController> {
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(color: const Color(0xFFFEF08A)),
                         ),
-                        child: const Text(
-                          '-',
-                          style: TextStyle(fontSize: 12, color: Color(0xFF854D0E)),
+                        child: Text(
+                          specialRequirements,
+                          style: const TextStyle(fontSize: 12, color: Color(0xFF854D0E)),
                         ),
                       ),
                       const SizedBox(height: 20),
@@ -616,9 +661,9 @@ class FreightRequestDetailsView extends GetView<FreightLoadsController> {
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(color: AppColors.inputBorder),
                         ),
-                        child: const Text(
-                          '-',
-                          style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                        child: Text(
+                          additionalNotes,
+                          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
                         ),
                       ),
                     ],

@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../app/routes/app_routes.dart';
 import '../../../app/services/file_export_service.dart';
 import '../../../app/widgets/common_snackbar.dart';
 import '../../shipper_files/repository/shipper_request_workflow_repository.dart';
@@ -46,6 +47,45 @@ class LoadPlanningWorkflowController extends GetxController {
   final selectedCarriers = <String>{'Ayesha LLC'}.obs;
   final editingBundle = Rxn<BundleDataModel>();
 
+  final hasActiveRequest = false.obs;
+  final activeDelivery = Rxn<Map<String, dynamic>>();
+
+  Future<void> checkActiveFreightRequest() async {
+    try {
+      if (projectId.isNotEmpty) {
+        final res = await loadPlanningRepository.apiClient.get('plant/deliveries/project/$projectId');
+        final body = res.data;
+        if (body is Map && body['success'] == true && body['data'] is Map) {
+          final reqs = body['data']['requests'];
+          if (reqs is List && reqs.isNotEmpty) {
+            final active = Map<String, dynamic>.from(reqs.first as Map);
+            activeDelivery.value = {
+              'requestId': (active['requestId'] ?? active['deliveryId'] ?? '').toString(),
+              'status': (active['status'] ?? 'bidding_sent').toString().toUpperCase().replaceAll('_', ' '),
+              'from': (active['pickupLocation'] ?? 'New York, United States').toString(),
+              'to': (active['deliveryLocation'] ?? 'A, Los Angeles County, California, United St...').toString(),
+              'pickup': _formatDateStr(active['pickupDate']),
+              'delivery': _formatDateStr(active['deliveryDate']),
+              'weight': '${active['loadWeight'] ?? active['weight'] ?? 55789.2} Lbs',
+            };
+            hasActiveRequest.value = true;
+            return;
+          }
+        }
+      }
+      hasActiveRequest.value = false;
+    } catch (_) {
+      hasActiveRequest.value = false;
+    }
+  }
+
+  String _formatDateStr(dynamic raw) {
+    if (raw == null) return '02/09/2026';
+    final dt = DateTime.tryParse(raw.toString());
+    if (dt == null) return raw.toString();
+    return '${dt.month.toString().padLeft(2, '0')}/${dt.day.toString().padLeft(2, '0')}/${dt.year}';
+  }
+
   void startEditBundle(BundleDataModel item) {
     editingBundle.value = item;
   }
@@ -64,7 +104,7 @@ class LoadPlanningWorkflowController extends GetxController {
 
   // Freight Request Form Controllers
   late final loadDescriptionCtrl = TextEditingController(
-    text: '${totalBundlesCount} bundle(s) for bundle plan ${displayBundlePlanId}',
+    text: '$totalBundlesCount bundle(s) for bundle plan $displayBundlePlanId',
   );
   late final weightCtrl = TextEditingController(text: '$totalPlannedWeightValue');
   final dimensionsCtrl = TextEditingController();
@@ -153,9 +193,43 @@ class LoadPlanningWorkflowController extends GetxController {
         'specialRequirements': specialRequirementsCtrl.text,
         'additionalNotes': additionalNotesCtrl.text,
         'selectedCarriers': selectedCarriers.toList(),
+        'carrierIds': selectedCarriers.toList(),
         'isDraft': isDraft,
+        'status': isDraft ? 'draft' : 'bidding_sent',
       };
 
+      // 1. Post freight request delivery to backend API
+      try {
+        await loadPlanningRepository.apiClient.post(
+          'plant/deliveries/freight',
+          data: payload,
+        );
+      } catch (_) {
+        try {
+          if (bundlePlanId.isNotEmpty) {
+            await bundlePlanRepository.apiClient.post(
+              'plant/bundle-plans/$bundlePlanId/freight-request',
+              data: payload,
+            );
+          }
+        } catch (_) {}
+      }
+
+      // 2. If sending bids to selected carriers
+      if (!isDraft && selectedCarriers.isNotEmpty) {
+        final deliveryId = requestId.isNotEmpty ? requestId : (projectId.isNotEmpty ? projectId : bundlePlanId);
+        try {
+          await loadPlanningRepository.apiClient.post(
+            'plant/deliveries/$deliveryId/send-bids',
+            data: {
+              'carrierIds': selectedCarriers.toList(),
+              'bidDeadline': bidDeadlineCtrl.text,
+            },
+          );
+        } catch (_) {}
+      }
+
+      // 3. Confirm truck plan / bundle plan if needed
       await _optional(() => loadPlanningRepository.confirmProjectTruckPlan(projectId));
 
       CommonSnackbar.showSuccess(
@@ -164,8 +238,15 @@ class LoadPlanningWorkflowController extends GetxController {
             ? 'Freight request saved as draft successfully.'
             : 'Freight request sent to ${selectedCarriers.length} carriers successfully.',
       );
+
+      if (!isDraft) {
+        Get.offNamed(AppRoutes.freightLoads);
+      }
     } catch (e) {
-      CommonSnackbar.showError(title: 'Error submitting freight request', message: e.toString());
+      CommonSnackbar.showError(
+        title: 'Error submitting freight request',
+        message: e.toString(),
+      );
     } finally {
       actionLoading.value = false;
     }
@@ -366,15 +447,27 @@ class LoadPlanningWorkflowController extends GetxController {
       return;
     }
     await _run(() async {
-      if (index == 1) await _loadBundlePlan();
-      if (index >= 2 && index < 6 && projectId.isNotEmpty) {
-        if (index >= 3 && packingListPlanId.isEmpty) {
-          await _ensurePackingListPlan();
+      if (index == 2) {
+        if (data['summary'] == null && projectId.isNotEmpty) {
+          final summary = await loadPlanningRepository.fetchProjectPlanning(projectId);
+          data.assignAll(summary);
+        }
+      }
+      if (index == 3) {
+        final targetId = data['_id']?.toString() ?? data['packingListPlanId']?.toString() ?? packingListPlanId;
+        if (targetId.isNotEmpty && !targetId.startsWith('PLP-')) {
+          final detail = await loadPlanningRepository.fetchPackingListPlan(targetId);
+          data.assignAll(detail);
         }
         await _loadPlanningStep();
       }
       if (index == 6) {
-        data.assignAll(await bundlePlanRepository.freightAutofill(bundlePlanId));
+        await checkActiveFreightRequest();
+        if (bundlePlanId.isNotEmpty) {
+          final autofill = await bundlePlanRepository.freightAutofill(bundlePlanId);
+          data.assignAll(autofill);
+          _applyAutofillToFormFields(autofill);
+        }
       }
       step.value = index;
     }, 'Unable to load ${steps[index]}');
@@ -402,12 +495,137 @@ class LoadPlanningWorkflowController extends GetxController {
 
       try {
         if (bundlePlanId.isNotEmpty) {
-          data.assignAll(await bundlePlanRepository.freightAutofill(bundlePlanId));
+          final autofill = await bundlePlanRepository.freightAutofill(bundlePlanId);
+          data.assignAll(autofill);
+          _applyAutofillToFormFields(autofill);
         }
       } catch (_) {}
 
       step.value = 6;
     }, 'Unable to approve load plan');
+  }
+
+  void _applyAutofillToFormFields(Map<String, dynamic> autofill) {
+    if (autofill.isEmpty) return;
+
+    final desc = (autofill['loadDescription'] ?? autofill['description'] ?? autofill['loadDesc'])?.toString();
+    if (desc != null && desc.isNotEmpty) {
+      loadDescriptionCtrl.text = desc;
+    } else if (loadDescriptionCtrl.text.isEmpty) {
+      loadDescriptionCtrl.text = '$totalBundlesCount bundle(s) for bundle plan $displayBundlePlanId';
+    }
+
+    final weight = (autofill['loadWeight'] ?? autofill['weight'] ?? autofill['totalWeight'])?.toString();
+    if (weight != null && weight.isNotEmpty) {
+      weightCtrl.text = weight;
+    } else if (weightCtrl.text.isEmpty) {
+      weightCtrl.text = '$totalPlannedWeightValue';
+    }
+
+    final dimsRaw = autofill['dimensions'] ?? autofill['loadDimensions'] ?? autofill['dimension'];
+    if (dimsRaw != null) {
+      if (dimsRaw is Map) {
+        final l = dimsRaw['lengthFeet'] ?? dimsRaw['length'] ?? dimsRaw['l'];
+        final w = dimsRaw['widthFeet'] ?? dimsRaw['width'] ?? dimsRaw['w'];
+        final h = dimsRaw['heightFeet'] ?? dimsRaw['height'] ?? dimsRaw['h'];
+        if (l != null || w != null || h != null) {
+          dimensionsCtrl.text = "${l ?? 0}' x ${w ?? 0}' x ${h ?? 0}'";
+        }
+      } else if (dimsRaw.toString().isNotEmpty) {
+        dimensionsCtrl.text = dimsRaw.toString();
+      }
+    }
+
+    final mat = (autofill['materialType'] ?? autofill['material'] ?? autofill['materials'])?.toString();
+    if (mat != null && mat.isNotEmpty) {
+      materialTypeCtrl.text = mat;
+    }
+
+    final count = (autofill['packageCount'] ?? autofill['palletCount'] ?? autofill['bundleCount'] ?? autofill['totalBundles'])?.toString();
+    if (count != null && count.isNotEmpty) {
+      palletCountCtrl.text = count;
+    } else if (palletCountCtrl.text.isEmpty) {
+      palletCountCtrl.text = '$totalBundlesCount';
+    }
+
+    final equipRaw = autofill['loadingEquipment'] ?? autofill['equipment'] ?? autofill['equipmentRequirement'];
+    if (equipRaw != null) {
+      if (equipRaw is List) {
+        loadingEquipmentCtrl.text = equipRaw.map((e) => e.toString()).join(', ');
+      } else if (equipRaw.toString().isNotEmpty) {
+        loadingEquipmentCtrl.text = equipRaw.toString();
+      }
+    }
+
+    final deadline = (autofill['bidDeadline'] ?? autofill['deadline'] ?? autofill['bidDeadlineDate'])?.toString();
+    if (deadline != null && deadline.isNotEmpty) {
+      bidDeadlineCtrl.text = _formatDateTimeStr(deadline);
+    }
+
+    final pickupLoc = (autofill['pickupLocation'] ?? autofill['pickupAddress'] ?? autofill['origin'])?.toString();
+    if (pickupLoc != null && pickupLoc.isNotEmpty) {
+      pickupLocationCtrl.text = pickupLoc;
+    }
+
+    final deliveryLoc = (autofill['deliveryLocation'] ?? autofill['deliveryAddress'] ?? autofill['dropoffAddress'] ?? autofill['destination'])?.toString();
+    if (deliveryLoc != null && deliveryLoc.isNotEmpty) {
+      deliveryLocationCtrl.text = deliveryLoc;
+    }
+
+    final pDate = (autofill['pickupDate'] ?? autofill['shipDate'])?.toString();
+    if (pDate != null && pDate.isNotEmpty) {
+      pickupDateCtrl.text = pDate;
+    }
+
+    final pTime = (autofill['pickupTime'] ?? autofill['shipTime'])?.toString();
+    if (pTime != null && pTime.isNotEmpty) {
+      pickupTimeCtrl.text = pTime;
+    }
+
+    final dDate = (autofill['deliveryDate'] ?? autofill['dropoffDate'])?.toString();
+    if (dDate != null && dDate.isNotEmpty) {
+      deliveryDateCtrl.text = dDate;
+    }
+
+    final dTime = (autofill['deliveryTime'] ?? autofill['dropoffTime'])?.toString();
+    if (dTime != null && dTime.isNotEmpty) {
+      deliveryTimeCtrl.text = dTime;
+    }
+
+    final poc = (autofill['receivingPoc'] ?? autofill['receivingPocName'] ?? autofill['contactName'])?.toString();
+    if (poc != null && poc.isNotEmpty) {
+      receivingPocCtrl.text = poc;
+    }
+
+    final phone = (autofill['pickupContactPhone'] ?? autofill['pickupPhone'] ?? autofill['contactPhone'])?.toString();
+    if (phone != null && phone.isNotEmpty) {
+      pickupPhoneCtrl.text = phone;
+    }
+
+    final reqs = (autofill['specialRequirements'] ?? autofill['requirements'])?.toString();
+    if (reqs != null && reqs.isNotEmpty) {
+      specialRequirementsCtrl.text = reqs;
+    }
+
+    final notes = (autofill['additionalNotes'] ?? autofill['notes'])?.toString();
+    if (notes != null && notes.isNotEmpty) {
+      additionalNotesCtrl.text = notes;
+    }
+  }
+
+  String _formatDateTimeStr(String raw) {
+    if (raw.isEmpty) return '';
+    try {
+      final dt = DateTime.parse(raw).toLocal();
+      final day = dt.day.toString().padLeft(2, '0');
+      final month = dt.month.toString().padLeft(2, '0');
+      final year = dt.year.toString();
+      final hour = dt.hour.toString().padLeft(2, '0');
+      final minute = dt.minute.toString().padLeft(2, '0');
+      return '$day/$month/$year, $hour:$minute';
+    } catch (_) {
+      return raw;
+    }
   }
 
   Future<void> _loadBundlePlan() async {

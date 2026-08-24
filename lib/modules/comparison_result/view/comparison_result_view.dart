@@ -129,50 +129,52 @@ class ComparisonResultView extends GetView<ComparisonResultController> {
               ),
             );
           }
+          final isMatched = controller.isFullyMatched;
           return Row(
             children: [
-              // Request Resubmit Button
-              ElevatedButton(
-                onPressed: () => controller.openRequestResubmitDialog(),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF808D9E),
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+              if (isMatched) ...[
+                // Approve Shipment Button (Shown ONLY when fully matched)
+                ElevatedButton(
+                  onPressed: () => controller.approveShipment(),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF16A34A),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
                   ),
-                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-                ),
-                child: const Text(
-                  'Request Resubmit',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
-
-              // Approve Shipment Button
-              ElevatedButton(
-                onPressed: () => controller.approveShipment(),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF16A34A),
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-                ),
-                child: const Text(
-                  'Approve Shipment',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                  child: const Text(
+                    'Approve Shipment',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
-              ),
+              ] else ...[
+                // Request Resubmit Button (Shown ONLY when mismatches exist)
+                ElevatedButton(
+                  onPressed: () => controller.openRequestResubmitDialog(),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF2563EB),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                  ),
+                  child: const Text(
+                    'Request Resubmit',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
             ],
           );
         }),

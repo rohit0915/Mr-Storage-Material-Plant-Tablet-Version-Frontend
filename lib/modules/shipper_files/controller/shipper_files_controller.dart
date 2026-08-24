@@ -112,12 +112,19 @@ class ShipperFilesController extends GetxController {
         item['createdAt'] ??
         lead['createdAt'];
 
+    final total = _int(
+      item['totalShipperFiles'] ??
+          item['shipperFileCount'] ??
+          item['totalFiles'] ??
+          item['numberOfBuildings'],
+    );
+
     return ProjectShipperFileModel(
       leadId: leadId,
       projectId: pId,
       projectName: pName,
       fileReceived: _formatReceivedDate(rawDate),
-      totalShipperFiles: _int(item['totalShipperFiles']),
+      totalShipperFiles: total,
     );
   }
 

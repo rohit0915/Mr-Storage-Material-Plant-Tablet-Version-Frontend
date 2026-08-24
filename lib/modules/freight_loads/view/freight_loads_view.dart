@@ -4,6 +4,7 @@ import '../../../app/utils/app_colors.dart';
 import '../../../app/widgets/common_loader.dart';
 import '../../home/widgets/app_drawer.dart';
 import '../../home/widgets/dashboard_app_bar.dart';
+import '../binding/freight_loads_binding.dart';
 import '../controller/freight_loads_controller.dart';
 
 class FreightLoadsView extends GetView<FreightLoadsController> {
@@ -11,6 +12,11 @@ class FreightLoadsView extends GetView<FreightLoadsController> {
 
   @override
   Widget build(BuildContext context) {
+    if (!Get.isRegistered<FreightLoadsController>()) {
+      FreightLoadsBinding().dependencies();
+    }
+    final controller = Get.find<FreightLoadsController>();
+
     return Scaffold(
       backgroundColor: AppColors.background,
       drawer: const AppDrawer(),

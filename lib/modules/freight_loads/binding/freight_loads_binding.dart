@@ -6,11 +6,17 @@ import '../repository/delivery_repository.dart';
 class FreightLoadsBinding extends Bindings {
   @override
   void dependencies() {
-    Get.lazyPut<DeliveryRepository>(
-      () => DeliveryRepository(apiClient: Get.find<ApiClient>()),
-    );
-    Get.lazyPut<FreightLoadsController>(
-      () => FreightLoadsController(repository: Get.find<DeliveryRepository>()),
-    );
+    if (!Get.isRegistered<DeliveryRepository>()) {
+      Get.lazyPut<DeliveryRepository>(
+        () => DeliveryRepository(apiClient: Get.find<ApiClient>()),
+        fenix: true,
+      );
+    }
+    if (!Get.isRegistered<FreightLoadsController>()) {
+      Get.lazyPut<FreightLoadsController>(
+        () => FreightLoadsController(repository: Get.find<DeliveryRepository>()),
+        fenix: true,
+      );
+    }
   }
 }

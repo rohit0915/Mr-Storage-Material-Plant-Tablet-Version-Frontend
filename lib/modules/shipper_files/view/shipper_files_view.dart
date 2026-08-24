@@ -249,7 +249,7 @@ class ShipperFilesView extends GetView<ShipperFilesController> {
                 _buildTh('Project Name', flex: 4),
                 _buildTh('File Received', flex: 3),
                 _buildTh('Total Shippers Files', flex: 3),
-                _buildTh('Action', width: 56, isLast: true),
+                _buildTh('Action', width: 72, isLast: true),
               ],
             ),
           ),
@@ -329,28 +329,25 @@ class ShipperFilesView extends GetView<ShipperFilesController> {
                         // Action Column with Eye Icon Button
                         _buildTdWidget(
                           Center(
-                            child: Container(
-                              width: 32,
-                              height: 32,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF4F46E5),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: IconButton(
-                                padding: EdgeInsets.zero,
-                                icon: const Icon(
+                            child: InkWell(
+                              onTap: () => controller.openProjectShipperFiles(item),
+                              borderRadius: BorderRadius.circular(8),
+                              child: Container(
+                                width: 32,
+                                height: 32,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF4F46E5),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Icon(
                                   Icons.remove_red_eye_outlined,
                                   color: Colors.white,
-                                  size: 18,
+                                  size: 16,
                                 ),
-                                onPressed: () {
-                                  controller.openProjectShipperFiles(item);
-                                },
-                                tooltip: 'View Project Shipper Files',
                               ),
                             ),
                           ),
-                          width: 56,
+                          width: 72,
                           isLast: true,
                         ),
                       ],

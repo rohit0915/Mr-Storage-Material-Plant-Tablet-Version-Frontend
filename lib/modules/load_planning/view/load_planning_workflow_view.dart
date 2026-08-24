@@ -8,6 +8,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
+import '../../../app/routes/app_routes.dart';
 import '../../../app/utils/app_colors.dart';
 import '../../../app/utils/app_images.dart';
 import '../../../app/widgets/common_loader.dart';
@@ -259,66 +260,76 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
         // Page Title & Header Toolbar
-        Row(
+        Wrap(
+          alignment: WrapAlignment.spaceBetween,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 12,
+          runSpacing: 12,
           children: [
-            IconButton(
-              onPressed: Get.back,
-              icon: const Icon(Icons.arrow_back, size: 20),
-            ),
-            const SizedBox(width: 8),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
-                Text(
-                  'Bundle / Pallet Planner',
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                  ),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  onPressed: Get.back,
+                  icon: const Icon(Icons.arrow_back, size: 20),
                 ),
-                SizedBox(height: 4),
-                Text(
-                  'Group items into optimized bundles or pallets for efficient truck loading and site unloading.',
-                  style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                const SizedBox(width: 8),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    Text(
+                      'Bundle / Pallet Planner',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'Group items into optimized bundles or pallets for efficient truck loading and site unloading.',
+                      style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                    ),
+                  ],
                 ),
               ],
             ),
-            const Spacer(),
 
-            // Export Excel Button
-            OutlinedButton.icon(
-              onPressed: controller.exportExcel,
-              icon: const Icon(
-                Icons.download_outlined,
-                size: 16,
-                color: AppColors.textPrimary,
-              ),
-              label: const Text(
-                'Export Excel',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                // Export Excel Button
+                OutlinedButton.icon(
+                  onPressed: controller.exportExcel,
+                  icon: const Icon(
+                    Icons.download_outlined,
+                    size: 16,
+                    color: AppColors.textPrimary,
+                  ),
+                  label: const Text(
+                    'Export Excel',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    side: const BorderSide(color: AppColors.inputBorder),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  ),
                 ),
-              ),
-              style: OutlinedButton.styleFrom(
-                backgroundColor: Colors.white,
-                side: const BorderSide(color: AppColors.inputBorder),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              ),
-            ),
-            const SizedBox(width: 10),
 
-            // Confirm Bundle Plan Button (Hides when confirmed)
-            Obx(() {
-              if (!controller.isConfirmed.value) {
-                return Row(
-                  children: [
-                    ElevatedButton(
+                // Confirm Bundle Plan Button (Hides when confirmed)
+                Obx(() {
+                  if (!controller.isConfirmed.value) {
+                    return ElevatedButton(
                       onPressed: controller.actionLoading.value
                           ? null
                           : controller.confirmBundles,
@@ -349,48 +360,47 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
                                 color: Colors.white,
                               ),
                             ),
-                    ),
-                    const SizedBox(width: 10),
-                  ],
-                );
-              }
-              return const SizedBox.shrink();
-            }),
-
-            // Proceed to Truckload Optimization Button
-            Obx(
-              () => ElevatedButton(
-                onPressed: () {
-                  if (!controller.isConfirmed.value) {
-                    CommonSnackbar.showError(
-                      title: 'Confirmation Required',
-                      message: 'Please confirm the bundle plan before proceeding.',
                     );
-                    return;
                   }
-                  controller.goToStep(2);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: controller.isConfirmed.value
-                      ? const Color(0xFF7C3AED)
-                      : const Color(0xFFA78BFA),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 18,
-                    vertical: 12,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                  return const SizedBox.shrink();
+                }),
+
+                // Proceed to Truckload Optimization Button
+                Obx(
+                  () => ElevatedButton(
+                    onPressed: () {
+                      if (!controller.isConfirmed.value) {
+                        CommonSnackbar.showError(
+                          title: 'Confirmation Required',
+                          message: 'Please confirm the bundle plan before proceeding.',
+                        );
+                        return;
+                      }
+                      controller.goToStep(2);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: controller.isConfirmed.value
+                          ? const Color(0xFF7C3AED)
+                          : const Color(0xFFA78BFA),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 18,
+                        vertical: 12,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text(
+                      'Proceed to Truckload Optimization',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
                   ),
                 ),
-                child: const Text(
-                  'Proceed to Truckload Optimization',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
+              ],
             ),
           ],
         ),
@@ -756,32 +766,40 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Page Title & Header Toolbar
-        Row(
+        Wrap(
+          alignment: WrapAlignment.spaceBetween,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 12,
+          runSpacing: 12,
           children: [
-            IconButton(
-              onPressed: Get.back,
-              icon: const Icon(Icons.arrow_back, size: 20),
-            ),
-            const SizedBox(width: 8),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
-                Text(
-                  'Truckload Optimizer',
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                  ),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  onPressed: Get.back,
+                  icon: const Icon(Icons.arrow_back, size: 20),
                 ),
-                SizedBox(height: 4),
-                Text(
-                  'Optimize bundle assignments into truckloads to maximize utilization and prepare shipments for dispatch.',
-                  style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                const SizedBox(width: 8),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    Text(
+                      'Truckload Optimizer',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'Optimize bundle assignments into truckloads to maximize utilization and prepare shipments for dispatch.',
+                      style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                    ),
+                  ],
                 ),
               ],
             ),
-            const Spacer(),
             ElevatedButton(
               onPressed: () => controller.goToStep(3),
               style: ElevatedButton.styleFrom(
@@ -1034,32 +1052,40 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
+        Wrap(
+          alignment: WrapAlignment.spaceBetween,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 12,
+          runSpacing: 12,
           children: [
-            IconButton(
-              onPressed: Get.back,
-              icon: const Icon(Icons.arrow_back, size: 20),
-            ),
-            const SizedBox(width: 8),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
-                Text(
-                  'Packing List',
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                  ),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  onPressed: Get.back,
+                  icon: const Icon(Icons.arrow_back, size: 20),
                 ),
-                SizedBox(height: 4),
-                Text(
-                  'Generate and manage packing lists for truckloads and bundles.',
-                  style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                const SizedBox(width: 8),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    Text(
+                      'Packing List',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'Generate and manage packing lists for truckloads and bundles.',
+                      style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                    ),
+                  ],
                 ),
               ],
             ),
-            const Spacer(),
             ElevatedButton(
               onPressed: () => controller.goToStep(4),
               style: ElevatedButton.styleFrom(
@@ -1225,32 +1251,40 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
+        Wrap(
+          alignment: WrapAlignment.spaceBetween,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 12,
+          runSpacing: 12,
           children: [
-            IconButton(
-              onPressed: Get.back,
-              icon: const Icon(Icons.arrow_back, size: 20),
-            ),
-            const SizedBox(width: 8),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
-                Text(
-                  'QR Label Generator',
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                  ),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  onPressed: Get.back,
+                  icon: const Icon(Icons.arrow_back, size: 20),
                 ),
-                SizedBox(height: 4),
-                Text(
-                  'Generate and print QR labels for bundles and pallets to enable scanning and tracking.',
-                  style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                const SizedBox(width: 8),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    Text(
+                      'QR Label Generator',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'Generate and print QR labels for bundles and pallets to enable scanning and tracking.',
+                      style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                    ),
+                  ],
                 ),
               ],
             ),
-            const Spacer(),
             ElevatedButton(
               onPressed: () => controller.goToStep(5),
               style: ElevatedButton.styleFrom(
@@ -1407,32 +1441,40 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
+        Wrap(
+          alignment: WrapAlignment.spaceBetween,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 12,
+          runSpacing: 12,
           children: [
-            IconButton(
-              onPressed: Get.back,
-              icon: const Icon(Icons.arrow_back, size: 20),
-            ),
-            const SizedBox(width: 8),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
-                Text(
-                  'Load Plan Review',
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                  ),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  onPressed: Get.back,
+                  icon: const Icon(Icons.arrow_back, size: 20),
                 ),
-                SizedBox(height: 4),
-                Text(
-                  'Final check of the entire load plan, including bundles, trucks, and weights, before selecting freight carriers.',
-                  style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                const SizedBox(width: 8),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    Text(
+                      'Load Plan Review',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'Final check of the entire load plan, including bundles, trucks, and weights, before selecting freight carriers.',
+                      style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                    ),
+                  ],
                 ),
               ],
             ),
-            const Spacer(),
             ElevatedButton(
               onPressed: controller.approveLoadPlan,
               style: ElevatedButton.styleFrom(
@@ -2014,30 +2056,291 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
           ],
         ),
         const SizedBox(height: 24),
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final isMobile = constraints.maxWidth < 850;
-            if (isMobile) {
-              return Column(
+        Obx(() {
+          if (controller.hasActiveRequest.value) {
+            return _buildActiveFreightRequestCard(context);
+          }
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              final isMobile = constraints.maxWidth < 850;
+              if (isMobile) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _freightFormSection(context),
+                    const SizedBox(height: 24),
+                    _selectCarriersSection(context),
+                  ],
+                );
+              }
+              return Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _freightFormSection(context),
-                  const SizedBox(height: 24),
-                  _selectCarriersSection(context),
+                  Expanded(flex: 7, child: _freightFormSection(context)),
+                  const SizedBox(width: 24),
+                  Expanded(flex: 4, child: _selectCarriersSection(context)),
                 ],
               );
-            }
-            return Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(flex: 7, child: _freightFormSection(context)),
-                const SizedBox(width: 24),
-                Expanded(flex: 4, child: _selectCarriersSection(context)),
-              ],
-            );
-          },
-        ),
+            },
+          );
+        }),
       ],
+    );
+  }
+
+  Widget _buildActiveFreightRequestCard(BuildContext context) {
+    final active = controller.activeDelivery.value ?? {};
+    final reqId = (active['requestId'] ?? '').toString();
+    final status = (active['status'] ?? 'BIDDING SENT').toString();
+    final fromLoc = (active['from'] ?? 'New York, United States').toString();
+    final toLoc = (active['to'] ?? 'A, Los Angeles County, California, United St...').toString();
+    final pickupDate = (active['pickup'] ?? '02/09/2026').toString();
+    final deliveryDate = (active['delivery'] ?? '03/10/2026').toString();
+    final weightStr = (active['weight'] ?? '55789.2 Lbs').toString();
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.inputBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFEFF6FF),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.local_shipping_outlined,
+                  color: Color(0xFF2563EB),
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    Text(
+                      'Freight Request In Progress',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'An active freight bid request has already been initiated for this project.',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 16),
+              ElevatedButton.icon(
+                onPressed: () {
+                  if (reqId.isNotEmpty) {
+                    Get.toNamed(
+                      AppRoutes.freightRequestDetails,
+                      parameters: {'id': reqId},
+                    );
+                  } else {
+                    Get.toNamed(AppRoutes.freightLoads);
+                  }
+                },
+                icon: const Text(
+                  'Go to Freight Request',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                label: const Icon(Icons.send_rounded, size: 14, color: Colors.white),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF2563EB),
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 28),
+          const Text(
+            'ACTIVE DELIVERIES',
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textSecondary,
+              letterSpacing: 0.8,
+            ),
+          ),
+          const SizedBox(height: 14),
+          InkWell(
+            onTap: () {
+              if (reqId.isNotEmpty) {
+                Get.toNamed(
+                  AppRoutes.freightRequestDetails,
+                  parameters: {'id': reqId},
+                );
+              } else {
+                Get.toNamed(AppRoutes.freightLoads);
+              }
+            },
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              width: 290,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEFF6FF),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        status,
+                        style: const TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF2563EB),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  RichText(
+                    text: TextSpan(
+                      children: [
+                        const TextSpan(
+                          text: 'From: ',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        TextSpan(
+                          text: fromLoc,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  RichText(
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    text: TextSpan(
+                      children: [
+                        const TextSpan(
+                          text: 'To: ',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        TextSpan(
+                          text: toLoc,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  RichText(
+                    text: TextSpan(
+                      children: [
+                        const TextSpan(
+                          text: 'Pickup: ',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        TextSpan(
+                          text: pickupDate,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  RichText(
+                    text: TextSpan(
+                      children: [
+                        const TextSpan(
+                          text: 'Delivery: ',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        TextSpan(
+                          text: deliveryDate,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    weightStr,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF2563EB),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -2159,7 +2462,14 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
               const SizedBox(height: 16),
               _formLabel('Material Type'),
               const SizedBox(height: 6),
-              _formTextField(controller: controller.materialTypeCtrl, suffix: '˅'),
+              _formDropdownField(
+                controller: controller.materialTypeCtrl,
+                options: const [
+                  'Steel & Metal',
+                  'framing, panels, mixed, accessories',
+                ],
+                hintText: 'Select Material Type',
+              ),
               const SizedBox(height: 16),
               _formLabel('Pallet / Package Count'),
               const SizedBox(height: 6),
@@ -2167,7 +2477,14 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
               const SizedBox(height: 16),
               _formLabel('Loading Equipment'),
               const SizedBox(height: 6),
-              _formTextField(controller: controller.loadingEquipmentCtrl, suffix: '˅'),
+              _formDropdownField(
+                controller: controller.loadingEquipmentCtrl,
+                options: const [
+                  'Crane',
+                  'Forklift',
+                ],
+                hintText: 'Select Loading Equipment',
+              ),
               const SizedBox(height: 16),
               Row(
                 children: [
@@ -2750,6 +3067,85 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
     );
   }
 
+  Widget _formDropdownField({
+    required TextEditingController controller,
+    required List<String> options,
+    String? hintText,
+  }) {
+    final isOpen = false.obs;
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.inputBorder),
+      ),
+      child: PopupMenuButton<String>(
+        onOpened: () => isOpen.value = true,
+        onCanceled: () => isOpen.value = false,
+        onSelected: (val) {
+          isOpen.value = false;
+          controller.text = val;
+        },
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        offset: const Offset(0, 42),
+        itemBuilder: (context) => options
+            .map((opt) => PopupMenuItem<String>(
+                  value: opt,
+                  child: ValueListenableBuilder<TextEditingValue>(
+                    valueListenable: controller,
+                    builder: (context, val, _) {
+                      final isSelected = val.text == opt;
+                      return Text(
+                        opt,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: isSelected
+                              ? const Color(0xFF2563EB)
+                              : AppColors.textPrimary,
+                          fontWeight: isSelected
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                        ),
+                      );
+                    },
+                  ),
+                ))
+            .toList(),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          child: Row(
+            children: [
+              Expanded(
+                child: ValueListenableBuilder<TextEditingValue>(
+                  valueListenable: controller,
+                  builder: (context, value, _) {
+                    final text = value.text;
+                    return Text(
+                      text.isNotEmpty ? text : (hintText ?? 'Select option'),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: text.isNotEmpty ? AppColors.textPrimary : AppColors.textHint,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    );
+                  },
+                ),
+              ),
+              Obx(() => Icon(
+                    isOpen.value
+                        ? Icons.keyboard_arrow_up
+                        : Icons.keyboard_arrow_down,
+                    size: 18,
+                    color: AppColors.textSecondary,
+                  )),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   // EMAIL QUOTE PREVIEW DIALOG (Screenshot 4)
   void _showEmailQuoteDialog(BuildContext context) {
     Get.dialog(
@@ -2838,9 +3234,10 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
 
                 Center(
                   child: ElevatedButton(
-                    onPressed: () {
-                      Get.back(); // close email dialog
-                      _showFreightRequestSentDialog(context); // open success dialog
+                    onPressed: () async {
+                      Get.back();
+                      await controller.submitFreightRequest(isDraft: false);
+                      _showFreightRequestSentDialog(context);
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF6366F1),
@@ -2906,7 +3303,7 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
               ElevatedButton(
                 onPressed: () {
                   Get.back(); // close dialog
-                  Get.back(); // return to main load planning
+                  Get.offNamed(AppRoutes.freightLoads); // navigate to Freight Loads list view
                   CommonSnackbar.showSuccess(title: 'Request Sent', message: 'Freight request sent to selected carriers successfully.');
                 },
                 style: ElevatedButton.styleFrom(

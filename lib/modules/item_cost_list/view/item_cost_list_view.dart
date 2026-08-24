@@ -84,7 +84,7 @@ class ItemCostListView extends GetView<ItemCostController> {
             color: Color(0xFF475569),
           ),
           label: const Text(
-            'Export',
+            'Export SMD list',
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
@@ -182,7 +182,7 @@ class ItemCostListView extends GetView<ItemCostController> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      '\$${s.totalItemCost.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')}',
+                      '\$${s.totalItemCost.toStringAsFixed(2).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')}',
                       style: const TextStyle(
                         fontSize: 32,
                         fontWeight: FontWeight.bold,
@@ -335,29 +335,25 @@ class ItemCostListView extends GetView<ItemCostController> {
         ),
         const SizedBox(width: 10),
 
-        // Filter button
-        OutlinedButton.icon(
-          onPressed: () {},
-          icon: const Icon(
-            Icons.filter_list,
-            size: 16,
-            color: Color(0xFF475569),
+        // Categories dropdown
+        Container(
+          height: 38,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: const Color(0xFFCBD5E1)),
           ),
-          label: const Text(
-            'Filter',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF475569),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: 'All Categories',
+              icon: const Icon(Icons.keyboard_arrow_down, size: 16, color: Color(0xFF475569)),
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF1E293B)),
+              onChanged: (val) {},
+              items: const [
+                DropdownMenuItem(value: 'All Categories', child: Text('All Categories')),
+              ],
             ),
-          ),
-          style: OutlinedButton.styleFrom(
-            backgroundColor: Colors.white,
-            side: const BorderSide(color: Color(0xFFCBD5E1)),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           ),
         ),
 
@@ -433,120 +429,178 @@ class ItemCostListView extends GetView<ItemCostController> {
           ),
           const Divider(height: 1, color: Color(0xFFE2E8F0)),
 
-          // Table Header
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            color: const Color(0xFFF8FAFC),
-            child: Row(
-              children: [
-                SizedBox(
-                  width: 32,
-                  child: Checkbox(
-                    value: controller.selectAll.value,
-                    onChanged: controller.toggleSelectAll,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    side: const BorderSide(color: Color(0xFFCBD5E1)),
-                  ),
-                ),
-                _buildTh('Part Name', flex: 2),
-                _buildTh('Part Colour', flex: 1, sortable: true),
-                _buildTh('Cost Unit', flex: 1, sortable: true),
-                _buildTh('MBS Cost', flex: 1, sortable: true),
-                _buildTh('Current Market Cost', flex: 2, sortable: true),
-                _buildTh('Description', flex: 2, sortable: true),
-                const SizedBox(
-                  width: 60,
-                  child: Text(
-                    'Actions',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const Divider(height: 1, color: Color(0xFFE2E8F0)),
-
-          // Table Rows
-          Obx(
-            () => ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: controller.filteredItemCosts.length,
-              separatorBuilder: (ctx, idx) =>
-                  const Divider(height: 1, color: Color(0xFFF1F5F9)),
-              itemBuilder: (ctx, index) {
-                final item = controller.filteredItemCosts[index];
-                return Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 10,
-                  ),
-                  child: Row(
-                    children: [
-                      SizedBox(
-                        width: 32,
-                        child: Checkbox(
-                          value: item.isSelected,
-                          onChanged: (val) =>
-                              controller.toggleSelectItem(item, val),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          side: const BorderSide(color: Color(0xFFCBD5E1)),
-                        ),
-                      ),
-                      _buildTd(item.partName, flex: 2, isBold: true),
-                      _buildTd(item.partColor, flex: 1),
-                      _buildTd(item.costUnit, flex: 1),
-                      _buildTd(
-                        item.mbsCost != null ? '${item.mbsCost}' : '-',
-                        flex: 1,
-                      ),
-                      _buildTd(
-                        item.currentMarketCost != null
-                            ? '\$${item.currentMarketCost}'
-                            : '-',
-                        flex: 2,
-                      ),
-                      _buildTd(item.description, flex: 2),
-                      SizedBox(
-                        width: 60,
-                        child: ElevatedButton(
-                          onPressed: () =>
-                              controller.openEditPartCostDialog(context, item),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF2563EB),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 12,
-                            ),
-                            elevation: 0,
-                            minimumSize: Size.zero,
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: SizedBox(
+              width: 1280,
+              child: Column(
+                children: [
+                  // Table Header
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    color: const Color(0xFFF8FAFC),
+                    child: Row(
+                      children: [
+                        SizedBox(
+                          width: 32,
+                          child: Checkbox(
+                            value: controller.selectAll.value,
+                            onChanged: controller.toggleSelectAll,
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(6),
+                              borderRadius: BorderRadius.circular(4),
                             ),
+                            side: const BorderSide(color: Color(0xFFCBD5E1)),
                           ),
-                          child: const Text(
-                            'Edit',
+                        ),
+                        _buildTh('Part Colour', flex: 2, sortable: true),
+                        _buildTh('Cost Unit', flex: 1, sortable: true),
+                        _buildTh('MBS Cost', flex: 1, sortable: true),
+                        _buildTh('Current Market Cost', flex: 2, sortable: true),
+                        _buildTh('Labor Cost', flex: 1, sortable: true),
+                        _buildTh('Additional Cost', flex: 1, sortable: true),
+                        _buildTh('Material Cost', flex: 1, sortable: true),
+                        _buildTh('Description', flex: 3, sortable: true),
+                        _buildTh('Is Frame Type', flex: 2, sortable: true),
+                        _buildTh('Status', flex: 1, sortable: true),
+                        const SizedBox(
+                          width: 60,
+                          child: Text(
+                            'Actions',
                             style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                              color: AppColors.textPrimary,
                             ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                );
-              },
+                  const Divider(height: 1, color: Color(0xFFE2E8F0)),
+
+                  // Table Rows
+                  Obx(
+                    () => ListView.separated(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: controller.filteredItemCosts.length,
+                      separatorBuilder: (ctx, idx) =>
+                          const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                      itemBuilder: (ctx, index) {
+                        final item = controller.filteredItemCosts[index];
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 10,
+                          ),
+                          child: Row(
+                            children: [
+                              SizedBox(
+                                width: 32,
+                                child: Checkbox(
+                                  value: item.isSelected,
+                                  onChanged: (val) =>
+                                      controller.toggleSelectItem(item, val),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  side: const BorderSide(color: Color(0xFFCBD5E1)),
+                                ),
+                              ),
+                              _buildTd(item.partColor.isNotEmpty ? item.partColor : '', flex: 2),
+                              _buildTd(item.costUnit, flex: 1),
+                              _buildTd(
+                                item.mbsCost != null ? '${item.mbsCost}' : '0',
+                                flex: 1,
+                              ),
+                              _buildTd(
+                                item.currentMarketCost != null
+                                    ? '${item.currentMarketCost}'
+                                    : '0',
+                                flex: 2,
+                              ),
+                              _buildTd(item.laborCost.toStringAsFixed(item.laborCost.truncateToDouble() == item.laborCost ? 0 : 2), flex: 1),
+                              _buildTd(item.additionalCost.toStringAsFixed(item.additionalCost.truncateToDouble() == item.additionalCost ? 0 : 2), flex: 1),
+                              _buildTd(item.materialCost.toStringAsFixed(item.materialCost.truncateToDouble() == item.materialCost ? 0 : 2), flex: 1),
+                              _buildTd(item.description, flex: 3, isBold: true),
+                              Expanded(
+                                flex: 2,
+                                child: Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFF1F5F9),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Text(
+                                      item.isFrameType,
+                                      style: const TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                        color: Color(0xFF475569),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 1,
+                                child: Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFDCFCE7),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Text(
+                                      item.status,
+                                      style: const TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                        color: Color(0xFF166534),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(
+                                width: 60,
+                                child: ElevatedButton(
+                                  onPressed: () =>
+                                      controller.openEditPartCostDialog(context, item),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF2563EB),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 10,
+                                    ),
+                                    elevation: 0,
+                                    minimumSize: Size.zero,
+                                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                  ),
+                                  child: const Text(
+                                    'Edit',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],

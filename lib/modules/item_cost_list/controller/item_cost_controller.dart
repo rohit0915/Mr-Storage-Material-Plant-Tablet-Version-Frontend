@@ -70,12 +70,17 @@ class ItemCostController extends GetxController {
 
   ItemCostModel _model(Map<String, dynamic> item) => ItemCostModel(
     id: (item['_id'] ?? item['id'] ?? '').toString(),
-    partName: (item['partName'] ?? '').toString(),
-    partColor: (item['partColor'] ?? item['color'] ?? '-').toString(),
-    costUnit: (item['costUnit'] ?? '-').toString(),
+    partName: (item['partName'] ?? item['description'] ?? '').toString(),
+    partColor: (item['partColor'] ?? item['color'] ?? '').toString(),
+    costUnit: (item['costUnit'] ?? 'EA').toString(),
     mbsCost: _nullableDouble(item['mbsCost']),
     currentMarketCost: _nullableDouble(item['currentMarketCost']),
-    description: (item['description'] ?? '').toString(),
+    laborCost: _double(item['laborCost']),
+    additionalCost: _double(item['additionalCost']),
+    materialCost: _double(item['materialCost']),
+    description: (item['description'] ?? item['partName'] ?? '').toString(),
+    isFrameType: 'Standard',
+    status: item['isActive'] == false ? 'Inactive' : 'Active',
   );
 
   void filterSearchResults(String query) {

@@ -1,4 +1,5 @@
 import 'dart:typed_data';
+import 'dart:convert';
 
 import 'package:csv/csv.dart';
 import 'package:excel/excel.dart';
@@ -12,7 +13,7 @@ class FileExportService {
   FileExportService._();
 
   static Uint8List csvBytes(List<List<dynamic>> rows) =>
-      Uint8List.fromList(const ListToCsvConverter().convert(rows).codeUnits);
+      Uint8List.fromList(utf8.encode(const ListToCsvConverter().convert(rows)));
 
   static Future<String> saveCsv({
     required String fileName,

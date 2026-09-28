@@ -1,5 +1,5 @@
 import 'package:get/get.dart';
-import 'package:share_plus/share_plus.dart';
+import '../../../app/services/file_export_service.dart';
 
 import '../../../app/widgets/common_snackbar.dart';
 import '../../freight_loads/repository/delivery_repository.dart';
@@ -40,16 +40,7 @@ class AllDeliveriesController extends GetxController {
   final currentPage = 1.obs;
   final itemsPerPage = 10.obs;
 
-  final stats = <String, int>{
-    'Draft': 1,
-    'Total': 12,
-    'Scheduled': 4,
-    'Confirmed': 3,
-    'In Transit': 3,
-    'Delivered': 2,
-    'Delayed': 1,
-    'Cancelled': 1,
-  }.obs;
+  final stats = <String, int>{}.obs;
 
   final deliveries = <AllDeliveryModel>[].obs;
 
@@ -97,286 +88,70 @@ class AllDeliveriesController extends GetxController {
     isLoading.value = true;
     errorMessage.value = '';
     try {
-      final results = await Future.wait([
-        repository.allStats(),
-        repository.allDeliveries(limit: 100),
-      ]);
-
-      final rawStats = results[0];
-      if (rawStats.isNotEmpty) {
-        stats.assignAll({
-          'Draft': _int(rawStats['draft'] ?? 1),
-          'Total': _int(
-            results[1]['total'] ??
-                rawStats.values.fold<num>(
-                  0,
-                  (sum, value) => sum + (value is num ? value : 0),
-                ),
-          ),
-          'Scheduled': _int(rawStats['scheduled'] ?? 4),
-          'Confirmed': _int(rawStats['confirmed'] ?? 3),
-          'In Transit': _int(rawStats['inTransit'] ?? 3),
-          'Delivered': _int(rawStats['delivered'] ?? 2),
-          'Delayed': _int(rawStats['delayed'] ?? 1),
-          'Cancelled': _int(rawStats['cancelled'] ?? 1),
-        });
+      final data = await repository.allDeliveries(limit: 100);
+      final rawStats = _map(data['stats']);
+      stats.assignAll({
+        'Draft': _int(rawStats['draft']), 'Total': _int(rawStats['total'] ?? data['total']),
+        'Scheduled': _int(rawStats['scheduled']), 'Confirmed': _int(rawStats['confirmed']),
+        'In Transit': _int(rawStats['inTransit']), 'Delivered': _int(rawStats['delivered']),
+        'Delayed': _int(rawStats['delayed']), 'Cancelled': _int(rawStats['cancelled']),
+      });
+      final all = <dynamic>[...?data['deliveries'] as List?];
+      var page = 1;
+      while (all.length < _int(data['total'])) {
+        final next = await repository.allDeliveries(page: ++page, limit: 100);
+        final rows = next['deliveries'] as List? ?? [];
+        if (rows.isEmpty) break;
+        all.addAll(rows);
       }
-
-      final raw = results[1]['deliveries'] is List
-          ? results[1]['deliveries'] as List
-          : const [];
-
+      final raw = all;
       if (raw.isNotEmpty) {
         deliveries.assignAll(
           raw.whereType<Map>().map((entry) {
             final item = Map<String, dynamic>.from(entry);
-            final project = _map(item['project'] ?? item['lead']);
-            final customer = _map(item['customer']);
-            final carrier = _map(item['carrier']);
+            final project = _map(item['leadId'] ?? item['project'] ?? item['lead']);
+            final customer = _map(project['customerId'] ?? item['customer']);
+            final carrier = _map(_map(item['selectedCarrierBidId'])['carrierId'] ?? item['carrier']);
             return AllDeliveryModel(
-              id: _text(item['deliveryNumber'] ?? item['_id']),
-              priority: _text(item['priority'] ?? 'Normal'),
+              id: _text(item['_id']),
+              deliveryNumber: _text(item['deliveryNumber']),
+              timeWindow: _text(item['timings']),
+              internalOwner: _text(item['internalOwnerName']),
+              category: _text(item['materialType']),
+              priority: _text(item['priority']),
               status: _status(item['status']),
-              items: _text(item['description'] ?? item['itemsDescription'] ?? 'Steel Frame - Primary frame set'),
-              project: _text(item['projectName'] ?? project['projectName'] ?? 'ABC Logistics Warehouse'),
+              items: _text(item['description'] ?? item['itemsDescription']),
+              project: _text(item['projectName'] ?? project['projectName']),
               customer: _text(
-                item['customerName'] ?? customer['name'] ?? customer['firstName'] ?? 'Austin McClume',
+                item['customerName'] ?? customer['name'] ?? customer['firstName'],
               ),
-              vendor: _text(item['vendorName'] ?? 'Roof Masters Ltd.'),
+              vendor: _text(item['vendorName']),
               carrier: _text(
-                item['carrierName'] ?? carrier['companyName'] ?? carrier['name'] ?? 'Rapid Delivery Services',
+                item['carrierName'] ?? carrier['carrierName'] ?? carrier['companyName'] ?? carrier['name'],
               ),
               pocName: _text(
-                item['receivingName'] ??
+                item['receivingPoc'] ?? item['receivingName'] ??
                     item['pocName'] ??
-                    item['internalOwnerName'] ??
-                    'John Smith',
+                    item['internalOwnerName'],
               ),
-              pocPhone: _text(item['pocPhone'] ?? '0267554321'),
-              pocEmail: _text(item['pocEmail'] ?? '0267554321'),
+              pocPhone: _text(item['pocPhone'] ?? item['pickupContactPhone']),
+              pocEmail: _text(item['receivingPocEmail'] ?? item['pocEmail']),
               deliveryDate: _date(item['deliveryDate']),
-              equipment: _text(item['requiredEquipment'] ?? 'Flatbed'),
-              site: _text(item['deliveryLocation'] ?? item['siteLocation'] ?? 'Warehouse Phase 2'),
+              equipment: _text(item['requiredEquipment'] ?? (item['loadingEquipment'] is List ? (item['loadingEquipment'] as List).join(', ') : null)),
+              site: _text(item['deliveryLocation'] ?? item['siteLocation']),
             );
           }),
         );
       } else {
-        _loadFallbackMockData();
+        deliveries.clear();
       }
     } catch (error) {
-      _loadFallbackMockData();
+      deliveries.clear();
+      stats.clear();
+      errorMessage.value = error.toString();
     } finally {
       isLoading.value = false;
     }
-  }
-
-  void _loadFallbackMockData() {
-    deliveries.assignAll(const [
-      AllDeliveryModel(
-        id: 'DEL - 1812',
-        priority: 'Normal',
-        status: 'Delayed',
-        deliveryDate: 'Apr 1, 2026',
-        timeWindow: '07:30 - 11:30',
-        items: 'Steel Frame - Primary frame set',
-        project: 'ABC Logistics Warehouse',
-        customer: 'Austin McClume',
-        vendor: 'Roof Masters Ltd.',
-        carrier: 'Rapid Delivery Services',
-        pocName: 'POC John Smith',
-        pocPhone: '0267554321',
-        pocEmail: '0267554321',
-        equipment: 'Flatbed',
-        site: 'ABC Warehouse',
-      ),
-      AllDeliveryModel(
-        id: 'DEL - 1810',
-        priority: 'High',
-        status: 'Delayed',
-        deliveryDate: 'Mar 31, 2026',
-        timeWindow: '11:00 - 15:00',
-        items: 'Doors - Roll-up doors',
-        project: 'Metro Cast Factory',
-        customer: 'Sarah Williams',
-        vendor: 'Climate Control Inc.',
-        carrier: 'FastFreight Logistics',
-        pocName: 'POC John Smith',
-        pocPhone: '0267554321',
-        pocEmail: '0267554321',
-        equipment: 'Box Truck',
-        site: 'Metro Site A',
-      ),
-      AllDeliveryModel(
-        id: 'DEL - 1008',
-        priority: 'Critical',
-        status: 'Delivered',
-        deliveryDate: 'Mar 30, 2026',
-        timeWindow: '10:00 - 14:00',
-        items: 'Steel Frame - Primary frame set',
-        project: 'Warehouse Phase 2',
-        customer: 'David Martinez',
-        vendor: 'Panel Systems Inc.',
-        carrier: 'Premier Transport Co.',
-        pocName: 'POC John Smith',
-        pocPhone: '0267554321',
-        pocEmail: '0267554321',
-        equipment: 'Flatbed Trailer',
-        site: 'Phase 2 Site',
-      ),
-      AllDeliveryModel(
-        id: 'DEL - 1007',
-        priority: 'Normal',
-        status: 'Delayed',
-        deliveryDate: 'Mar 29, 2026',
-        timeWindow: '08:00 - 12:00',
-        items: 'Doors - Roll-up doors',
-        project: 'Storage Facility B',
-        customer: 'Patricia Davis',
-        vendor: 'Fastener Wholesale',
-        carrier: 'FastFreight Logistics',
-        pocName: 'POC John Smith',
-        pocPhone: '0267554321',
-        pocEmail: '0267554321',
-        equipment: 'Crane Truck',
-        site: 'Storage B',
-      ),
-      AllDeliveryModel(
-        id: 'DEL - 1004',
-        priority: 'High',
-        status: 'Draft',
-        deliveryDate: 'Mar 28, 2026',
-        timeWindow: '09:00 - 13:00',
-        items: 'Steel Frame - Primary frame set',
-        project: 'Industrial Park A',
-        customer: 'Jennifer Lee',
-        vendor: 'Steel Shippers Inc.',
-        carrier: 'FastFreight Logistics',
-        pocName: 'POC John Smith',
-        pocPhone: '0267554321',
-        pocEmail: '0267554321',
-        equipment: 'Flatbed',
-        site: 'Industrial Site A',
-      ),
-      AllDeliveryModel(
-        id: 'DEL - 1003',
-        priority: 'Critical',
-        status: 'Cancelled',
-        deliveryDate: 'Mar 27, 2026',
-        timeWindow: '07:00 - 11:00',
-        items: 'Doors - Roll-up doors',
-        project: 'Warehouse Phase 2',
-        customer: 'David Martinez',
-        vendor: 'Insul-Pro Systems',
-        carrier: 'Rapid Delivery Services',
-        pocName: 'POC John Smith',
-        pocPhone: '0267554321',
-        pocEmail: '0267554321',
-        equipment: 'Box Truck',
-        site: 'Phase 2 Site',
-      ),
-      AllDeliveryModel(
-        id: 'DEL - 1002',
-        priority: 'Normal',
-        status: 'Delivered',
-        deliveryDate: 'Mar 26, 2026',
-        timeWindow: '13:00 - 17:00',
-        items: 'Steel Frame - Primary frame set',
-        project: 'Metro Cast Factory',
-        customer: 'Sarah Williams',
-        vendor: 'Door Solutions Ltd.',
-        carrier: 'Premier Transport Co.',
-        pocName: 'POC John Smith',
-        pocPhone: '0357554325',
-        pocEmail: '0357554325',
-        equipment: 'Flatbed',
-        site: 'Metro Site',
-      ),
-      AllDeliveryModel(
-        id: 'DEL - 1001',
-        priority: 'High',
-        status: 'Delayed',
-        deliveryDate: 'Mar 25, 2026',
-        timeWindow: '08:00 - 12:00',
-        items: 'Doors - Roll-up doors',
-        project: 'ABC Logistics Warehouse',
-        customer: 'Austin McClume',
-        vendor: 'Steel Shippers Inc.',
-        carrier: 'FastFreight Logistics',
-        pocName: 'POC John Smith',
-        pocPhone: '0357554325',
-        pocEmail: '0357554325',
-        equipment: 'Box Truck',
-        site: 'Warehouse Site',
-      ),
-      AllDeliveryModel(
-        id: 'DEL - 1006',
-        priority: 'Critical',
-        status: 'Delivered',
-        deliveryDate: 'Mar 25, 2026',
-        timeWindow: '14:00 - 18:00',
-        items: 'Steel Frame - Primary frame set',
-        project: 'Factory Expansion',
-        customer: 'Robert Chen',
-        vendor: 'Entry Systems Corp',
-        carrier: 'Rapid Delivery Services',
-        pocName: 'POC John Smith',
-        pocPhone: '0357554325',
-        pocEmail: '0357554325',
-        equipment: 'Flatbed',
-        site: 'Factory Site',
-      ),
-      AllDeliveryModel(
-        id: 'DEL - 1009',
-        priority: 'Normal',
-        status: 'Delivered',
-        deliveryDate: 'Mar 24, 2026',
-        timeWindow: '08:00 - 10:00',
-        items: 'Doors - Roll-up doors',
-        project: 'Construction Site C',
-        customer: 'Michael Brown',
-        vendor: 'Concrete Works Ltd.',
-        carrier: 'Rapid Delivery Services',
-        pocName: 'POC John Smith',
-        pocPhone: '0357554325',
-        pocEmail: '0357554325',
-        equipment: 'Flatbed',
-        site: 'Site C',
-      ),
-      AllDeliveryModel(
-        id: 'DEL - 1011',
-        priority: 'Normal',
-        status: 'Scheduled',
-        deliveryDate: 'Mar 23, 2026',
-        timeWindow: '09:00 - 11:00',
-        items: 'Wall Panels',
-        project: 'Industrial Park A',
-        customer: 'Jennifer Lee',
-        vendor: 'Roof Masters Ltd.',
-        carrier: 'FastFreight Logistics',
-        pocName: 'POC John Smith',
-        pocPhone: '0357554325',
-        pocEmail: '0357554325',
-        equipment: 'Box Truck',
-        site: 'Industrial Site',
-      ),
-      AllDeliveryModel(
-        id: 'DEL - 1012',
-        priority: 'Normal',
-        status: 'In Transit',
-        deliveryDate: 'Mar 22, 2026',
-        timeWindow: '10:00 - 12:00',
-        items: 'Roofing Sheets',
-        project: 'Storage Facility B',
-        customer: 'Patricia Davis',
-        vendor: 'Panel Systems Inc.',
-        carrier: 'Rapid Delivery Services',
-        pocName: 'POC John Smith',
-        pocPhone: '0357554325',
-        pocEmail: '0357554325',
-        equipment: 'Flatbed',
-        site: 'Storage B Site',
-      ),
-    ]);
   }
 
   List<AllDeliveryModel> get filteredDeliveries {
@@ -435,26 +210,20 @@ class AllDeliveriesController extends GetxController {
     return (count / itemsPerPage.value).ceil();
   }
 
-  void exportCSV() {
-    final buffer = StringBuffer();
-    buffer.writeln('ID,Priority,Status,Delivery Date,Items,Project,Customer,Vendor,Carrier,POC');
-    for (final item in filteredDeliveries) {
-      buffer.writeln(
-        '"${item.id}","${item.priority}","${item.status}","${item.deliveryDate}","${item.items}","${item.project}","${item.customer}","${item.vendor}","${item.carrier}","${item.pocName}"',
-      );
+  Future<void> exportCSV() async {
+    try {
+      await FileExportService.saveCsv(fileName: 'all_deliveries', rows: [
+        ['ID','Priority','Status','Date','Items','Project','Customer','Vendor','Carrier','POC'],
+        ...filteredDeliveries.map((item) => [item.deliveryNumber,item.priority,item.status,item.deliveryDate,item.items,item.project,item.customer,item.vendor,item.carrier,item.pocName]),
+      ]);
+      CommonSnackbar.showSuccess(title: 'Export CSV', message: 'Deliveries file saved.');
+    } catch (error) {
+      CommonSnackbar.showError(title: 'Export failed', message: error.toString());
     }
-
-    // ignore: deprecated_member_use
-    Share.share(
-      buffer.toString(),
-      subject: 'All_Deliveries_Export_${DateTime.now().millisecondsSinceEpoch}.csv',
-    );
-
-    CommonSnackbar.showSuccess(
-      title: 'Export CSV',
-      message: 'Deliveries data exported successfully!',
-    );
   }
+
+  List<String> options(String all, String Function(AllDeliveryModel) field) =>
+      [all, ...deliveries.map(field).where((value) => value.isNotEmpty && value != '-').toSet().toList()..sort()];
 
   int _int(dynamic value) =>
       value is num ? value.toInt() : int.tryParse('$value') ?? 0;
@@ -463,10 +232,10 @@ class AllDeliveriesController extends GetxController {
   String _text(dynamic value) => (value ?? '-').toString();
   String _date(dynamic value) {
     final date = DateTime.tryParse((value ?? '').toString())?.toLocal();
-    return date == null ? 'Apr 1, 2026' : '${date.day}/${date.month}/${date.year}';
+    return date == null ? '—' : '${date.day}/${date.month}/${date.year}';
   }
 
-  String _status(dynamic value) => (value ?? 'Scheduled')
+  String _status(dynamic value) => (value ?? '—')
       .toString()
       .replaceAll('_', ' ')
       .split(' ')

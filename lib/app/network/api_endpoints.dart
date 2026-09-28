@@ -67,7 +67,7 @@ class ApiEndpoints {
   static const String plantAwardedStats = 'plant/deliveries/awarded/stats';
   static const String plantAwardedLoads = 'plant/deliveries/awarded';
   static const String plantDeliveryCalendar = 'plant/deliveries/calendar';
-  static const String plantAllDeliveries = 'plant/deliveries';
+  static const String plantAllDeliveries = 'plant/all-deliveries';
   static String plantDeliveryBids(String deliveryId) =>
       'plant/deliveries/$deliveryId/bids';
   static String plantFreightBidSelect(String bidId) =>

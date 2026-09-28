@@ -362,19 +362,19 @@ class _AllDeliveriesViewState extends State<AllDeliveriesView> {
               const SizedBox(width: 16),
               Expanded(child: _buildFilterInput('Date To', 'DD/MM/YYYY')),
               const SizedBox(width: 16),
-              Expanded(child: _buildFilterDropdown('Project', controller.selectedProject, ['All Project', 'ABC Logistics Warehouse', 'Metro Cast Factory', 'Warehouse Phase 2', 'Wood Workshop', 'Lucas project'])),
+              Expanded(child: _buildFilterDropdown('Project', controller.selectedProject, controller.options('All Project', (item) => item.project))),
               const SizedBox(width: 16),
-              Expanded(child: _buildFilterDropdown('Customer', controller.selectedCustomer, ['All Customer', 'Austin McClume', 'Sarah Williams', 'David Martinez', 'John Test', 'Lucas1'])),
+              Expanded(child: _buildFilterDropdown('Customer', controller.selectedCustomer, controller.options('All Customer', (item) => item.customer))),
             ],
           ),
           const SizedBox(height: 16),
           Row(
             children: [
-              Expanded(child: _buildFilterDropdown('Vendor', controller.selectedVendor, ['All Vendor', 'Roof Masters Ltd.', 'Climate Control Inc.', 'Panel Systems Inc.', 'React6', 'Ayesha LLC'])),
+              Expanded(child: _buildFilterDropdown('Vendor', controller.selectedVendor, controller.options('All Vendor', (item) => item.vendor))),
               const SizedBox(width: 16),
-              Expanded(child: _buildFilterDropdown('Delivery Company', controller.selectedCarrier, ['All Carriers', 'Rapid Delivery Services', 'FastFreight Logistics', 'Premier Transport Co.', 'React6 Carrier Pvt Ltd', 'Ayesha LLC'])),
+              Expanded(child: _buildFilterDropdown('Delivery Company', controller.selectedCarrier, controller.options('All Carriers', (item) => item.carrier))),
               const SizedBox(width: 16),
-              Expanded(child: _buildFilterDropdown('Material Category', controller.selectedCategory, ['All Categories', 'Steel Frame', 'Doors', 'Roofing', 'Wall Panels', 'Anchor Bolts'])),
+              Expanded(child: _buildFilterDropdown('Material Category', controller.selectedCategory, controller.options('All Categories', (item) => item.category))),
               const SizedBox(width: 16),
               const Spacer(),
             ],
@@ -382,11 +382,11 @@ class _AllDeliveriesViewState extends State<AllDeliveriesView> {
           const SizedBox(height: 16),
           Row(
             children: [
-              Expanded(child: _buildFilterDropdown('Equipment Required', controller.selectedEquipment, ['All Equipment', 'Flatbed', 'Box Truck', 'Crane Truck', 'Crane'])),
+              Expanded(child: _buildFilterDropdown('Equipment Required', controller.selectedEquipment, controller.options('All Equipment', (item) => item.equipment))),
               const SizedBox(width: 16),
               Expanded(child: _buildFilterDropdown('Status', controller.selectedStatus, controller.statuses)),
               const SizedBox(width: 16),
-              Expanded(child: _buildFilterDropdown('Internal Owner', controller.selectedOwner, ['All Internal Owner', 'John Smith', 'Robert Chen'])),
+              Expanded(child: _buildFilterDropdown('Internal Owner', controller.selectedOwner, controller.options('All Internal Owner', (item) => item.internalOwner))),
               const SizedBox(width: 16),
               Expanded(
                 child: SizedBox(

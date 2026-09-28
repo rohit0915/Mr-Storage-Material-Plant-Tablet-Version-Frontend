@@ -30,13 +30,11 @@ class LoginController extends GetxController {
   }
 
   void _validateForm() {
-    final emailValid =
-        emailController.text.trim().isNotEmpty &&
-        emailController.text.contains('@');
-    final passwordValid =
-        passwordController.text.trim().isNotEmpty &&
-        passwordController.text.trim().length >= 5;
-    isFormValid.value = emailValid && passwordValid;
+    final identifier = emailController.text.trim();
+    final phone = identifier.replaceAll(RegExp(r'[\s()-]'), '');
+    final emailValid = GetUtils.isEmail(identifier) ||
+        RegExp(r'^\+?\d{7,15}$').hasMatch(phone);
+    isFormValid.value = emailValid && passwordController.text.isNotEmpty;
   }
 
   void toggleRememberMe(bool? value) {
@@ -55,19 +53,28 @@ class LoginController extends GetxController {
         ApiEndpoints.login,
         data: {
           'email': emailController.text.trim(),
-          'password': passwordController.text.trim(),
+          'password': passwordController.text,
         },
       );
 
       final responseData = response.data;
-      if (responseData != null && responseData['success'] == true) {
+      if (responseData is Map && responseData['success'] == true) {
         final data = responseData['data'];
-        final accessToken = data?['accessToken'] ?? '';
+        if (data is! Map) throw ServerException('Invalid login response.');
+        final accessToken = data['accessToken'] ?? '';
         final refreshToken = data?['refreshToken'] ?? '';
         final userObj = data?['user'];
 
+        final role = (data['role'] ?? (userObj is Map ? userObj['role'] : null))?.toString().toLowerCase();
+        if (role != 'plant') {
+          throw UnauthorizedException('Access denied. Only plant accounts can sign in.');
+        }
+        if (accessToken is! String || accessToken.isEmpty || userObj is! Map) {
+          throw ServerException('Invalid login response: session information is missing.');
+        }
         if (Get.isRegistered<SharedPrefService>()) {
           final prefService = Get.find<SharedPrefService>();
+          await prefService.clearSession();
           await prefService.setToken(accessToken.toString());
           if (refreshToken.toString().isNotEmpty) {
             await prefService.setRefreshToken(refreshToken.toString());

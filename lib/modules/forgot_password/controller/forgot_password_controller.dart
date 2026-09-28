@@ -31,6 +31,7 @@ class ForgotPasswordController extends GetxController {
 
   /// Step 1: Request OTP
   Future<void> sendOtp() async {
+    if (isLoading.value) return;
     final email = emailController.text.trim().toLowerCase();
     if (email.isEmpty || !email.contains('@')) {
       CommonSnackbar.showWarning(
@@ -45,11 +46,15 @@ class ForgotPasswordController extends GetxController {
       final apiClient = Get.find<ApiClient>();
       final response = await apiClient.post(
         ApiEndpoints.forgotPassword,
-        data: {'email': email},
+        data: {'email': email, 'role': 'plant'},
       );
 
       final responseData = response.data;
-      final msg = responseData?['message'] ??
+      if (responseData is! Map || responseData['success'] != true) {
+        throw ServerException(_extractErrorMessage(responseData) ?? 'Unable to request OTP.');
+      }
+      resetToken.value = '';
+      final msg = responseData['message'] ??
           'If that email exists, a 6-digit OTP code has been sent.';
 
       CommonSnackbar.showSuccess(
@@ -57,23 +62,10 @@ class ForgotPasswordController extends GetxController {
         message: msg.toString(),
       );
       currentStep.value = 1;
-    } on AppException catch (e) {
-      if (e.message.contains('404') || e.message.contains('Not Found')) {
-        // Fallback for offline/mock test environments
-        CommonSnackbar.showInfo(
-          title: 'OTP Sent',
-          message: 'If that email is registered, you will receive a 6-digit code shortly.',
-        );
-        currentStep.value = 1;
-      } else {
-        CommonSnackbar.showError(title: 'Request Failed', message: e.message);
-      }
-    } catch (e) {
-      CommonSnackbar.showInfo(
-        title: 'OTP Sent',
-        message: 'If that email is registered, you will receive a 6-digit code shortly.',
-      );
-      currentStep.value = 1;
+    } on AppException catch (error) {
+      CommonSnackbar.showError(title: 'Request Failed', message: error.message);
+    } catch (_) {
+      CommonSnackbar.showError(title: 'Request Failed', message: 'Invalid server response. Please try again.');
     } finally {
       isLoading.value = false;
     }
@@ -81,6 +73,7 @@ class ForgotPasswordController extends GetxController {
 
   /// Step 2: Verify 6-digit OTP -> Retrieve resetToken
   Future<void> verifyOtp() async {
+    if (isLoading.value) return;
     final email = emailController.text.trim().toLowerCase();
     final otp = otpController.text.trim();
 
@@ -104,8 +97,11 @@ class ForgotPasswordController extends GetxController {
       );
 
       final responseData = response.data;
-      if (responseData != null && responseData['success'] == true) {
+      if (responseData is Map && responseData['success'] == true) {
         final token = responseData['data']?['resetToken']?.toString() ?? '';
+        if (token.isEmpty) {
+          throw ServerException('Invalid OTP response: reset token is missing.');
+        }
         resetToken.value = token;
         CommonSnackbar.showSuccess(
           title: 'OTP Verified',
@@ -116,25 +112,10 @@ class ForgotPasswordController extends GetxController {
         final errorMsg = _extractErrorMessage(responseData) ?? 'Invalid or expired OTP';
         CommonSnackbar.showError(title: 'Verification Error', message: errorMsg);
       }
-    } on AppException catch (e) {
-      if (e.message.contains('404') || e.message.contains('Not Found')) {
-        // Fallback token for local testing without active backend
-        resetToken.value = 'mock_reset_token_${DateTime.now().millisecondsSinceEpoch}';
-        CommonSnackbar.showSuccess(
-          title: 'OTP Verified',
-          message: 'OTP verified successfully. Please enter your new password.',
-        );
-        currentStep.value = 2;
-      } else {
-        CommonSnackbar.showError(title: 'Verification Failed', message: e.message);
-      }
-    } catch (e) {
-      resetToken.value = 'mock_reset_token_${DateTime.now().millisecondsSinceEpoch}';
-      CommonSnackbar.showSuccess(
-        title: 'OTP Verified',
-        message: 'OTP verified successfully. Please enter your new password.',
-      );
-      currentStep.value = 2;
+    } on AppException catch (error) {
+      CommonSnackbar.showError(title: 'Verification Failed', message: error.message);
+    } catch (_) {
+      CommonSnackbar.showError(title: 'Verification Failed', message: 'Invalid server response. Please try again.');
     } finally {
       isLoading.value = false;
     }
@@ -142,8 +123,9 @@ class ForgotPasswordController extends GetxController {
 
   /// Step 3: Submit New Password with resetToken
   Future<void> resetPassword() async {
-    final newPassword = newPasswordController.text.trim();
-    final confirmPassword = confirmPasswordController.text.trim();
+    if (isLoading.value) return;
+    final newPassword = newPasswordController.text;
+    final confirmPassword = confirmPasswordController.text;
 
     if (newPassword.length < 6) {
       CommonSnackbar.showWarning(
@@ -180,7 +162,7 @@ class ForgotPasswordController extends GetxController {
       );
 
       final responseData = response.data;
-      if (responseData != null && responseData['success'] == true) {
+      if (responseData is Map && responseData['success'] == true) {
         CommonSnackbar.showSuccess(
           title: 'Password Reset Successful',
           message: responseData['message'] ?? 'Password reset successfully! Please sign in.',
@@ -190,22 +172,10 @@ class ForgotPasswordController extends GetxController {
         final msg = _extractErrorMessage(responseData) ?? 'Unable to reset password';
         CommonSnackbar.showError(title: 'Reset Error', message: msg);
       }
-    } on AppException catch (e) {
-      if (e.message.contains('404') || e.message.contains('Not Found')) {
-        CommonSnackbar.showSuccess(
-          title: 'Password Reset Successful',
-          message: 'Your password has been reset successfully! Please sign in with your new password.',
-        );
-        Get.offAllNamed(AppRoutes.login);
-      } else {
-        CommonSnackbar.showError(title: 'Reset Error', message: e.message);
-      }
-    } catch (e) {
-      CommonSnackbar.showSuccess(
-        title: 'Password Reset Successful',
-        message: 'Your password has been reset successfully! Please sign in with your new password.',
-      );
-      Get.offAllNamed(AppRoutes.login);
+    } on AppException catch (error) {
+      CommonSnackbar.showError(title: 'Reset Error', message: error.message);
+    } catch (_) {
+      CommonSnackbar.showError(title: 'Reset Error', message: 'Invalid server response. Please try again.');
     } finally {
       isLoading.value = false;
     }

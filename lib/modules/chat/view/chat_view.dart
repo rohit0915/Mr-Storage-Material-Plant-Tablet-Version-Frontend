@@ -4,7 +4,6 @@ import '../../../app/utils/app_colors.dart';
 import '../../home/widgets/app_drawer.dart';
 import '../../home/widgets/dashboard_app_bar.dart';
 import '../controller/chat_controller.dart';
-import '../widgets/add_member_dialog.dart';
 import '../widgets/chat_empty_view.dart';
 import '../widgets/chat_info_panel.dart';
 import '../widgets/chat_sidebar.dart';
@@ -46,6 +45,12 @@ class ChatView extends GetView<ChatController> {
                           if (controller.selectedChat.value == null) {
                             return const ChatEmptyView();
                           }
+                          if (controller.isHistoryLoading.value) return const Center(child: CircularProgressIndicator());
+                          if (controller.historyError.isNotEmpty) return Center(child: Column(
+                            mainAxisSize: MainAxisSize.min, children: [
+                              Text(controller.historyError.value),
+                              TextButton(onPressed: () => controller.loadHistory(controller.selectedChat.value!), child: const Text('Retry')),
+                            ]));
                           return const ChatThreadView();
                         }),
                       ),
@@ -56,7 +61,7 @@ class ChatView extends GetView<ChatController> {
                             controller.selectedChat.value != null) {
                           return ChatInfoPanel(
                             onAddMemberPressed: () {
-                              Get.dialog(const AddMemberDialog());
+                              Get.snackbar('Group members', 'Group membership is managed by your administrator.');
                             },
                           );
                         }

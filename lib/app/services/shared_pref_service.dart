@@ -26,12 +26,11 @@ class SharedPrefService extends GetxService {
 
   bool isLoggedIn() {
     final tokenExists = getToken() != null && getToken()!.isNotEmpty;
-    final flag = _prefs.getBool(AppConstants.isLoggedInKey) ?? false;
-    return flag || tokenExists;
+    return tokenExists;
   }
 
   Future<bool> setToken(String token) async {
-    await setIsLoggedIn(true);
+    await setIsLoggedIn(token.isNotEmpty);
     return await _prefs.setString(AppConstants.tokenKey, token);
   }
 

@@ -34,6 +34,9 @@ class PlantSocketService extends GetxService {
     'new_team_dm_notice',
     'team_typing',
     'team_chat_error',
+    'new_team_group_message_notice',
+    'new_team_group',
+    'group_members_updated',
   };
 
   final isConnected = false.obs;
@@ -138,8 +141,8 @@ class PlantSocketService extends GetxService {
         : <String, dynamic>{'data': data};
     _events.add(PlantSocketEvent(name, payload));
     if (name == 'shipper_file_submitted') {
-      final vendorName = (payload['vendorName'] ?? payload['shipperName'] ?? payload['name'] ?? 'Namra').toString();
-      final quoteVal = (payload['quoteValue'] ?? payload['amount'] ?? payload['rate'] ?? '\$100,000').toString();
+      final vendorName = (payload['vendorName'] ?? payload['shipperName'] ?? payload['name'] ?? 'Shipper').toString();
+      final quoteVal = (payload['quoteValue'] ?? payload['amount'] ?? payload['rate'] ?? 'Not provided').toString();
       final leadId = (payload['leadId'] ?? payload['projectId'] ?? '').toString();
       final requestId = (payload['requestId'] ?? payload['shipperFileId'] ?? payload['id'] ?? payload['_id'] ?? '').toString();
       ShipperFileReceivedDialog.show(

@@ -64,9 +64,9 @@ class ChatSidebar extends GetView<ChatController> {
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
+                    children: [
                       Text(
-                        'Sarah Johnson',
+                        controller.currentUser['name']?.toString() ?? '—',
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
@@ -75,7 +75,7 @@ class ChatSidebar extends GetView<ChatController> {
                       ),
                       SizedBox(height: 2),
                       Text(
-                        'Plant Lead',
+                        controller.currentUser['role']?.toString() ?? '—',
                         style: TextStyle(
                           fontSize: 12,
                           color: AppColors.textSecondary,
@@ -113,48 +113,6 @@ class ChatSidebar extends GetView<ChatController> {
 
           const SizedBox(height: 12),
 
-          // Project Filter Dropdown (Optional feature shown in mockups)
-          Obx(() {
-            if (controller.activeTab.value == ChatTab.departments) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
-                child: Container(
-                  height: 38,
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppColors.inputBorder),
-                  ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<String>(
-                      value: controller.selectedProject.value.contains('All')
-                          ? 'Project'
-                          : controller.selectedProject.value,
-                      isExpanded: true,
-                      icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.textSecondary),
-                      style: const TextStyle(fontSize: 13, color: AppColors.textPrimary, fontWeight: FontWeight.w500),
-                      items: ['Project', 'Project Alpha', 'Project Beta', 'Project Texas Workshop']
-                          .map((p) => DropdownMenuItem<String>(
-                                value: p,
-                                child: Text(p),
-                              ))
-                          .toList(),
-                      onChanged: (val) {
-                        if (val != null) {
-                          controller.selectedProject.value = val;
-                        }
-                      },
-                    ),
-                  ),
-                ),
-              );
-            }
-            return const SizedBox.shrink();
-          }),
-
-          const SizedBox(height: 12),
-
           // Tab Toggle: Departments vs Direct
           Obx(() {
             final activeTab = controller.activeTab.value;
@@ -174,7 +132,7 @@ class ChatSidebar extends GetView<ChatController> {
                           Padding(
                             padding: const EdgeInsets.symmetric(vertical: 12),
                             child: Text(
-                              'Departments',
+                              'Groups',
                               style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: activeTab == ChatTab.departments
@@ -234,6 +192,12 @@ class ChatSidebar extends GetView<ChatController> {
           // Chat List Items
           Expanded(
             child: Obx(() {
+              if (controller.isLoading.value) return const Center(child: CircularProgressIndicator());
+              if (controller.errorMessage.isNotEmpty) return Padding(
+                padding: const EdgeInsets.all(12), child: Column(children: [
+                  Text(controller.errorMessage.value),
+                  TextButton(onPressed: controller.loadConversations, child: const Text('Retry')),
+                ]));
               final chats = controller.currentChatList;
 
               if (chats.isEmpty) {

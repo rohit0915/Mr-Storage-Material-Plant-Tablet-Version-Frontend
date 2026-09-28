@@ -4,15 +4,16 @@ import '../routes/app_routes.dart';
 import '../services/shared_pref_service.dart';
 import '../services/plant_socket_service.dart';
 import '../utils/app_constants.dart';
-import '../utils/app_logger.dart';
 import 'api_endpoints.dart';
 import 'exceptions.dart';
 
 class ApiClient {
   late final Dio _dio;
+  Future<String?>? _refreshInFlight;
+  Future<void>? _logoutInFlight;
 
-  ApiClient() {
-    _dio = Dio(
+  ApiClient({Dio? dio}) {
+    _dio = dio ?? Dio(
       BaseOptions(
         baseUrl: AppConstants.baseUrl,
         connectTimeout: const Duration(
@@ -28,24 +29,11 @@ class ApiClient {
       ),
     );
 
-    // Logging Interceptor
-    _dio.interceptors.add(
-      LogInterceptor(
-        request: true,
-        requestHeader: true,
-        requestBody: true,
-        responseHeader: true,
-        responseBody: true,
-        error: true,
-        logPrint: (obj) => AppLogger.debug(obj.toString()),
-      ),
-    );
-
     // Auth & Refresh Token Interceptor
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) {
-          if (getx.Get.isRegistered<SharedPrefService>()) {
+          if (!_isPublicAuth(options.path) && getx.Get.isRegistered<SharedPrefService>()) {
             final token = getx.Get.find<SharedPrefService>().getToken();
             if (token != null && token.isNotEmpty) {
               options.headers['Authorization'] = 'Bearer $token';
@@ -54,96 +42,93 @@ class ApiClient {
           return handler.next(options);
         },
         onError: (DioException error, handler) async {
-          final requestPath = error.requestOptions.path;
-          AppLogger.error(
-            'API Error [${error.type}] - Method: ${error.requestOptions.method} | URL: ${error.requestOptions.baseUrl}${error.requestOptions.path} | Error: ${error.message}',
-            error,
-          );
-
-          if (error.response?.statusCode == 401) {
-            // Avoid infinite retry loops on auth endpoints
-            if (requestPath.contains(ApiEndpoints.refreshToken) ||
-                requestPath.contains(ApiEndpoints.login)) {
-              AppLogger.error(
-                'Auth endpoint returned 401. Clearing session...',
-              );
-              await _logoutAndRedirect();
-              return handler.next(error);
+          if (error.response?.statusCode != 401 ||
+              _isPublicAuth(error.requestOptions.path)) {
+            return handler.next(error);
+          }
+          final prefs = getx.Get.isRegistered<SharedPrefService>()
+              ? getx.Get.find<SharedPrefService>() : null;
+          if (error.requestOptions.extra['authRetried'] == true) {
+            await _expireSession();
+            return handler.next(error);
+          }
+          try {
+            final currentToken = prefs?.getToken();
+            final sentToken = error.requestOptions.headers['Authorization'];
+            final token = currentToken != null && currentToken.isNotEmpty &&
+                    sentToken != 'Bearer $currentToken'
+                ? currentToken
+                : await _refreshToken();
+            if (token == null) {
+              await _expireSession();
+            } else {
+              final options = error.requestOptions;
+              options.extra['authRetried'] = true;
+              options.headers['Authorization'] = 'Bearer $token';
+              return handler.resolve(await _dio.fetch(options));
             }
-
-            if (getx.Get.isRegistered<SharedPrefService>()) {
-              final prefService = getx.Get.find<SharedPrefService>();
-              final savedRefreshToken = prefService.getRefreshToken();
-
-              if (savedRefreshToken != null && savedRefreshToken.isNotEmpty) {
-                AppLogger.debug(
-                  'Token expired (401). Attempting automatic refresh using refreshToken...',
-                );
-                try {
-                  final refreshDio = Dio(
-                    BaseOptions(
-                      baseUrl: AppConstants.baseUrl,
-                      connectTimeout: const Duration(
-                        milliseconds: AppConstants.connectionTimeout,
-                      ),
-                      receiveTimeout: const Duration(
-                        milliseconds: AppConstants.receiveTimeout,
-                      ),
-                      headers: {'Content-Type': 'application/json'},
-                    ),
-                  );
-
-                  final refreshResponse = await refreshDio.post(
-                    ApiEndpoints.refreshToken,
-                    data: {'refreshToken': savedRefreshToken},
-                  );
-
-                  if (refreshResponse.data != null &&
-                      refreshResponse.data['success'] == true) {
-                    final newAccessToken =
-                        (refreshResponse.data['data']?['accessToken'] ?? '')
-                            .toString();
-                    if (newAccessToken.isNotEmpty) {
-                      AppLogger.debug(
-                        'Token refreshed successfully! Updating session and retrying request...',
-                      );
-                      await prefService.setToken(newAccessToken);
-                      if (getx.Get.isRegistered<PlantSocketService>()) {
-                        getx.Get.find<PlantSocketService>()
-                            .reconnectWithLatestToken();
-                      }
-
-                      final newRefreshToken = refreshResponse
-                          .data['data']?['refreshToken']
-                          ?.toString();
-                      if (newRefreshToken != null &&
-                          newRefreshToken.isNotEmpty) {
-                        await prefService.setRefreshToken(newRefreshToken);
-                      }
-
-                      // Retry original failed request with new access token
-                      final opts = error.requestOptions;
-                      opts.headers['Authorization'] = 'Bearer $newAccessToken';
-                      final retryResponse = await _dio.fetch(opts);
-                      return handler.resolve(retryResponse);
-                    }
-                  }
-                } catch (refreshErr) {
-                  AppLogger.error('Refresh token request failed: $refreshErr');
-                }
-              }
+          } on DioException catch (refreshError) {
+            // A temporary refresh outage is not evidence that the session expired.
+            if (refreshError.response?.statusCode == 401 ||
+                refreshError.response?.statusCode == 403) {
+              await _expireSession();
             }
-
-            AppLogger.error(
-              'Unauthorized request (401) and refresh token failed. Clearing session...',
-            );
-            await _logoutAndRedirect();
+            return handler.next(refreshError);
+          } catch (_) {
+            await _expireSession();
           }
 
           return handler.next(error);
         },
       ),
     );
+  }
+
+  bool _isPublicAuth(String path) => {
+    ApiEndpoints.login, ApiEndpoints.refreshToken, ApiEndpoints.forgotPassword,
+    ApiEndpoints.verifyOtp, ApiEndpoints.resetPassword,
+  }.contains(path.replaceFirst(RegExp(r'^/'), ''));
+
+  Future<String?> _refreshToken() async {
+    if (_refreshInFlight != null) return _refreshInFlight!;
+    final future = _performRefresh();
+    _refreshInFlight = future;
+    try {
+      return await future;
+    } finally {
+      if (identical(_refreshInFlight, future)) _refreshInFlight = null;
+    }
+  }
+
+  Future<String?> _performRefresh() async {
+    if (!getx.Get.isRegistered<SharedPrefService>()) return null;
+    final prefs = getx.Get.find<SharedPrefService>();
+    final refreshToken = prefs.getRefreshToken();
+    if (refreshToken == null || refreshToken.isEmpty) return null;
+    final response = await _dio.post(ApiEndpoints.refreshToken,
+        data: {'refreshToken': refreshToken});
+    final body = response.data;
+    final data = body is Map ? body['data'] : null;
+    final token = data is Map ? data['accessToken'] : null;
+    if (token is! String || token.isEmpty) return null;
+    // Do not revive a session that was logged out while refresh was in flight.
+    if (prefs.getRefreshToken() != refreshToken) return null;
+    await prefs.setToken(token);
+    final rotated = data['refreshToken'];
+    if (rotated is String && rotated.isNotEmpty) {
+      await prefs.setRefreshToken(rotated);
+    }
+    if (getx.Get.isRegistered<PlantSocketService>()) {
+      getx.Get.find<PlantSocketService>().reconnectWithLatestToken();
+    }
+    return token;
+  }
+
+  Future<void> _expireSession() async {
+    if (_logoutInFlight != null) return _logoutInFlight!;
+    final future = _logoutAndRedirect();
+    _logoutInFlight = future;
+    try { await future; } finally { _logoutInFlight = null; }
   }
 
   Future<void> _logoutAndRedirect() async {

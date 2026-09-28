@@ -6,6 +6,9 @@ import 'package:get/get.dart';
 import '../../../app/services/plant_socket_service.dart';
 import '../../../app/services/shared_pref_service.dart';
 import '../model/chat_model.dart';
+import '../repository/chat_repository.dart';
+import '../../../app/network/api_client.dart';
+import '../../../app/widgets/common_snackbar.dart';
 
 class ChatController extends GetxController {
   final Rx<ChatTab> activeTab = ChatTab.departments.obs;
@@ -27,17 +30,21 @@ class ChatController extends GetxController {
   final RxList<ChatChannel> departmentChannels = <ChatChannel>[].obs;
   final RxList<ChatChannel> directChats = <ChatChannel>[].obs;
 
-  final List<String> projectList = [
-    'All Projects',
-    'Project Alpha',
-    'Project Beta',
-    'Project Texas Workshop',
-  ];
+  final isLoading = false.obs;
+  final isHistoryLoading = false.obs;
+  final errorMessage = ''.obs;
+  final historyError = ''.obs;
+  late final ChatRepository repository = ChatRepository(Get.find<ApiClient>());
+  Map<String, dynamic> get currentUser {
+    final raw = Get.find<SharedPrefService>().getUserData();
+    try { return Map<String, dynamic>.from(jsonDecode(raw ?? '{}') as Map); }
+    catch (_) { return {}; }
+  }
 
   @override
   void onInit() {
     super.onInit();
-    _loadInitialData();
+    loadConversations();
     if (Get.isRegistered<PlantSocketService>()) {
       _socketSubscription = Get.find<PlantSocketService>().listenFor(
         PlantSocketService.teamEvents,
@@ -46,183 +53,68 @@ class ChatController extends GetxController {
     }
   }
 
-  void _loadInitialData() {
-    // Initial mock department channels
-    departmentChannels.assignAll([
-      ChatChannel(
-        id: 'dept_1',
-        name: 'Project Team',
-        type: ChatTab.departments,
-        icon: Icons.campaign_rounded,
-        iconColor: Colors.white,
-        iconBgColor: const Color(0xFF2563EB),
-        unreadCount: 3,
-        subtitle: '2 members . Marketing',
-        description: 'Marketing department discussions and campaigns',
-        isMuted: false,
-        members: [
-          ChatMember(
-            id: 'm1',
-            name: 'John Doe',
-            role: 'Marketing',
-            department: 'Marketing',
-            isAdmin: true,
-          ),
-          ChatMember(
-            id: 'm2',
-            name: 'James Wilson',
-            role: 'Marketing',
-            department: 'Marketing',
-            isAdmin: false,
-          ),
-        ],
-        files: [
-          ChatFile(
-            id: 'f1',
-            fileName: 'Q1-Marketing-Budget-2025',
-            uploaderName: 'Sarah Johnson',
-            uploadDate: '2024-10-10',
-            fileSize: '2.4 MB',
-          ),
-        ],
-        messages: [
-          ChatMessage(
-            id: 'msg_1',
-            senderId: 'm1',
-            senderName: 'John Doe',
-            text: 'Hi, I need a quote for a 40*60 workshop in Texas.',
-            timestamp: '2024-10-10 09:30 pm',
-            isMe: false,
-          ),
-          ChatMessage(
-            id: 'msg_2',
-            senderId: 'user_me',
-            senderName: 'Sarah Lee',
-            text:
-                "Hello John! I'd be happy to help you with that. Can you tell me more about the intended use and any specific requirements?",
-            timestamp: '2024-10-10 09:30 pm',
-            isMe: true,
-          ),
-          ChatMessage(
-            id: 'msg_3',
-            senderId: 'ai_bot',
-            senderName: 'Artificial Intelligence',
-            text: 'Okay Sir, sending details to your inbox',
-            timestamp: '2024-10-10 09:30 pm',
-            isMe: false,
-            isAi: true,
-          ),
-        ],
-      ),
-      ChatChannel(
-        id: 'dept_2',
-        name: 'Finance Team',
-        type: ChatTab.departments,
-        icon: Icons.calculate_rounded,
-        iconColor: Colors.white,
-        iconBgColor: const Color(0xFF10B981),
-        unreadCount: 0,
-        subtitle: '4 members . Finance',
-        description: 'Financial planning and budget allocations',
-        isMuted: false,
-        members: [
-          ChatMember(
-            id: 'm3',
-            name: 'Sarah Johnson',
-            role: 'Plant Lead',
-            department: 'Finance',
-            isAdmin: true,
-          ),
-          ChatMember(
-            id: 'm4',
-            name: 'Robert Vance',
-            role: 'Financial Analyst',
-            department: 'Finance',
-            isAdmin: false,
-          ),
-        ],
-        files: [],
-        messages: [
-          ChatMessage(
-            id: 'msg_f1',
-            senderId: 'm4',
-            senderName: 'Robert Vance',
-            text: 'Q3 budget report is ready for review.',
-            timestamp: '2024-10-10 08:15 am',
-            isMe: false,
-          ),
-        ],
-      ),
-      ChatChannel(
-        id: 'dept_3',
-        name: 'Construction Team',
-        type: ChatTab.departments,
-        icon: Icons.construction_rounded,
-        iconColor: Colors.white,
-        iconBgColor: const Color(0xFFF59E0B),
-        unreadCount: 1,
-        subtitle: '5 members . Engineering',
-        description: 'On-site construction and structural engineering updates',
-        isMuted: false,
-        members: [
-          ChatMember(
-            id: 'm5',
-            name: 'David Miller',
-            role: 'Site Supervisor',
-            department: 'Construction',
-            isAdmin: true,
-          ),
-        ],
-        files: [],
-        messages: [
-          ChatMessage(
-            id: 'msg_c1',
-            senderId: 'm5',
-            senderName: 'David Miller',
-            text: 'Foundation pouring completed for Site B.',
-            timestamp: '2024-10-10 11:45 am',
-            isMe: false,
-          ),
-        ],
-      ),
-    ]);
-
-    // Initial mock direct chats
-    directChats.assignAll([
-      ChatChannel(
-        id: 'direct_1',
-        name: 'Michael Chen (Project Lead)',
-        type: ChatTab.direct,
-        icon: Icons.person_rounded,
-        iconColor: Colors.white,
-        iconBgColor: const Color(0xFF6366F1),
-        unreadCount: 0,
-        subtitle: 'Project Lead',
-        description: 'Direct messages with Michael Chen',
-        isMuted: false,
-        members: [
-          ChatMember(
-            id: 'm_mc',
-            name: 'Michael Chen',
-            role: 'Project Lead',
-            department: 'Engineering',
-            isAdmin: false,
-          ),
-        ],
-        files: [],
-        messages: [
-          ChatMessage(
-            id: 'msg_d1',
-            senderId: 'm_mc',
-            senderName: 'Michael Chen',
-            text: 'Hi, I need a quote for a 40*60 workshop in Texas.',
-            timestamp: '2024-10-10 09:30 pm',
-            isMe: false,
-          ),
-        ],
-      ),
-    ]);
+  ChatChannel channelFromApi(Map<String, dynamic> row) {
+    final group = row['type'] == 'group';
+    return ChatChannel(
+      id: (group ? row['groupId'] : row['userId'] ?? row['_id']).toString(),
+      name: row['name']?.toString() ?? '', type: group ? ChatTab.departments : ChatTab.direct,
+      icon: group ? Icons.groups : Icons.person, iconColor: Colors.white,
+      iconBgColor: const Color(0xFF2563EB), unreadCount: (row['unreadCount'] as num?)?.toInt() ?? 0,
+      subtitle: row['lastMessage']?.toString() ?? row['role']?.toString() ?? '',
+      description: row['description']?.toString() ?? '', members: [], files: [], messages: [],
+    );
   }
+
+  Future<void> loadConversations() async {
+    if (isLoading.value) return;
+    isLoading.value = true;
+    errorMessage.value = '';
+    try {
+      final rows = await repository.conversations();
+      if (isClosed) return;
+      departmentChannels.assignAll(rows.where((row) => row['type'] == 'group' && row['groupId'] != null).map(channelFromApi));
+      directChats.assignAll(rows.where((row) => row['type'] == 'direct' && row['userId'] != null).map(channelFromApi));
+    } catch (error) {
+      departmentChannels.clear(); directChats.clear();
+      errorMessage.value = error.toString();
+    } finally { isLoading.value = false; }
+  }
+
+  Future<void> loadHistory(ChatChannel chat) async {
+    isHistoryLoading.value = true;
+    historyError.value = '';
+    try {
+      final rows = await repository.messages(chat.id, chat.type == ChatTab.departments);
+      final members = <ChatMember>[];
+      if (chat.type == ChatTab.departments) {
+        final group = await repository.group(chat.id);
+        for (final row in (group['members'] as List? ?? []).whereType<Map>()) {
+          final id = (row['_id'] ?? row['id'] ?? '').toString();
+          members.add(ChatMember(id: id, name: row['name']?.toString() ?? '',
+            role: row['role']?.toString() ?? '', department: '',
+            isAdmin: (group['admins'] as List? ?? []).contains(id), isOnline: row['isOnline'] == true));
+        }
+      }
+      if (selectedChat.value?.id != chat.id || isClosed) return;
+      final messages = rows.map(_message).toList()..sort((a,b) => a.timestamp.compareTo(b.timestamp));
+      final live = selectedChat.value!.messages;
+      for (final message in live) {
+        if (!messages.any((item) => item.id == message.id)) messages.add(message);
+      }
+      messages.sort((a,b) => a.timestamp.compareTo(b.timestamp));
+      selectedChat.value = selectedChat.value!.copyWith(messages: messages, members: members);
+    } catch (error) {
+      if (selectedChat.value?.id == chat.id) historyError.value = error.toString();
+    } finally {
+      if (selectedChat.value?.id == chat.id) isHistoryLoading.value = false;
+    }
+  }
+
+  ChatMessage _message(Map<String, dynamic> row) => ChatMessage(
+    id: row['_id']?.toString() ?? '', senderId: row['senderId']?.toString() ?? '',
+    senderName: row['senderName']?.toString() ?? '', text: row['content']?.toString() ?? '',
+    timestamp: row['createdAt']?.toString() ?? '', isMe: row['senderId']?.toString() == _currentUserId(),
+  );
 
   List<ChatChannel> get currentChatList {
     final list = activeTab.value == ChatTab.departments
@@ -253,7 +145,9 @@ class ChatController extends GetxController {
         _channelId(previous),
       );
     }
-    selectedChat.value = chat;
+    selectedChat.value = chat.copyWith(messages: []);
+    isTeamTyping.value = false;
+    loadHistory(chat);
     if (Get.isRegistered<PlantSocketService>()) {
       Get.find<PlantSocketService>().joinTeamChannel(
         _channelType(chat),
@@ -284,77 +178,21 @@ class ChatController extends GetxController {
   }
 
   void toggleMute() {
-    final current = selectedChat.value;
-    if (current == null) return;
-
-    final updated = current.copyWith(isMuted: !current.isMuted);
-    selectedChat.value = updated;
-
-    final list = current.type == ChatTab.departments
-        ? departmentChannels
-        : directChats;
-    final index = list.indexWhere((c) => c.id == current.id);
-    if (index != -1) {
-      list[index] = updated;
-    }
+    CommonSnackbar.showInfo(title: 'Unavailable', message: 'Notification muting is not supported by the current chat service.');
   }
 
   void sendMessage() {
     final text = messageInputController.text.trim();
-    if (text.isEmpty || selectedChat.value == null) return;
-
-    final current = selectedChat.value!;
-    if (Get.isRegistered<PlantSocketService>()) {
-      final sent = Get.find<PlantSocketService>().sendTeamMessage(
-        _channelType(current),
-        _channelId(current),
-        text,
-      );
-      if (sent) {
-        messageInputController.clear();
-        setTyping(false);
-        return;
-      }
+    final chat = selectedChat.value;
+    if (text.isEmpty || chat == null) return;
+    final sent = Get.isRegistered<PlantSocketService>() &&
+        Get.find<PlantSocketService>().sendTeamMessage(_channelType(chat), chat.id, text);
+    if (!sent) {
+      CommonSnackbar.showError(title: 'Message not sent', message: 'Chat is disconnected. Your message has been kept; reconnect and try again.');
+      return;
     }
-    final now = DateTime.now();
-    final timeStr =
-        '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')} ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')} ${now.hour >= 12 ? 'pm' : 'am'}';
-
-    final newMessage = ChatMessage(
-      id: 'msg_${DateTime.now().millisecondsSinceEpoch}',
-      senderId: 'user_me',
-      senderName: 'Sarah Lee',
-      text: text,
-      timestamp: timeStr,
-      isMe: true,
-    );
-
-    final updatedMessages = List<ChatMessage>.from(current.messages)
-      ..add(newMessage);
-    final updatedChat = current.copyWith(messages: updatedMessages);
-
-    selectedChat.value = updatedChat;
-
-    final list = current.type == ChatTab.departments
-        ? departmentChannels
-        : directChats;
-    final index = list.indexWhere((c) => c.id == current.id);
-    if (index != -1) {
-      list[index] = updatedChat;
-    }
-
     messageInputController.clear();
-
-    // Scroll to bottom
-    Future.delayed(const Duration(milliseconds: 100), () {
-      if (messageScrollController.hasClients) {
-        messageScrollController.animateTo(
-          messageScrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-        );
-      }
-    });
+    setTyping(false);
   }
 
   void setTyping(bool typing) {
@@ -380,7 +218,12 @@ class ChatController extends GetxController {
   }
 
   void _handleSocketEvent(PlantSocketEvent event) {
+    if ({'new_team_dm_notice', 'new_team_group_message_notice', 'new_team_group', 'group_members_updated'}.contains(event.name)) {
+      loadConversations();
+      return;
+    }
     if (event.name == 'team_typing') {
+      if (event.payload['channelId']?.toString() != selectedChat.value?.id && event.payload['userId']?.toString() != selectedChat.value?.id) return;
       isTeamTyping.value = event.payload['isTyping'] == true;
       typingUserName.value = event.payload['name']?.toString() ?? '';
       return;
@@ -388,16 +231,8 @@ class ChatController extends GetxController {
     if (event.name != 'new_team_message') return;
     final chat = selectedChat.value;
     if (chat == null || !_matchesChannel(chat, event.payload)) return;
-    final message = ChatMessage(
-      id:
-          event.payload['_id']?.toString() ??
-          'socket_${DateTime.now().microsecondsSinceEpoch}',
-      senderId: event.payload['senderId']?.toString() ?? '',
-      senderName: event.payload['senderName']?.toString() ?? 'Team member',
-      text: event.payload['content']?.toString() ?? '',
-      timestamp: event.payload['createdAt']?.toString() ?? '',
-      isMe: event.payload['senderId']?.toString() == _currentUserId(),
-    );
+    final message = _message(event.payload);
+    if (message.id.isEmpty) return;
     if (chat.messages.any((item) => item.id == message.id)) return;
     final updated = chat.copyWith(
       messages: List<ChatMessage>.from(chat.messages)..add(message),
@@ -412,8 +247,8 @@ class ChatController extends GetxController {
 
   bool _matchesChannel(ChatChannel chat, Map<String, dynamic> payload) {
     if (chat.type == ChatTab.departments) {
-      return payload['channelType'] == 'department' &&
-          payload['department']?.toString() == _channelId(chat);
+      return payload['channelType'] == 'group' &&
+          payload['groupId']?.toString() == chat.id;
     }
     final participants = payload['participants'];
     return payload['channelType'] == 'direct' &&
@@ -422,19 +257,9 @@ class ChatController extends GetxController {
   }
 
   String _channelType(ChatChannel chat) =>
-      chat.type == ChatTab.departments ? 'department' : 'direct';
+      chat.type == ChatTab.departments ? 'group' : 'direct';
 
-  String _channelId(ChatChannel chat) {
-    if (chat.type == ChatTab.direct) {
-      return chat.members.isEmpty ? chat.id : chat.members.first.id;
-    }
-    final name = chat.name.toLowerCase();
-    if (name.contains('finance') || name.contains('account')) return 'account';
-    if (name.contains('construction')) return 'construction';
-    if (name.contains('sales')) return 'sales';
-    if (name.contains('admin')) return 'admin';
-    return 'plant';
-  }
+  String _channelId(ChatChannel chat) => chat.id;
 
   String _currentUserId() {
     if (!Get.isRegistered<SharedPrefService>()) return '';
@@ -446,70 +271,6 @@ class ChatController extends GetxController {
     } catch (_) {
       return '';
     }
-  }
-
-  void addMemberToSelectedChat(String name, String role, bool isAdmin) {
-    final current = selectedChat.value;
-    if (current == null) return;
-
-    final newMember = ChatMember(
-      id: 'm_${DateTime.now().millisecondsSinceEpoch}',
-      name: name,
-      role: role,
-      department: current.name,
-      isAdmin: isAdmin,
-    );
-
-    final updatedMembers = List<ChatMember>.from(current.members)
-      ..add(newMember);
-    final updatedChat = current.copyWith(members: updatedMembers);
-
-    selectedChat.value = updatedChat;
-
-    final list = current.type == ChatTab.departments
-        ? departmentChannels
-        : directChats;
-    final index = list.indexWhere((c) => c.id == current.id);
-    if (index != -1) {
-      list[index] = updatedChat;
-    }
-  }
-
-  void createNewChat(String name, ChatTab type, String description) {
-    final newChat = ChatChannel(
-      id: '${type == ChatTab.departments ? 'dept' : 'direct'}_${DateTime.now().millisecondsSinceEpoch}',
-      name: name,
-      type: type,
-      icon: type == ChatTab.departments
-          ? Icons.campaign_rounded
-          : Icons.person_rounded,
-      iconColor: Colors.white,
-      iconBgColor: type == ChatTab.departments
-          ? const Color(0xFF2563EB)
-          : const Color(0xFF8B5CF6),
-      subtitle: type == ChatTab.departments ? '1 member' : 'Direct Message',
-      description: description.isNotEmpty ? description : 'New channel',
-      members: [
-        ChatMember(
-          id: 'me',
-          name: 'Sarah Johnson',
-          role: 'Plant Lead',
-          department: 'Management',
-          isAdmin: true,
-        ),
-      ],
-      files: [],
-      messages: [],
-    );
-
-    if (type == ChatTab.departments) {
-      departmentChannels.add(newChat);
-    } else {
-      directChats.add(newChat);
-    }
-
-    activeTab.value = type;
-    selectChat(newChat);
   }
 
   @override

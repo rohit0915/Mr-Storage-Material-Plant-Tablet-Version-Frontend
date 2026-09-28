@@ -10,6 +10,8 @@ class ApiEndpoints {
   static const String resetPassword = 'auth/reset-password';
   static const String uploadPresignedUrl = 'upload/presigned-url';
 
+  static const String plantDashboard = 'plant/dashboard';
+
   // Plant Dashboard & Projects Endpoints
   static const String plantProjectStats = 'plant/projects/stats';
   static const String plantProjects = 'plant/projects';

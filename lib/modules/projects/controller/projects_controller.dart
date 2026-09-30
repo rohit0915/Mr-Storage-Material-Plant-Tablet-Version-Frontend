@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../app/services/file_export_service.dart';
+import '../../../app/services/plant_socket_service.dart';
 import '../../../app/utils/app_colors.dart';
 import '../../../app/widgets/common_snackbar.dart';
 import '../model/projects_model.dart';
@@ -39,11 +41,25 @@ class ProjectsController extends GetxController {
   ].obs;
 
   final RxBool selectAllRows = false.obs;
+  StreamSubscription<PlantSocketEvent>? _socketSubscription;
 
   @override
   void onInit() {
     super.onInit();
+    if (Get.isRegistered<PlantSocketService>()) {
+      _socketSubscription = Get.find<PlantSocketService>().listenFor({
+        'project_assigned',
+        'new_project_assigned',
+        'project_created',
+      }, (_) => loadProjectsData());
+    }
     loadProjectsData();
+  }
+
+  @override
+  void onClose() {
+    _socketSubscription?.cancel();
+    super.onClose();
   }
 
   Future<void> loadProjectsData() async {

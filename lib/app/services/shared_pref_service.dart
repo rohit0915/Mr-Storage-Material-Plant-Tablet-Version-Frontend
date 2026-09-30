@@ -66,4 +66,15 @@ class SharedPrefService extends GetxService {
   Future<bool> clearAll() async {
     return await _prefs.clear();
   }
+
+  // Shipper Request ID
+  static const String _lastShipperRequestIdKey = 'last_shipper_request_id';
+
+  Future<bool> setLastShipperRequestId(String id) async {
+    return await _prefs.setString(_lastShipperRequestIdKey, id);
+  }
+
+  String? getLastShipperRequestId() {
+    return _prefs.getString(_lastShipperRequestIdKey);
+  }
 }

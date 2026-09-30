@@ -12,11 +12,12 @@ class ItemCostRepository {
   Future<Map<String, dynamic>> stats() => _get(ApiEndpoints.smdtStats);
   Future<Map<String, dynamic>> list({
     String search = '',
+    String category = '',
     int page = 1,
     int limit = 100,
   }) => _get(
     ApiEndpoints.smdtItems,
-    query: {'page': page, 'limit': limit, 'search': search},
+    query: {'page': page, 'limit': limit, 'search': search, if (category.isNotEmpty) 'category': category},
   );
   Future<Map<String, dynamic>> add(Map<String, dynamic> data) async {
     final response = await apiClient.post(ApiEndpoints.smdtItems, data: data);
@@ -58,6 +59,7 @@ class ItemCostRepository {
     if (body is Map && body['success'] == true && body['data'] is Map) {
       return Map<String, dynamic>.from(body['data'] as Map);
     }
-    return {};
+    if (body is Map && body['success'] == true) return {};
+    throw Exception(body is Map ? body['message'] ?? 'Invalid cost response.' : 'Invalid cost response.');
   }
 }

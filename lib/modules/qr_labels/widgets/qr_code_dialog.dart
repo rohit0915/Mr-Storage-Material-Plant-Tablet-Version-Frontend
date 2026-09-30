@@ -12,38 +12,29 @@ class QrCodeDialog extends StatelessWidget {
   final BundleQrLabelItemModel item;
   final String projectName;
 
-  const QrCodeDialog({
-    super.key,
-    required this.item,
-    this.projectName = 'RiversideComplex',
-  });
+  const QrCodeDialog({super.key, required this.item, this.projectName = ''});
 
-  String get payload =>
-      'project=$projectName&shipper=${item.shipper}&load_id=${item.loadId}&bundle_id=${item.bundleId}&parts=${item.parts}&weight=${item.weight}&length=${item.length}';
+  String get payload {
+    final bId = item.bundleId.isNotEmpty ? item.bundleId : '';
+    if (bId.isNotEmpty) {
+      return 'https://storage-material-vendor-deployment.vercel.app/bundle/$bId';
+    }
+    return Uri(
+      queryParameters: {
+        'project': projectName,
+        'shipper': item.shipper,
+        'load_id': item.loadId,
+        'bundle_id': item.bundleId,
+        'parts': item.parts,
+        'weight': item.weight,
+        'length': item.length,
+      },
+    ).query;
+  }
 
-  Future<List<int>> _labelBytes() => FileExportService.tablePdf(
+  Future<List<int>> _labelBytes() => FileExportService.qrPdf(
     title: 'QR Label — ${item.bundleId}',
-    subtitle: payload,
-    headers: const [
-      'Project',
-      'Shipper',
-      'Load',
-      'Bundle',
-      'Parts',
-      'Weight',
-      'Length',
-    ],
-    rows: [
-      [
-        projectName,
-        item.shipper,
-        item.loadId,
-        item.bundleId,
-        item.parts,
-        item.weight,
-        item.length,
-      ],
-    ],
+    payload: payload,
   );
 
   Future<void> _export() async {
@@ -280,78 +271,4 @@ class QrCodeDialog extends StatelessWidget {
       ],
     );
   }
-}
-
-/// Custom painter that draws a clean QR code matrix with 3 finder patterns
-class QrPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.black
-      ..style = PaintingStyle.fill;
-
-    final cellWidth = size.width / 21;
-    final cellHeight = size.height / 21;
-
-    // Helper to draw a single module cell
-    void drawCell(int row, int col) {
-      canvas.drawRect(
-        Rect.fromLTWH(col * cellWidth, row * cellHeight, cellWidth, cellHeight),
-        paint,
-      );
-    }
-
-    // Helper to draw a QR finder pattern (7x7 outer square, 3x3 inner square)
-    void drawFinderPattern(int topRow, int leftCol) {
-      for (int r = 0; r < 7; r++) {
-        for (int c = 0; c < 7; c++) {
-          if (r == 0 ||
-              r == 6 ||
-              c == 0 ||
-              c == 6 ||
-              (r >= 2 && r <= 4 && c >= 2 && c <= 4)) {
-            drawCell(topRow + r, leftCol + c);
-          }
-        }
-      }
-    }
-
-    // Draw the 3 standard QR finder patterns
-    drawFinderPattern(0, 0); // Top Left
-    drawFinderPattern(0, 14); // Top Right
-    drawFinderPattern(14, 0); // Bottom Left
-
-    // Standard timing pattern lines
-    for (int i = 6; i < 15; i += 2) {
-      drawCell(6, i);
-      drawCell(i, 6);
-    }
-
-    // Mock QR data pattern matrix
-    final dataPoints = [
-      // Top section details
-      [2, 8], [3, 9], [4, 8], [4, 10], [1, 11], [5, 12],
-      [8, 1], [9, 3], [10, 2], [11, 4], [12, 1], [10, 5],
-      [8, 15], [9, 17], [10, 18], [11, 15], [12, 19], [8, 19],
-      // Center area
-      [8, 8], [8, 9], [8, 11], [9, 10], [9, 12], [10, 8], [10, 10], [10, 12],
-      [11, 9], [11, 11], [12, 8], [12, 10], [12, 12],
-      // Bottom Right & Alignment area
-      [14, 14], [14, 15], [14, 16], [14, 17], [14, 18],
-      [15, 14], [15, 18], [16, 14], [16, 16], [16, 18],
-      [17, 14], [17, 18], [18, 14], [18, 15], [18, 16], [18, 17], [18, 18],
-      // Random data modules
-      [14, 9], [15, 7], [16, 10], [17, 8], [18, 11], [19, 9], [20, 8],
-      [9, 14], [7, 16], [10, 19], [8, 20], [11, 18], [9, 20],
-      [15, 2], [17, 4], [19, 1], [20, 3], [18, 5], [20, 5],
-      [2, 18], [4, 19], [1, 20], [5, 20],
-    ];
-
-    for (var pt in dataPoints) {
-      drawCell(pt[0], pt[1]);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

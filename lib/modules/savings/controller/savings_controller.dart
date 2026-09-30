@@ -33,7 +33,7 @@ class SavingsController extends GetxController {
   final RxList<SavingsItemModel> filteredSavingsList = <SavingsItemModel>[].obs;
 
   final RxString searchQuery = ''.obs;
-  final Rx<DateTime> selectedDate = DateTime(2026, 4, 12).obs;
+  final Rx<DateTime> selectedDate = DateTime.now().obs;
   final RxString selectedStatusFilter = 'Status : Good'.obs;
   final RxInt rowsPerPage = 10.obs;
   final RxInt currentPage = 4.obs;

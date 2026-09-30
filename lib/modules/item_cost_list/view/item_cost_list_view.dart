@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../app/utils/app_colors.dart';
+import '../../../app/widgets/app_back_button.dart';
 import '../../../app/widgets/common_loader.dart';
+import '../../../app/widgets/common_pagination.dart';
 import '../../home/widgets/app_drawer.dart';
 import '../../home/widgets/dashboard_app_bar.dart';
 import '../controller/item_cost_controller.dart';
@@ -24,6 +26,20 @@ class ItemCostListView extends GetView<ItemCostController> {
                   return const CommonLoader();
                 }
 
+                if (controller.errorMessage.value.isNotEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(controller.errorMessage.value),
+                        TextButton(
+                          onPressed: controller.loadItemCosts,
+                          child: const Text('Retry'),
+                        ),
+                      ],
+                    ),
+                  );
+                }
                 return SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
                   padding: const EdgeInsets.symmetric(
@@ -50,6 +66,16 @@ class ItemCostListView extends GetView<ItemCostController> {
 
                       // Part Cost Table Container
                       _buildPartCostTable(context),
+                      Obx(
+                        () => CommonPaginationFooter(
+                          currentPage: controller.currentPage.value,
+                          totalPages: controller.totalPages,
+                          totalEntries: controller.totalItems.value,
+                          rowsPerPage: controller.rowsPerPage.value,
+                          onPageChanged: controller.changePage,
+                          onRowsPerPageChanged: controller.changeRows,
+                        ),
+                      ),
 
                       const SizedBox(height: 32),
                     ],
@@ -66,6 +92,8 @@ class ItemCostListView extends GetView<ItemCostController> {
   Widget _buildHeaderToolbar(BuildContext context) {
     return Row(
       children: [
+        const AppBackButton(),
+        const SizedBox(width: 16),
         const Text(
           'Item Cost List',
           style: TextStyle(
@@ -317,7 +345,8 @@ class ItemCostListView extends GetView<ItemCostController> {
             borderRadius: BorderRadius.circular(8),
             border: Border.all(color: const Color(0xFFCBD5E1)),
           ),
-          child: TextField(
+          child: TextFormField(
+            initialValue: controller.searchQuery.value,
             onChanged: (val) => controller.filterSearchResults(val),
             style: const TextStyle(fontSize: 12),
             decoration: const InputDecoration(
@@ -346,13 +375,21 @@ class ItemCostListView extends GetView<ItemCostController> {
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(
-              value: 'All Categories',
-              icon: const Icon(Icons.keyboard_arrow_down, size: 16, color: Color(0xFF475569)),
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF1E293B)),
-              onChanged: (val) {},
-              items: const [
-                DropdownMenuItem(value: 'All Categories', child: Text('All Categories')),
-              ],
+              value: controller.category.value,
+              onChanged: (value) => controller.category.value = value ?? '',
+              items:
+                  <String>{
+                        '',
+                        ...controller.categories,
+                        controller.category.value,
+                      }
+                      .map(
+                        (value) => DropdownMenuItem(
+                          value: value,
+                          child: Text(value.isEmpty ? 'All Categories' : value),
+                        ),
+                      )
+                      .toList(),
             ),
           ),
         ),
@@ -437,7 +474,10 @@ class ItemCostListView extends GetView<ItemCostController> {
                 children: [
                   // Table Header
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
                     color: const Color(0xFFF8FAFC),
                     child: Row(
                       children: [
@@ -455,7 +495,11 @@ class ItemCostListView extends GetView<ItemCostController> {
                         _buildTh('Part Colour', flex: 2, sortable: true),
                         _buildTh('Cost Unit', flex: 1, sortable: true),
                         _buildTh('MBS Cost', flex: 1, sortable: true),
-                        _buildTh('Current Market Cost', flex: 2, sortable: true),
+                        _buildTh(
+                          'Current Market Cost',
+                          flex: 2,
+                          sortable: true,
+                        ),
                         _buildTh('Labor Cost', flex: 1, sortable: true),
                         _buildTh('Additional Cost', flex: 1, sortable: true),
                         _buildTh('Material Cost', flex: 1, sortable: true),
@@ -504,10 +548,15 @@ class ItemCostListView extends GetView<ItemCostController> {
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(4),
                                   ),
-                                  side: const BorderSide(color: Color(0xFFCBD5E1)),
+                                  side: const BorderSide(
+                                    color: Color(0xFFCBD5E1),
+                                  ),
                                 ),
                               ),
-                              _buildTd(item.partColor.isNotEmpty ? item.partColor : '', flex: 2),
+                              _buildTd(
+                                item.partColor.isNotEmpty ? item.partColor : '',
+                                flex: 2,
+                              ),
                               _buildTd(item.costUnit, flex: 1),
                               _buildTd(
                                 item.mbsCost != null ? '${item.mbsCost}' : '0',
@@ -519,16 +568,43 @@ class ItemCostListView extends GetView<ItemCostController> {
                                     : '0',
                                 flex: 2,
                               ),
-                              _buildTd(item.laborCost.toStringAsFixed(item.laborCost.truncateToDouble() == item.laborCost ? 0 : 2), flex: 1),
-                              _buildTd(item.additionalCost.toStringAsFixed(item.additionalCost.truncateToDouble() == item.additionalCost ? 0 : 2), flex: 1),
-                              _buildTd(item.materialCost.toStringAsFixed(item.materialCost.truncateToDouble() == item.materialCost ? 0 : 2), flex: 1),
+                              _buildTd(
+                                item.laborCost.toStringAsFixed(
+                                  item.laborCost.truncateToDouble() ==
+                                          item.laborCost
+                                      ? 0
+                                      : 2,
+                                ),
+                                flex: 1,
+                              ),
+                              _buildTd(
+                                item.additionalCost.toStringAsFixed(
+                                  item.additionalCost.truncateToDouble() ==
+                                          item.additionalCost
+                                      ? 0
+                                      : 2,
+                                ),
+                                flex: 1,
+                              ),
+                              _buildTd(
+                                item.materialCost.toStringAsFixed(
+                                  item.materialCost.truncateToDouble() ==
+                                          item.materialCost
+                                      ? 0
+                                      : 2,
+                                ),
+                                flex: 1,
+                              ),
                               _buildTd(item.description, flex: 3, isBold: true),
                               Expanded(
                                 flex: 2,
                                 child: Align(
                                   alignment: Alignment.centerLeft,
                                   child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 4,
+                                    ),
                                     decoration: BoxDecoration(
                                       color: const Color(0xFFF1F5F9),
                                       borderRadius: BorderRadius.circular(12),
@@ -549,7 +625,10 @@ class ItemCostListView extends GetView<ItemCostController> {
                                 child: Align(
                                   alignment: Alignment.centerLeft,
                                   child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 4,
+                                    ),
                                     decoration: BoxDecoration(
                                       color: const Color(0xFFDCFCE7),
                                       borderRadius: BorderRadius.circular(12),
@@ -568,8 +647,8 @@ class ItemCostListView extends GetView<ItemCostController> {
                               SizedBox(
                                 width: 60,
                                 child: ElevatedButton(
-                                  onPressed: () =>
-                                      controller.openEditPartCostDialog(context, item),
+                                  onPressed: () => controller
+                                      .openEditPartCostDialog(context, item),
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: const Color(0xFF2563EB),
                                     padding: const EdgeInsets.symmetric(
@@ -578,7 +657,8 @@ class ItemCostListView extends GetView<ItemCostController> {
                                     ),
                                     elevation: 0,
                                     minimumSize: Size.zero,
-                                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                    tapTargetSize:
+                                        MaterialTapTargetSize.shrinkWrap,
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(6),
                                     ),

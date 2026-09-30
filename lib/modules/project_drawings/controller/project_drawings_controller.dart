@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../app/services/plant_socket_service.dart';
 import '../../../app/widgets/common_snackbar.dart';
 import '../model/project_drawings_model.dart';
 import '../repository/project_drawings_repository.dart';
@@ -21,12 +23,25 @@ class ProjectDrawingsController extends GetxController {
     'Pending Review',
   ];
   late final String projectId;
+  StreamSubscription<PlantSocketEvent>? _socketSubscription;
 
   @override
   void onInit() {
     super.onInit();
     projectId = Get.parameters['id'] ?? '';
+    if (Get.isRegistered<PlantSocketService>()) {
+      _socketSubscription = Get.find<PlantSocketService>().listenFor({
+        'drawing_status_updated',
+        'drawing_comment_added',
+      }, (_) => loadDrawings());
+    }
     loadDrawings();
+  }
+
+  @override
+  void onClose() {
+    _socketSubscription?.cancel();
+    super.onClose();
   }
 
   Future<void> loadDrawings() async {

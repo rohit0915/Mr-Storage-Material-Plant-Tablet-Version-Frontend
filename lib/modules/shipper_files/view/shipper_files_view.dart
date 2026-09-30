@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../app/utils/app_colors.dart';
+import '../../../app/widgets/app_back_button.dart';
 import '../../../app/widgets/common_loader.dart';
 import '../../../app/widgets/common_error_widget.dart';
 import '../../../app/widgets/common_pagination.dart';
@@ -68,21 +69,27 @@ class ShipperFilesView extends GetView<ShipperFilesController> {
   }
 
   Widget _buildHeaderToolbar() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: const [
-        Text(
-          'Shipper Files',
-          style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        SizedBox(height: 4),
-        Text(
-          'Manage vendor shipment files and prepare for validation',
-          style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+    return Row(
+      children: [
+        const AppBackButton(),
+        const SizedBox(width: 16),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: const [
+            Text(
+              'Shipper Files',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            SizedBox(height: 4),
+            Text(
+              'Manage vendor shipment files and prepare for validation',
+              style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+            ),
+          ],
         ),
       ],
     );
@@ -101,11 +108,13 @@ class ShipperFilesView extends GetView<ShipperFilesController> {
             border: Border.all(color: AppColors.inputBorder),
           ),
           child: Row(
-            children: const [
+            children: [
               Icon(Icons.search, size: 16, color: AppColors.textSecondary),
               SizedBox(width: 8),
               Expanded(
-                child: TextField(
+                child: TextFormField(
+                  initialValue: controller.searchQuery.value,
+                  onChanged: (value) => controller.searchQuery.value = value,
                   decoration: InputDecoration(
                     hintText: 'Search',
                     hintStyle: TextStyle(
@@ -125,14 +134,14 @@ class ShipperFilesView extends GetView<ShipperFilesController> {
 
         // Filter Button
         OutlinedButton.icon(
-          onPressed: () {},
+          onPressed: controller.loadData,
           icon: const Icon(
-            Icons.filter_list,
+            Icons.refresh,
             size: 14,
             color: AppColors.textSecondary,
           ),
           label: const Text(
-            'Filter',
+            'Refresh',
             style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
           ),
           style: OutlinedButton.styleFrom(
@@ -153,19 +162,13 @@ class ShipperFilesView extends GetView<ShipperFilesController> {
             controller.selectedStatus.value = val;
           },
           itemBuilder: (context) => const [
-            PopupMenuItem(
-              value: 'Select Status',
-              child: Text('Select Status'),
-            ),
+            PopupMenuItem(value: 'Select Status', child: Text('Select Status')),
             PopupMenuItem(
               value: 'Pending Comparison',
               child: Text('Pending Comparison'),
             ),
             PopupMenuItem(value: 'Approved', child: Text('Approved')),
-            PopupMenuItem(
-              value: 'File Received',
-              child: Text('File Received'),
-            ),
+            PopupMenuItem(value: 'File Received', child: Text('File Received')),
           ],
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -265,7 +268,9 @@ class ShipperFilesView extends GetView<ShipperFilesController> {
                 return IntrinsicHeight(
                   child: Container(
                     decoration: const BoxDecoration(
-                      border: Border(bottom: BorderSide(color: Color(0xFFF1F5F9))),
+                      border: Border(
+                        bottom: BorderSide(color: Color(0xFFF1F5F9)),
+                      ),
                     ),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -330,7 +335,8 @@ class ShipperFilesView extends GetView<ShipperFilesController> {
                         _buildTdWidget(
                           Center(
                             child: InkWell(
-                              onTap: () => controller.openProjectShipperFiles(item),
+                              onTap: () =>
+                                  controller.openProjectShipperFiles(item),
                               borderRadius: BorderRadius.circular(8),
                               child: Container(
                                 width: 32,
@@ -362,7 +368,12 @@ class ShipperFilesView extends GetView<ShipperFilesController> {
     );
   }
 
-  Widget _buildTh(String label, {int flex = 2, double? width, bool isLast = false}) {
+  Widget _buildTh(
+    String label, {
+    int flex = 2,
+    double? width,
+    bool isLast = false,
+  }) {
     return _buildThWidget(
       Text(
         label,
@@ -378,13 +389,20 @@ class ShipperFilesView extends GetView<ShipperFilesController> {
     );
   }
 
-  Widget _buildThWidget(Widget child, {int flex = 2, double? width, bool isLast = false}) {
+  Widget _buildThWidget(
+    Widget child, {
+    int flex = 2,
+    double? width,
+    bool isLast = false,
+  }) {
     final container = Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       decoration: BoxDecoration(
         color: const Color(0xFFF8FAFC),
         border: Border(
-          right: isLast ? BorderSide.none : const BorderSide(color: Color(0xFFE2E8F0)),
+          right: isLast
+              ? BorderSide.none
+              : const BorderSide(color: Color(0xFFE2E8F0)),
         ),
       ),
       alignment: Alignment.centerLeft,
@@ -394,12 +412,19 @@ class ShipperFilesView extends GetView<ShipperFilesController> {
     return Expanded(flex: flex, child: container);
   }
 
-  Widget _buildTdWidget(Widget child, {int flex = 2, double? width, bool isLast = false}) {
+  Widget _buildTdWidget(
+    Widget child, {
+    int flex = 2,
+    double? width,
+    bool isLast = false,
+  }) {
     final container = Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       decoration: BoxDecoration(
         border: Border(
-          right: isLast ? BorderSide.none : const BorderSide(color: Color(0xFFF1F5F9)),
+          right: isLast
+              ? BorderSide.none
+              : const BorderSide(color: Color(0xFFF1F5F9)),
         ),
       ),
       alignment: Alignment.centerLeft,
@@ -410,12 +435,15 @@ class ShipperFilesView extends GetView<ShipperFilesController> {
   }
 
   Widget _buildPaginationFooter() {
-    return CommonPaginationFooter(
-      currentPage: controller.currentPage.value,
-      totalPages: 15,
-      rowsPerPage: controller.rowsPerPage.value,
-      onPageChanged: (page) => controller.currentPage.value = page,
-      onRowsPerPageChanged: (rows) => controller.rowsPerPage.value = rows,
+    return Obx(
+      () => CommonPaginationFooter(
+        currentPage: controller.currentPage.value,
+        totalPages: controller.projectPages,
+        totalEntries: controller.paginationTotal.value,
+        rowsPerPage: controller.rowsPerPage.value,
+        onPageChanged: controller.changeProjectPage,
+        onRowsPerPageChanged: controller.changeProjectRows,
+      ),
     );
   }
 }

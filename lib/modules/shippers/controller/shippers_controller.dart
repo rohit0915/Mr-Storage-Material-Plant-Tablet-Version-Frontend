@@ -1,8 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../app/routes/app_routes.dart';
 import '../../../app/widgets/common_snackbar.dart';
-import '../../item_cost_list/widgets/success_dialog.dart';
 import '../model/shipper_model.dart';
 import '../repository/shippers_repository.dart';
 
@@ -17,7 +15,7 @@ class ShippersController extends GetxController {
   final RxList<ShipperModel> filteredShippers = <ShipperModel>[].obs;
   final Rx<ShipperModel?> selectedShipper = Rx<ShipperModel?>(null);
 
-  late Rx<VendorDetailsModel> vendorDetails;
+  late final Rx<VendorDetailsModel> vendorDetails = _emptyDetails().obs;
   final RxList<VendorContactRoleModel> contactRoles =
       <VendorContactRoleModel>[].obs;
   final RxList<VendorOrderHistoryModel> orderHistory =
@@ -26,25 +24,9 @@ class ShippersController extends GetxController {
       <ComplianceCertificateModel>[].obs;
   final RxBool isComplianceExpanded = true.obs;
 
-  final TextEditingController nameController = TextEditingController();
-  final TextEditingController idController = TextEditingController();
-  final TextEditingController phoneController = TextEditingController();
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController yearsController = TextEditingController();
-  final RxString serviceCategory = 'Construction Material'.obs;
-  final RxString vendorType = 'Material Shipper'.obs;
-  final RxString country = 'India'.obs;
-  final RxString state = 'Maharashtra'.obs;
-  final RxString city = 'Pune'.obs;
-  final TextEditingController streetController = TextEditingController();
-  final TextEditingController placeController = TextEditingController();
-  final TextEditingController postalController = TextEditingController();
-  final TextEditingController notesController = TextEditingController();
-
   @override
   void onInit() {
     super.onInit();
-    vendorDetails = _emptyDetails().obs;
     loadShippersData();
   }
 
@@ -66,7 +48,10 @@ class ShippersController extends GetxController {
     } catch (error) {
       shippers.clear();
       filteredShippers.clear();
-      CommonSnackbar.showError(title: 'Unable to load shippers', message: error.toString());
+      CommonSnackbar.showError(
+        title: 'Unable to load shippers',
+        message: error.toString(),
+      );
     } finally {
       isLoading.value = false;
     }
@@ -128,8 +113,15 @@ class ShippersController extends GetxController {
   Future<void> openVendorDetails(ShipperModel shipper) async {
     selectedShipper.value = shipper;
     Get.toNamed(AppRoutes.vendorDetails);
+    await refreshVendorDetails(shipper);
+  }
+
+  Future<void> refreshVendorDetails(ShipperModel shipper) async {
     try {
-      final data = await repository.detail(shipper.id);
+      final response = await repository.detail(shipper.id);
+      final data = response['vendor'] is Map
+          ? Map<String, dynamic>.from(response['vendor'])
+          : response;
       final stats = _map(data['stats']);
       vendorDetails.value = VendorDetailsModel(
         vendorCode: (data['vendorCode'] ?? shipper.vendorCode).toString(),
@@ -140,111 +132,151 @@ class ShippersController extends GetxController {
         address: _address(data['address'] ?? data['pickupLocation']),
         email: (data['email'] ?? shipper.email).toString(),
         phone: (data['phone'] ?? shipper.phone).toString(),
-        vendorType: (data['vendorType'] ?? 'Material Shipper').toString(),
-        serviceCategory: (data['serviceCategory'] ?? '').toString(),
-        yearsWorking: (data['yearsWorking'] ?? data['yearsOfWorking'] ?? '')
-            .toString(),
-        totalOrders: _int(stats['totalOrders'] ?? shipper.totalOrders),
-        completedDeliveries: _int(stats['completedDeliveries']),
-        activeOrders: _int(stats['activeOrders'] ?? shipper.activeOrders),
-        avgDeliveryTime: (stats['avgDeliveryTime'] ?? '-').toString(),
-        onTimeRate: (stats['onTimeRate'] ?? '-').toString(),
+        vendorType: (data['vendorType'] ?? 'other').toString(),
+        serviceCategory:
+            (data['serviceCategory'] ?? data['category'] ?? '-').toString(),
+        yearsWorking:
+            (data['yearsWithCompany'] ??
+                    data['yearsWorking'] ??
+                    data['yearsOfWorking'] ??
+                    '-')
+                .toString(),
+        totalOrders: _int(stats['totalOrders'] ?? data['totalOrders'] ?? shipper.totalOrders),
+        completedDeliveries: _int(stats['completedDeliveries'] ?? data['completedDeliveries']),
+        activeOrders: _int(stats['activeOrders'] ?? data['activeOrders'] ?? shipper.activeOrders),
+        avgDeliveryTime:
+            (stats['avgDeliveryTime'] ?? stats['averageDeliveryTime'] ?? data['avgDeliveryTime'] ?? '-')
+                .toString(),
+        onTimeRate:
+            (stats['onTimeRate'] ?? stats['onTimeDeliveryRate'] ?? data['onTimeRate'] ?? '-')
+                .toString(),
+        notes: (data['notes'] ?? data['note'] ?? data['description'] ?? '').toString(),
       );
-      _mapVendorCollections(data);
+      _mapVendorCollections(data, shipper);
     } catch (error) {
-      CommonSnackbar.showError(title: 'Unable to load shipper details', message: error.toString());
+      CommonSnackbar.showError(
+        title: 'Unable to load shipper details',
+        message: error.toString(),
+      );
     }
   }
 
-  void _mapVendorCollections(Map<String, dynamic> data) {
-    final history = data['orderHistory'];
+  void _mapVendorCollections(Map<String, dynamic> data, ShipperModel shipper) {
+    // 1. Order History
+    final history = data['orderHistory'] ?? data['orders'] ?? data['purchaseHistory'];
     orderHistory.assignAll(
       history is List
           ? history.whereType<Map>().map(
               (item) => VendorOrderHistoryModel(
-                orderId: (item['orderId'] ?? item['projectId'] ?? '')
+                orderId: (item['orderId'] ??
+                        item['orderCode'] ??
+                        item['code'] ??
+                        item['_id'] ??
+                        '')
                     .toString(),
-                material: (item['material'] ?? item['materialType'] ?? '')
+                project: (item['project'] ??
+                        item['projectName'] ??
+                        item['projectTitle'] ??
+                        item['material'] ??
+                        item['materialType'] ??
+                        '-')
                     .toString(),
-                quantity: (item['quantity'] ?? '').toString(),
-                orderValue: (item['orderValue'] ?? item['amount'] ?? '')
+                material: (item['material'] ??
+                        item['materialType'] ??
+                        item['project'] ??
+                        '-')
                     .toString(),
-                status: _title(item['status']),
+                quantity: (item['quantity'] ?? item['packageCount'] ?? '-').toString(),
+                orderValue:
+                    (item['orderValue'] ?? item['amount'] ?? item['total'] ?? '-')
+                        .toString(),
+                status: _title(item['status'] ?? 'Pending'),
               ),
             )
           : <VendorOrderHistoryModel>[],
     );
-    contactRoles.clear();
-    certificates.clear();
+
+    // 2. Vendor Contact Roles
+    final rolesList = data['contactRoles'] ?? data['contacts'];
+    if (rolesList is List && rolesList.isNotEmpty) {
+      contactRoles.assignAll(
+        rolesList.whereType<Map>().map(
+              (r) => VendorContactRoleModel(
+                roleName: (r['roleName'] ?? r['role'] ?? r['title'] ?? 'Contact')
+                    .toString(),
+                name: (r['name'] ?? r['contactName'] ?? '-').toString(),
+                phone: (r['phone'] ?? r['phoneNumber'] ?? '').toString(),
+              ),
+            ),
+      );
+    } else {
+      // Default contact roles matching web panel
+      final contactName = (data['contactName'] ??
+              (data['primaryContact'] is Map
+                  ? data['primaryContact']['name']
+                  : data['primaryContact']) ??
+              shipper.contactName)
+          .toString()
+          .trim();
+      final contactPhone = (data['phone'] ??
+              data['phoneNumber'] ??
+              (data['primaryContact'] is Map
+                  ? data['primaryContact']['phone']
+                  : null) ??
+              shipper.phone)
+          .toString()
+          .trim();
+      final pickupLoc = _address(data['pickupLocation'] ?? data['address']);
+
+      contactRoles.assignAll([
+        VendorContactRoleModel(
+          roleName: 'Primary Contact',
+          name: contactName.isNotEmpty ? contactName : '-',
+          phone: contactPhone.isNotEmpty ? contactPhone : '',
+        ),
+        VendorContactRoleModel(
+          roleName: 'Pickup Location',
+          name: pickupLoc.isNotEmpty ? pickupLoc : '-',
+          phone: '',
+        ),
+      ]);
+    }
+
+    // 3. Compliance Documents
+    final docsList = data['complianceDocuments'] ??
+        data['compliance'] ??
+        data['certificates'] ??
+        data['documents'];
+    if (docsList is List) {
+      certificates.assignAll(
+        docsList.whereType<Map>().map(
+              (d) => ComplianceCertificateModel(
+                name: (d['name'] ??
+                        d['documentName'] ??
+                        d['title'] ??
+                        d['fileName'] ??
+                        'Document')
+                    .toString(),
+                size: (d['size'] ?? d['fileSize'] ?? '-').toString(),
+                type: (d['type'] ?? d['docType'] ?? d['documentType'] ?? 'PDF')
+                    .toString(),
+                expiryDate: (d['expiryDate'] ??
+                        d['expirationDate'] ??
+                        d['expiresAt'] ??
+                        '-')
+                    .toString(),
+              ),
+            ),
+      );
+    } else {
+      certificates.clear();
+    }
   }
 
-  void openAddShipper() {
-    _clearForm();
-    Get.toNamed(AppRoutes.addShipper);
-  }
+  void openAddShipper() => Get.toNamed(AppRoutes.addShipper);
 
   void openEditShipper() {
-    final shipper = selectedShipper.value;
-    if (shipper == null) return;
-    nameController.text = shipper.name;
-    idController.text = shipper.vendorCode;
-    phoneController.text = shipper.phone;
-    emailController.text = shipper.email;
-    streetController.text = vendorDetails.value.address;
-    Get.toNamed(AppRoutes.editShipper);
-  }
-
-  Future<void> saveShipper(BuildContext context, {required bool isEdit}) async {
-    if (nameController.text.trim().isEmpty ||
-        emailController.text.trim().isEmpty) {
-      CommonSnackbar.showError(title: 'Required fields', message: 'Shipper name and email are required.');
-      return;
-    }
-    isLoading.value = true;
-    try {
-      final payload = <String, dynamic>{
-        'vendorName': nameController.text.trim(),
-        'vendorCode': idController.text.trim(),
-        'email': emailController.text.trim(),
-        'phone': phoneController.text.trim(),
-        'vendorType': vendorType.value,
-        'serviceCategory': serviceCategory.value,
-        'yearsWorking': yearsController.text.trim(),
-        'address': {
-          'country': country.value,
-          'state': state.value,
-          'city': city.value,
-          'streetAddress': streetController.text.trim(),
-          'placeNumber': placeController.text.trim(),
-          'postalCode': postalController.text.trim(),
-        },
-        'notes': notesController.text.trim(),
-      };
-      if (isEdit && selectedShipper.value != null) {
-        await repository.update(selectedShipper.value!.id, payload);
-      } else {
-        await repository.create(payload);
-      }
-      await loadShippersData();
-      if (!context.mounted) return;
-      showDialog(
-        context: context,
-        builder: (ctx) => SuccessDialog(
-          title: isEdit
-              ? 'Shipper Updated Successfully'
-              : 'New Shipper Added Successfully',
-          buttonText: 'Ok',
-          onPressed: () {
-            Navigator.of(ctx).pop();
-            Get.offNamed(AppRoutes.shippersList);
-          },
-        ),
-      );
-    } catch (error) {
-      CommonSnackbar.showError(title: 'Unable to save shipper', message: error.toString());
-    } finally {
-      isLoading.value = false;
-    }
+    if (selectedShipper.value != null) Get.toNamed(AppRoutes.editShipper);
   }
 
   Future<void> toggleStatus(ShipperModel shipper) async {
@@ -252,23 +284,10 @@ class ShippersController extends GetxController {
       await repository.toggleStatus(shipper.id);
       await loadShippersData();
     } catch (error) {
-      CommonSnackbar.showError(title: 'Unable to update status', message: error.toString());
-    }
-  }
-
-  void _clearForm() {
-    for (final controller in [
-      nameController,
-      idController,
-      phoneController,
-      emailController,
-      yearsController,
-      streetController,
-      placeController,
-      postalController,
-      notesController,
-    ]) {
-      controller.clear();
+      CommonSnackbar.showError(
+        title: 'Unable to update status',
+        message: error.toString(),
+      );
     }
   }
 
@@ -288,6 +307,7 @@ class ShippersController extends GetxController {
     activeOrders: 0,
     avgDeliveryTime: '-',
     onTimeRate: '-',
+    notes: '',
   );
 
   Map<String, dynamic> _map(dynamic value) =>
@@ -304,13 +324,19 @@ class ShippersController extends GetxController {
       .join(' ');
   String _address(dynamic value) {
     if (value is Map) {
-      return [
+      final parts = [
         value['streetAddress'],
         value['city'],
         value['state'],
         value['postalCode'],
-      ].where((e) => e != null && e.toString().isNotEmpty).join(', ');
+      ]
+          .where((e) => e != null && e.toString().trim().isNotEmpty)
+          .map((e) => e.toString().trim())
+          .toList();
+      return parts.join(', ');
     }
-    return (value ?? '').toString();
+    final s = (value ?? '').toString().trim();
+    if (s == ',' || s == ', ' || s == '—' || s == '-') return '';
+    return s;
   }
 }

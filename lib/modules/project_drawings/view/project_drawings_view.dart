@@ -351,7 +351,7 @@ class ProjectDrawingsView extends GetView<ProjectDrawingsController> {
             children: [
               // Red PDF Icon container (Clickable to view PDF)
               InkWell(
-                onTap: () => Get.toNamed(AppRoutes.pdfView),
+                onTap: () => Get.toNamed(AppRoutes.pdfView, parameters: {'url': item.fileUrl, 'name': item.title}),
                 borderRadius: BorderRadius.circular(8),
                 child: Container(
                   width: 40,

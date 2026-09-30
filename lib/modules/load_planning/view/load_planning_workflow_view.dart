@@ -8,15 +8,16 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
-import '../../../app/routes/app_routes.dart';
+import '../../../app/services/file_export_service.dart';
 import '../../../app/utils/app_colors.dart';
-import '../../../app/utils/app_images.dart';
+import '../../../app/widgets/app_back_button.dart';
 import '../../../app/widgets/common_loader.dart';
 import '../../../app/widgets/common_snackbar.dart';
 import '../../home/widgets/app_drawer.dart';
 import '../../home/widgets/dashboard_app_bar.dart';
 import '../controller/load_planning_workflow_controller.dart';
 import '../model/bundle_data_model.dart';
+import '../widgets/packing_list_modal_dialog.dart';
 
 class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
   const LoadPlanningWorkflowView({super.key});
@@ -35,10 +36,30 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
                 if (controller.loading.value) return const CommonLoader();
                 return SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.all(24),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 16,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // Top Header Bar with Back Button
+                      Row(
+                        children: const [
+                          AppBackButton(),
+                          SizedBox(width: 16),
+                          Text(
+                            'Load Planning Workflow',
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+
                       // Top Stepper Bar
                       _stepper(),
                       const SizedBox(height: 24),
@@ -62,7 +83,9 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
       decoration: _cardDecoration(),
       child: Row(
-        children: List.generate(LoadPlanningWorkflowController.steps.length, (index) {
+        children: List.generate(LoadPlanningWorkflowController.steps.length, (
+          index,
+        ) {
           final isCompleted = index < controller.step.value;
           final isActive = index == controller.step.value;
           final activeOrDone = index <= controller.step.value;
@@ -117,7 +140,8 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
                               : null,
                         ),
                       ),
-                      if (index < LoadPlanningWorkflowController.steps.length - 1)
+                      if (index <
+                          LoadPlanningWorkflowController.steps.length - 1)
                         Expanded(
                           child: Container(
                             height: 3,
@@ -134,7 +158,9 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 11,
-                      fontWeight: activeOrDone ? FontWeight.bold : FontWeight.w500,
+                      fontWeight: activeOrDone
+                          ? FontWeight.bold
+                          : FontWeight.w500,
                       color: activeOrDone
                           ? const Color(0xFF1E293B)
                           : const Color(0xFF94A3B8),
@@ -200,29 +226,62 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
                 SizedBox(height: 4),
                 Text(
                   'Analyze the material list for accuracy and identify missing or incompatible items.',
-                  style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                  ),
                 ),
               ],
             ),
             const Spacer(),
-            ElevatedButton(
-              onPressed: controller.autoOptimize,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF7C3AED),
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+            Obx(() {
+              final isBusy = controller.actionLoading.value;
+              return ElevatedButton(
+                onPressed: isBusy ? null : controller.autoOptimize,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF7C3AED),
+                  disabledBackgroundColor: const Color(0xFF7C3AED).withValues(alpha: 0.6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 12,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
-              ),
-              child: const Text(
-                'Auto Optimize Bundles',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-            ),
+                child: isBusy
+                    ? const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          SizedBox(
+                            width: 14,
+                            height: 14,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          ),
+                          SizedBox(width: 8),
+                          Text(
+                            'Optimizing Bundles...',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      )
+                    : const Text(
+                        'Auto Optimize Bundles',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+              );
+            }),
           ],
         ),
         const SizedBox(height: 20),
@@ -259,82 +318,136 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-        // Page Title & Header Toolbar
-        Wrap(
-          alignment: WrapAlignment.spaceBetween,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          spacing: 12,
-          runSpacing: 12,
-          children: [
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  onPressed: Get.back,
-                  icon: const Icon(Icons.arrow_back, size: 20),
-                ),
-                const SizedBox(width: 8),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    Text(
-                      'Bundle / Pallet Planner',
+          // Page Title & Header Toolbar
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 12,
+            runSpacing: 12,
+            children: [
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    onPressed: Get.back,
+                    icon: const Icon(Icons.arrow_back, size: 20),
+                  ),
+                  const SizedBox(width: 8),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: const [
+                      Text(
+                        'Bundle / Pallet Planner',
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        'Group items into optimized bundles or pallets for efficient truck loading and site unloading.',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+
+              Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  // Export Excel Button
+                  OutlinedButton.icon(
+                    onPressed: controller.exportExcel,
+                    icon: const Icon(
+                      Icons.download_outlined,
+                      size: 16,
+                      color: AppColors.textPrimary,
+                    ),
+                    label: const Text(
+                      'Export Excel',
                       style: TextStyle(
-                        fontSize: 22,
+                        fontSize: 12,
                         fontWeight: FontWeight.bold,
                         color: AppColors.textPrimary,
                       ),
                     ),
-                    SizedBox(height: 4),
-                    Text(
-                      'Group items into optimized bundles or pallets for efficient truck loading and site unloading.',
-                      style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                    style: OutlinedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      side: const BorderSide(color: AppColors.inputBorder),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 10,
+                      ),
                     ),
-                  ],
-                ),
-              ],
-            ),
+                  ),
 
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                // Export Excel Button
-                OutlinedButton.icon(
-                  onPressed: controller.exportExcel,
-                  icon: const Icon(
-                    Icons.download_outlined,
-                    size: 16,
-                    color: AppColors.textPrimary,
-                  ),
-                  label: const Text(
-                    'Export Excel',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    side: const BorderSide(color: AppColors.inputBorder),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                  ),
-                ),
+                  // Confirm Bundle Plan Button (Hides when confirmed)
+                  Obx(() {
+                    if (!controller.isConfirmed.value) {
+                      return ElevatedButton(
+                        onPressed: controller.actionLoading.value
+                            ? null
+                            : controller.confirmBundles,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF6B46C1),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 18,
+                            vertical: 12,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: controller.actionLoading.value
+                            ? const SizedBox(
+                                width: 14,
+                                height: 14,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Text(
+                                'Confirm Bundle Plan',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                      );
+                    }
+                    return const SizedBox.shrink();
+                  }),
 
-                // Confirm Bundle Plan Button (Hides when confirmed)
-                Obx(() {
-                  if (!controller.isConfirmed.value) {
-                    return ElevatedButton(
-                      onPressed: controller.actionLoading.value
-                          ? null
-                          : controller.confirmBundles,
+                  // Proceed to Truckload Optimization Button
+                  Obx(
+                    () => ElevatedButton(
+                      onPressed: () {
+                        if (!controller.isConfirmed.value) {
+                          CommonSnackbar.showError(
+                            title: 'Confirmation Required',
+                            message:
+                                'Please confirm the bundle plan before proceeding.',
+                          );
+                          return;
+                        }
+                        controller.goToStep(2);
+                      },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF6B46C1),
+                        backgroundColor: controller.isConfirmed.value
+                            ? const Color(0xFF7C3AED)
+                            : const Color(0xFFA78BFA),
                         padding: const EdgeInsets.symmetric(
                           horizontal: 18,
                           vertical: 12,
@@ -343,88 +456,41 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
                           borderRadius: BorderRadius.circular(8),
                         ),
                       ),
-                      child: controller.actionLoading.value
-                          ? const SizedBox(
-                              width: 14,
-                              height: 14,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                          : const Text(
-                              'Confirm Bundle Plan',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                    );
-                  }
-                  return const SizedBox.shrink();
-                }),
-
-                // Proceed to Truckload Optimization Button
-                Obx(
-                  () => ElevatedButton(
-                    onPressed: () {
-                      if (!controller.isConfirmed.value) {
-                        CommonSnackbar.showError(
-                          title: 'Confirmation Required',
-                          message: 'Please confirm the bundle plan before proceeding.',
-                        );
-                        return;
-                      }
-                      controller.goToStep(2);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: controller.isConfirmed.value
-                          ? const Color(0xFF7C3AED)
-                          : const Color(0xFFA78BFA),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 18,
-                        vertical: 12,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: const Text(
-                      'Proceed to Truckload Optimization',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                      child: const Text(
+                        'Proceed to Truckload Optimization',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
-            ),
-          ],
-        ),
-        const SizedBox(height: 20),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
 
+          // Project Banner Card
+          _projectBannerCard(
+            title:
+                'Project: ${controller.projectName} | Bundle Plan ID: ${controller.displayBundlePlanId}',
+            idLabel: 'Project ID:',
+            idValue: controller.projectCode,
+            planLabel: 'Bundle Plan Id:',
+            planValue: controller.displayBundlePlanId,
+          ),
+          const SizedBox(height: 20),
 
-        // Project Banner Card
-        _projectBannerCard(
-          title: 'Project: ${controller.projectName} | Bundle Plan ID: ${controller.displayBundlePlanId}',
-          idLabel: 'Project ID:',
-          idValue: controller.projectCode,
-          planLabel: 'Bundle Plan Id:',
-          planValue: controller.displayBundlePlanId,
-        ),
-        const SizedBox(height: 20),
+          // Summary KPIs & Optimization Control Card
+          _summaryKpiAndControlCard(),
+          const SizedBox(height: 24),
 
-        // Summary KPIs & Optimization Control Card
-        _summaryKpiAndControlCard(),
-        const SizedBox(height: 24),
-
-        // Bundle Data Table Card
-        _bundleDataTableCard(context),
-      ],
-    );
+          // Bundle Data Table Card
+          _bundleDataTableCard(context),
+        ],
+      );
     });
   }
 
@@ -491,7 +557,11 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
           const SizedBox(height: 8),
           _kpiRow('Total Planned Weight', '$totalWeight lbs'),
           const SizedBox(height: 8),
-          _kpiRow('Bundle Warnings', warnings, isWarning: !warnings.startsWith('0')),
+          _kpiRow(
+            'Bundle Warnings',
+            warnings,
+            isWarning: !warnings.startsWith('0'),
+          ),
         ],
       );
     });
@@ -511,7 +581,10 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
             ),
           ),
           const SizedBox(height: 16),
-          _kpiRow('Prefered Bundle Weight', controller.preferredBundleWeightText),
+          _kpiRow(
+            'Prefered Bundle Weight',
+            controller.preferredBundleWeightText,
+          ),
           const SizedBox(height: 8),
           _kpiRow('Maximum Bundle Weight', controller.maxBundleWeightText),
           const SizedBox(height: 8),
@@ -568,19 +641,98 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
           // Dark Slate Header
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            decoration: const BoxDecoration(
-              color: Color(0xFF1E293B),
-            ),
+            decoration: const BoxDecoration(color: Color(0xFF1E293B)),
             child: Row(
               children: const [
-                SizedBox(width: 32, child: Text('#', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
-                Expanded(flex: 2, child: Text('BUNDLE ID', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
-                Expanded(flex: 2, child: Text('PROFILE', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
-                Expanded(flex: 2, child: Text('ITEMS', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
-                Expanded(flex: 2, child: Text('LENGTH', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
-                Expanded(flex: 2, child: Text('UNIT WEIGHT', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
-                Expanded(flex: 2, child: Text('STATUS', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
-                SizedBox(width: 200, child: Text('ACTIONS', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold), textAlign: TextAlign.right)),
+                SizedBox(
+                  width: 32,
+                  child: Text(
+                    '#',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    'BUNDLE ID',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    'PROFILE',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    'ITEMS',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    'LENGTH',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    'UNIT WEIGHT',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    'STATUS',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  width: 200,
+                  child: Text(
+                    'ACTIONS',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.right,
+                  ),
+                ),
               ],
             ),
           ),
@@ -603,7 +755,10 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
               itemBuilder: (context, index) {
                 final item = list[index];
                 return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                   child: Row(
                     children: [
                       SizedBox(
@@ -674,7 +829,10 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
                         child: Align(
                           alignment: Alignment.centerLeft,
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
                             decoration: BoxDecoration(
                               color: item.status.toLowerCase() == 'confirmed'
                                   ? const Color(0xFFDCFCE7)
@@ -710,7 +868,10 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF717D96),
                                 elevation: 0,
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 8,
+                                ),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(6),
                                 ),
@@ -728,7 +889,11 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
                             // View QR Button
                             ElevatedButton.icon(
                               onPressed: () => _showQrDialog(context, item),
-                              icon: const Icon(Icons.qr_code, size: 14, color: Colors.white),
+                              icon: const Icon(
+                                Icons.qr_code,
+                                size: 14,
+                                color: Colors.white,
+                              ),
                               label: const Text(
                                 'View QR',
                                 style: TextStyle(
@@ -740,7 +905,10 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF2563EB),
                                 elevation: 0,
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 8,
+                                ),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(6),
                                 ),
@@ -762,6 +930,13 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
 
   // --- STEP 2: TRUCK OPTIMIZER (Screenshot 5) ---
   Widget _truckOptimizerStep(BuildContext context) {
+    if (controller.truckloadList.isEmpty && !controller.loading.value) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (controller.truckloadList.isEmpty && controller.step.value == 2) {
+          controller.loadTruckPlan();
+        }
+      });
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -794,28 +969,47 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
                     SizedBox(height: 4),
                     Text(
                       'Optimize bundle assignments into truckloads to maximize utilization and prepare shipments for dispatch.',
-                      style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textSecondary,
+                      ),
                     ),
                   ],
                 ),
               ],
             ),
-            ElevatedButton(
-              onPressed: () => controller.goToStep(3),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF7C3AED),
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+            Obx(
+              () => ElevatedButton(
+                onPressed: controller.actionLoading.value
+                    ? null
+                    : () => controller.confirmAndGeneratePackingList(),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF7C3AED),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 12,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
-              ),
-              child: const Text(
-                'Generate Packing List',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
+                child: controller.actionLoading.value
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Text(
+                        'Generate Packing List',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
               ),
             ),
           ],
@@ -823,12 +1017,15 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
         const SizedBox(height: 20),
 
         // Project Banner Card
-        _projectBannerCard(
-          title: 'Project: ${controller.projectName} | Packing Plan ID: ${controller.displayPackingListPlanId}',
-          idLabel: 'Project ID:',
-          idValue: controller.projectCode,
-          planLabel: 'Packing Plan Id:',
-          planValue: controller.displayPackingListPlanId,
+        Obx(
+          () => _projectBannerCard(
+            title:
+                'Project: ${controller.displayProjectName} | Packing Plan ID: ${controller.displayPackingListPlanId}',
+            idLabel: 'Project ID:',
+            idValue: controller.displayProjectId,
+            planLabel: 'Packing Plan Id:',
+            planValue: controller.displayPackingListPlanId,
+          ),
         ),
         const SizedBox(height: 20),
 
@@ -866,26 +1063,31 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: _cardDecoration(),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Optimization Summary Card',
-            style: TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
+      child: Obx(
+        () => Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Optimization Summary Card',
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
             ),
-          ),
-          const SizedBox(height: 16),
-          _kpiRow('Total Bundles', '22'),
-          const SizedBox(height: 8),
-          _kpiRow('Planned Truck Loads', '2'),
-          const SizedBox(height: 8),
-          _kpiRow('Total Weight', '55,789.2 LBS'),
-          const SizedBox(height: 8),
-          _kpiRow('Average Load Utilization', '81%'),
-        ],
+            const SizedBox(height: 16),
+            _kpiRow('Total Bundles', '${controller.truckloadTotalBundles}'),
+            const SizedBox(height: 8),
+            _kpiRow('Planned Truck Loads', '${controller.truckloadPlannedLoads}'),
+            const SizedBox(height: 8),
+            _kpiRow('Total Weight', controller.truckloadTotalWeightText),
+            const SizedBox(height: 8),
+            _kpiRow(
+              'Average Load Utilization',
+              '${controller.truckloadAverageUtilization}%',
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -894,24 +1096,26 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: _cardDecoration(),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Truck Summary',
-            style: TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
+      child: Obx(
+        () => Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Truck Summary',
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
             ),
-          ),
-          const SizedBox(height: 16),
-          _kpiRow("53' Semi Truck Count", '1'),
-          const SizedBox(height: 8),
-          _kpiRow("40' Hotshot Count", '1'),
-          const SizedBox(height: 8),
-          _kpiRow('Total Trucks', '2'),
-        ],
+            const SizedBox(height: 16),
+            _kpiRow("53' Semi Truck Count", '${controller.truckloadSemi53Count}'),
+            const SizedBox(height: 8),
+            _kpiRow("40' Hotshot Count", '${controller.truckloadHotshot40Count}'),
+            const SizedBox(height: 8),
+            _kpiRow('Total Trucks', '${controller.truckloadTotalTrucks}'),
+          ],
+        ),
       ),
     );
   }
@@ -937,22 +1141,92 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
           // Dark Slate Header
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            decoration: const BoxDecoration(
-              color: Color(0xFF1E293B),
-            ),
+            decoration: const BoxDecoration(color: Color(0xFF1E293B)),
             child: Row(
               children: const [
-                SizedBox(width: 32, child: Text('#', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
-                Expanded(flex: 2, child: Text('LOAD ID', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
-                Expanded(flex: 2, child: Text('BUNDLE', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
-                Expanded(flex: 2, child: Text('TOTAL WEIGHT', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
-                Expanded(flex: 2, child: Text('UTILIZATION', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
-                Expanded(flex: 2, child: Text('STATUS', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
+                SizedBox(
+                  width: 32,
+                  child: Text(
+                    '#',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    'LOAD ID',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    'BUNDLE',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    'TOTAL WEIGHT',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    'UTILIZATION',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    'STATUS',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
           // Rows
           Obx(() {
+            if (controller.actionLoading.value ||
+                (controller.loading.value && controller.truckloadList.isEmpty)) {
+              return Container(
+                padding: const EdgeInsets.all(32),
+                alignment: Alignment.center,
+                child: const SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              );
+            }
             final list = controller.truckloadList;
             if (list.isEmpty) {
               return Container(
@@ -970,7 +1244,10 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
               itemBuilder: (context, index) {
                 final item = list[index];
                 return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
                   child: Row(
                     children: [
                       SizedBox(
@@ -1018,7 +1295,9 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
                       Expanded(
                         flex: 2,
                         child: Text(
-                          '${item.utilizationPercentage}%',
+                          item.utilizationPercentage > 0
+                              ? '${item.utilizationPercentage}%'
+                              : '—',
                           style: const TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
@@ -1030,9 +1309,13 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
                         flex: 2,
                         child: Text(
                           item.status,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 12,
-                            color: AppColors.textSecondary,
+                            fontWeight: FontWeight.w600,
+                            color: item.status.toLowerCase() == 'confirmed' ||
+                                    item.status.toLowerCase() == 'ready'
+                                ? const Color(0xFF16A34A)
+                                : AppColors.textSecondary,
                           ),
                         ),
                       ),
@@ -1047,11 +1330,12 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
     );
   }
 
-  // --- STEP 3: PACKING LIST (Screenshots 1 & 2) ---
+  // --- STEP 3: PACKING LIST ---
   Widget _packingListStep(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Page Title & Header Toolbar
         Wrap(
           alignment: WrapAlignment.spaceBetween,
           crossAxisAlignment: WrapCrossAlignment.center,
@@ -1062,7 +1346,7 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
-                  onPressed: Get.back,
+                  onPressed: () => controller.goToStep(2),
                   icon: const Icon(Icons.arrow_back, size: 20),
                 ),
                 const SizedBox(width: 8),
@@ -1080,64 +1364,77 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
                     SizedBox(height: 4),
                     Text(
                       'Generate and manage packing lists for truckloads and bundles.',
-                      style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textSecondary,
+                      ),
                     ),
                   ],
                 ),
               ],
             ),
-            ElevatedButton(
-              onPressed: () => controller.goToStep(4),
+            Obx(() => ElevatedButton(
+              onPressed: controller.actionLoading.value ? null : () => controller.goToStep(4),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF7C3AED),
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
               ),
-              child: const Text(
-                'Generate QR Label',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-            ),
+              child: controller.actionLoading.value
+                  ? const SizedBox(
+                      height: 16,
+                      width: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                    )
+                  : const Text(
+                      'Generate QR Label',
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
+                    ),
+            )),
           ],
         ),
         const SizedBox(height: 20),
-        _projectBannerCard(
-          title: 'Project: ${controller.projectName} | Truckloads: 2',
-          idLabel: 'Project:',
-          idValue: controller.projectName,
-          planLabel: 'Packing List Plan ID:',
-          planValue: controller.packingListPlanId,
+
+        // Project Banner Card
+        Obx(
+          () => _projectBannerCard(
+            title:
+                'Project: ${controller.displayProjectName} | Truckloads: ${controller.truckloadPlannedLoads}',
+            idLabel: 'Project ID:',
+            idValue: controller.displayProjectId,
+            planLabel: 'Packing Plan Id:',
+            planValue: controller.displayPackingListPlanId,
+          ),
         ),
         const SizedBox(height: 20),
+
+        // Optimization Summary Card
         Container(
-          width: double.infinity,
           padding: const EdgeInsets.all(20),
           decoration: _cardDecoration(),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Optimization Summary Card',
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
-              ),
-              const SizedBox(height: 16),
-              _kpiRow('Truck Loads', '2'),
-              const SizedBox(height: 8),
-              _kpiRow('Total Bundles', '22'),
-              const SizedBox(height: 8),
-              _kpiRow('Total Weight', '55,789.2 LBS'),
-              const SizedBox(height: 8),
-              _kpiRow('Packing List Generated', '2'),
-            ],
+          child: Obx(
+            () => Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Optimization Summary Card',
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                ),
+                const SizedBox(height: 16),
+                _kpiRow('Truck Loads', '${controller.truckloadPlannedLoads}'),
+                const SizedBox(height: 8),
+                _kpiRow('Total Bundles', '${controller.truckloadTotalBundles}'),
+                const SizedBox(height: 8),
+                _kpiRow('Total Weight', controller.truckloadTotalWeightText),
+                const SizedBox(height: 8),
+                _kpiRow('Packing List Generated', '${controller.rawPackingLists.length}'),
+              ],
+            ),
           ),
         ),
         const SizedBox(height: 24),
+
+        // Packing List Table Card
         Container(
           width: double.infinity,
           decoration: _cardDecoration(),
@@ -1153,92 +1450,101 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                color: const Color(0xFF1E293B),
+                decoration: const BoxDecoration(color: Color(0xFF1E293B)),
                 child: Row(
                   children: const [
-                    SizedBox(width: 32, child: Text('#', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
-                    Expanded(flex: 2, child: Text('Load ID', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
-                    Expanded(flex: 2, child: Text('Truck', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
-                    Expanded(flex: 2, child: Text('Bundles', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
-                    Expanded(flex: 2, child: Text('Weight', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
-                    Expanded(flex: 2, child: Text('Status', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
-                    SizedBox(width: 140, child: Text('Actions', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold), textAlign: TextAlign.right)),
+                    SizedBox(width: 36, child: Text('#', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
+                    Expanded(flex: 2, child: Text('LOAD ID', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
+                    Expanded(flex: 2, child: Text('TRUCK', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
+                    Expanded(flex: 1, child: Text('BUNDLES', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
+                    Expanded(flex: 2, child: Text('WEIGHT', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
+                    Expanded(flex: 1, child: Text('STATUS', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
+                    SizedBox(width: 120, child: Text('ACTIONS', textAlign: TextAlign.center, style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
                   ],
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                child: Row(
-                  children: [
-                    const SizedBox(width: 32, child: Text('1', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold))),
-                    const Expanded(flex: 2, child: Text('PL-001', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold))),
-                    const Expanded(flex: 2, child: Text('53 ft Semi', style: TextStyle(fontSize: 12, color: AppColors.textSecondary))),
-                    const Expanded(flex: 2, child: Text('18', style: TextStyle(fontSize: 12, color: AppColors.textSecondary))),
-                    const Expanded(flex: 2, child: Text('44,651.8 LBS', style: TextStyle(fontSize: 12, color: AppColors.textSecondary))),
-                    const Expanded(flex: 2, child: Text('Draft', style: TextStyle(fontSize: 12, color: AppColors.textSecondary))),
-                    SizedBox(
-                      width: 140,
+              Obx(() {
+                final lists = controller.rawPackingLists;
+                if (lists.isEmpty) {
+                  return Container(
+                    padding: const EdgeInsets.all(32),
+                    alignment: Alignment.center,
+                    child: const Text('No packing lists available.'),
+                  );
+                }
+                return ListView.separated(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: lists.length,
+                  separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                  itemBuilder: (context, index) {
+                    final item = lists[index];
+                    final pNo = (item['packingListNo'] ?? 'PL-00${index + 1}').toString();
+                    final truck = (item['truckLabel'] ?? item['truckType'] ?? item['truckNo'] ?? '—').toString();
+                    final bundles = item['totalBundles']?.toString() ?? '—';
+                    final weight = item['totalWeight'] is num ? '${(item['totalWeight'] as num).toStringAsFixed(1)} LBS' : '—';
+                    final status = (item['status'] ?? 'Ready').toString();
+
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                       child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          IconButton(
-                            onPressed: controller.exportExcel,
-                            icon: const Icon(Icons.download_outlined, size: 18, color: AppColors.textSecondary),
-                          ),
-                          const SizedBox(width: 6),
-                          ElevatedButton(
-                            onPressed: () => _showPackingListDetailsDialog(context, 'PL-001', '53 ft Semi', 18, '44,651.80'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF64748B),
-                              elevation: 0,
-                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                          SizedBox(width: 36, child: Text('${index + 1}', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary))),
+                          Expanded(flex: 2, child: Text(pNo, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary))),
+                          Expanded(flex: 2, child: Text(truck, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary))),
+                          Expanded(flex: 1, child: Text(bundles, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary))),
+                          Expanded(flex: 2, child: Text(weight, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary))),
+                          Expanded(
+                            flex: 1,
+                            child: Text(
+                              status,
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: status.toLowerCase() == 'confirmed' || status.toLowerCase() == 'ready'
+                                    ? const Color(0xFF16A34A)
+                                    : AppColors.textSecondary,
+                              ),
                             ),
-                            child: const Text('View', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white)),
+                          ),
+                          SizedBox(
+                            width: 120,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                IconButton(
+                                  onPressed: () => _downloadPackingListPdf(item),
+                                  icon: const Icon(Icons.file_download_outlined, size: 18, color: Color(0xFF64748B)),
+                                  tooltip: 'Download PDF',
+                                ),
+                                const SizedBox(width: 4),
+                                ElevatedButton(
+                                  onPressed: () => PackingListModalDialog.show(
+                                    context,
+                                    packingList: item,
+                                    allBundles: controller.rawBundles,
+                                    projectName: controller.displayProjectName,
+                                    planNumber: controller.displayPackingListPlanId,
+                                    showQr: false,
+                                  ),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFFF1F5F9),
+                                    foregroundColor: const Color(0xFF334155),
+                                    elevation: 0,
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                                  ),
+                                  child: const Text('View', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              const Divider(height: 1, color: Color(0xFFF1F5F9)),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                child: Row(
-                  children: [
-                    const SizedBox(width: 32, child: Text('2', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold))),
-                    const Expanded(flex: 2, child: Text('PL-002', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold))),
-                    const Expanded(flex: 2, child: Text('40 ft Hot Shot', style: TextStyle(fontSize: 12, color: AppColors.textSecondary))),
-                    const Expanded(flex: 2, child: Text('4', style: TextStyle(fontSize: 12, color: AppColors.textSecondary))),
-                    const Expanded(flex: 2, child: Text('11,137.4 LBS', style: TextStyle(fontSize: 12, color: AppColors.textSecondary))),
-                    const Expanded(flex: 2, child: Text('Draft', style: TextStyle(fontSize: 12, color: AppColors.textSecondary))),
-                    SizedBox(
-                      width: 140,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          IconButton(
-                            onPressed: controller.exportExcel,
-                            icon: const Icon(Icons.download_outlined, size: 18, color: AppColors.textSecondary),
-                          ),
-                          const SizedBox(width: 6),
-                          ElevatedButton(
-                            onPressed: () => _showPackingListDetailsDialog(context, 'PL-002', '40 ft Hot Shot', 4, '11,137.40'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF64748B),
-                              elevation: 0,
-                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-                            ),
-                            child: const Text('View', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white)),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+                    );
+                  },
+                );
+              }),
             ],
           ),
         ),
@@ -1246,11 +1552,12 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
     );
   }
 
-  // --- STEP 4: QR LABEL GENERATOR (Screenshots 3 & 4) ---
+  // --- STEP 4: QR LABEL GENERATOR (Matches Web) ---
   Widget _qrLabelStep(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Page Title & Header Toolbar
         Wrap(
           alignment: WrapAlignment.spaceBetween,
           crossAxisAlignment: WrapCrossAlignment.center,
@@ -1261,7 +1568,7 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
-                  onPressed: Get.back,
+                  onPressed: () => controller.goToStep(3),
                   icon: const Icon(Icons.arrow_back, size: 20),
                 ),
                 const SizedBox(width: 8),
@@ -1279,64 +1586,77 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
                     SizedBox(height: 4),
                     Text(
                       'Generate and print QR labels for bundles and pallets to enable scanning and tracking.',
-                      style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textSecondary,
+                      ),
                     ),
                   ],
                 ),
               ],
             ),
-            ElevatedButton(
-              onPressed: () => controller.goToStep(5),
+            Obx(() => ElevatedButton(
+              onPressed: controller.actionLoading.value ? null : () => controller.goToStep(5),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF7C3AED),
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
               ),
-              child: const Text(
-                'Review Load Plan',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-            ),
+              child: controller.actionLoading.value
+                  ? const SizedBox(
+                      height: 16,
+                      width: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                    )
+                  : const Text(
+                      'Review Load Plan',
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
+                    ),
+            )),
           ],
         ),
         const SizedBox(height: 20),
-        _projectBannerCard(
-          title: 'Project: ${controller.projectName} | Packing Plan: ${controller.packingListPlanId}',
-          idLabel: 'Project:',
-          idValue: controller.projectName,
-          planLabel: 'Packing List Plan ID:',
-          planValue: controller.packingListPlanId,
+
+        // Project Banner Card
+        Obx(
+          () => _projectBannerCard(
+            title:
+                'Project: ${controller.displayProjectName} | Packing Plan ID: ${controller.displayPackingListPlanId}',
+            idLabel: 'Project ID:',
+            idValue: controller.displayProjectId,
+            planLabel: 'Packing Plan Id:',
+            planValue: controller.displayPackingListPlanId,
+          ),
         ),
         const SizedBox(height: 20),
+
+        // Summary Card
         Container(
-          width: double.infinity,
           padding: const EdgeInsets.all(20),
           decoration: _cardDecoration(),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Summary Card',
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
-              ),
-              const SizedBox(height: 16),
-              _kpiRow('Total Bundles', '22'),
-              const SizedBox(height: 8),
-              _kpiRow('Labels Generated', '22'),
-              const SizedBox(height: 8),
-              _kpiRow('Labels Printed', '22'),
-              const SizedBox(height: 8),
-              _kpiRow('Pending Labels', '0'),
-            ],
+          child: Obx(
+            () => Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Summary Card',
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                ),
+                const SizedBox(height: 16),
+                _kpiRow('Total Bundles', '${controller.truckloadTotalBundles}'),
+                const SizedBox(height: 8),
+                _kpiRow('Labels Generated', '${controller.truckloadTotalBundles}'),
+                const SizedBox(height: 8),
+                _kpiRow('Labels Printed', '${controller.truckloadTotalBundles}'),
+                const SizedBox(height: 8),
+                _kpiRow('Pending Labels', '0'),
+              ],
+            ),
           ),
         ),
         const SizedBox(height: 24),
+
+        // Truck List Table Card with View QR Action
         Container(
           width: double.infinity,
           decoration: _cardDecoration(),
@@ -1352,83 +1672,96 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                color: const Color(0xFF1E293B),
+                decoration: const BoxDecoration(color: Color(0xFF1E293B)),
                 child: Row(
                   children: const [
-                    SizedBox(width: 32, child: Text('#', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
-                    Expanded(flex: 2, child: Text('Load ID', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
-                    Expanded(flex: 2, child: Text('Truck', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
-                    Expanded(flex: 2, child: Text('Bundles', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
-                    Expanded(flex: 2, child: Text('Weight', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
-                    Expanded(flex: 2, child: Text('Destination', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
-                    Expanded(flex: 2, child: Text('Status', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
-                    SizedBox(width: 120, child: Text('Actions', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold), textAlign: TextAlign.right)),
+                    SizedBox(width: 36, child: Text('#', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
+                    Expanded(flex: 2, child: Text('LOAD ID', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
+                    Expanded(flex: 2, child: Text('TRUCK', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
+                    Expanded(flex: 1, child: Text('BUNDLES', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
+                    Expanded(flex: 2, child: Text('WEIGHT', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
+                    Expanded(flex: 2, child: Text('DESTINATION', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
+                    Expanded(flex: 1, child: Text('STATUS', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
+                    SizedBox(width: 130, child: Text('ACTIONS', textAlign: TextAlign.center, style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
                   ],
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                child: Row(
-                  children: [
-                    const SizedBox(width: 32, child: Text('1', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold))),
-                    const Expanded(flex: 2, child: Text('PL-001', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold))),
-                    const Expanded(flex: 2, child: Text('53 ft Semi', style: TextStyle(fontSize: 12, color: AppColors.textSecondary))),
-                    const Expanded(flex: 2, child: Text('18', style: TextStyle(fontSize: 12, color: AppColors.textSecondary))),
-                    const Expanded(flex: 2, child: Text('44,651.8 LBS', style: TextStyle(fontSize: 12, color: AppColors.textSecondary))),
-                    const Expanded(flex: 2, child: Text('Warehouse Site A', style: TextStyle(fontSize: 12, color: AppColors.textSecondary))),
-                    const Expanded(flex: 2, child: Text('Confirmed', style: TextStyle(fontSize: 12, color: AppColors.textSecondary))),
-                    SizedBox(
-                      width: 120,
-                      child: Align(
-                        alignment: Alignment.centerRight,
-                        child: ElevatedButton.icon(
-                          onPressed: () => _showQrLabelDetailsDialog(context, 'PL-001', '53 ft Semi', 18, '44,651.80'),
-                          icon: const Icon(Icons.qr_code, size: 14, color: Colors.white),
-                          label: const Text('View QR', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white)),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF2563EB),
-                            elevation: 0,
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+              Obx(() {
+                final lists = controller.rawPackingLists;
+                if (lists.isEmpty) {
+                  return Container(
+                    padding: const EdgeInsets.all(32),
+                    alignment: Alignment.center,
+                    child: const Text('No truck loads available.'),
+                  );
+                }
+                return ListView.separated(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: lists.length,
+                  separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                  itemBuilder: (context, index) {
+                    final item = lists[index];
+                    final pNo = (item['packingListNo'] ?? 'PL-00${index + 1}').toString();
+                    final truck = (item['truckLabel'] ?? item['truckType'] ?? item['truckNo'] ?? '—').toString();
+                    final bundles = item['totalBundles']?.toString() ?? '—';
+                    final weight = item['totalWeight'] is num ? '${(item['totalWeight'] as num).toStringAsFixed(1)} LBS' : '—';
+                    final destination = '${controller.displayProjectName} Site A';
+                    final status = (item['status'] ?? 'Ready').toString();
+
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      child: Row(
+                        children: [
+                          SizedBox(width: 36, child: Text('${index + 1}', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary))),
+                          Expanded(flex: 2, child: Text(pNo, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary))),
+                          Expanded(flex: 2, child: Text(truck, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary))),
+                          Expanded(flex: 1, child: Text(bundles, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary))),
+                          Expanded(flex: 2, child: Text(weight, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary))),
+                          Expanded(flex: 2, child: Text(destination, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary))),
+                          Expanded(
+                            flex: 1,
+                            child: Text(
+                              status,
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: status.toLowerCase() == 'confirmed' || status.toLowerCase() == 'ready'
+                                    ? const Color(0xFF16A34A)
+                                    : AppColors.textSecondary,
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const Divider(height: 1, color: Color(0xFFF1F5F9)),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                child: Row(
-                  children: [
-                    const SizedBox(width: 32, child: Text('2', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold))),
-                    const Expanded(flex: 2, child: Text('PL-002', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold))),
-                    const Expanded(flex: 2, child: Text('40 ft Hot Shot', style: TextStyle(fontSize: 12, color: AppColors.textSecondary))),
-                    const Expanded(flex: 2, child: Text('4', style: TextStyle(fontSize: 12, color: AppColors.textSecondary))),
-                    const Expanded(flex: 2, child: Text('11,137.4 LBS', style: TextStyle(fontSize: 12, color: AppColors.textSecondary))),
-                    const Expanded(flex: 2, child: Text('Warehouse Site A', style: TextStyle(fontSize: 12, color: AppColors.textSecondary))),
-                    const Expanded(flex: 2, child: Text('Confirmed', style: TextStyle(fontSize: 12, color: AppColors.textSecondary))),
-                    SizedBox(
-                      width: 120,
-                      child: Align(
-                        alignment: Alignment.centerRight,
-                        child: ElevatedButton.icon(
-                          onPressed: () => _showQrLabelDetailsDialog(context, 'PL-002', '40 ft Hot Shot', 4, '11,137.40'),
-                          icon: const Icon(Icons.qr_code, size: 14, color: Colors.white),
-                          label: const Text('View QR', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white)),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF2563EB),
-                            elevation: 0,
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                          SizedBox(
+                            width: 130,
+                            child: ElevatedButton.icon(
+                              onPressed: () => PackingListModalDialog.show(
+                                context,
+                                packingList: item,
+                                allBundles: controller.rawBundles,
+                                projectName: controller.displayProjectName,
+                                planNumber: controller.displayPackingListPlanId,
+                                showQr: true,
+                              ),
+                              icon: const Icon(Icons.qr_code_2, size: 16, color: Colors.white),
+                              label: const Text(
+                                'View QR',
+                                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF1E51A4),
+                                elevation: 0,
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                              ),
+                            ),
                           ),
-                        ),
+                        ],
                       ),
-                    ),
-                  ],
-                ),
-              ),
+                    );
+                  },
+                );
+              }),
             ],
           ),
         ),
@@ -1436,7 +1769,7 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
     );
   }
 
-  // --- STEP 5: LOAD PLAN REVIEW (Screenshot 5) ---
+  // --- STEP 5: LOAD PLAN REVIEW ---
   Widget _loadPlanReviewStep(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1451,7 +1784,7 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
-                  onPressed: Get.back,
+                  onPressed: () => controller.goToStep(4),
                   icon: const Icon(Icons.arrow_back, size: 20),
                 ),
                 const SizedBox(width: 8),
@@ -1468,63 +1801,75 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
                     ),
                     SizedBox(height: 4),
                     Text(
-                      'Final check of the entire load plan, including bundles, trucks, and weights, before selecting freight carriers.',
-                      style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                      'Review the finalized load plan before freight bidding.',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textSecondary,
+                      ),
                     ),
                   ],
                 ),
               ],
             ),
-            ElevatedButton(
-              onPressed: controller.approveLoadPlan,
+            Obx(() => ElevatedButton(
+              onPressed: controller.actionLoading.value ? null : controller.approveLoadPlan,
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF7C3AED),
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
               ),
-              child: const Text(
-                'Approve & Create Freight Request',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-            ),
+              child: controller.actionLoading.value
+                  ? const SizedBox(
+                      height: 16,
+                      width: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                    )
+                  : const Text(
+                      'Approve Load Plan',
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
+                    ),
+            )),
           ],
         ),
         const SizedBox(height: 20),
-        _projectBannerCard(
-          title: 'Project: ${controller.projectName} | Packing Plan: ${controller.displayPackingListPlanId}',
-          idLabel: 'Project:',
-          idValue: controller.projectName,
-          planLabel: 'Status:',
-          planValue: 'confirmed',
+
+        Obx(
+          () => _projectBannerCard(
+            title:
+                'Project: ${controller.displayProjectName} | Load Plan Review',
+            idLabel: 'Project ID:',
+            idValue: controller.displayProjectId,
+            planLabel: 'Packing Plan Id:',
+            planValue: controller.displayPackingListPlanId,
+          ),
         ),
         const SizedBox(height: 20),
+
+        // Summary Card
         Container(
-          width: double.infinity,
           padding: const EdgeInsets.all(20),
           decoration: _cardDecoration(),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Load Summary Card',
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
-              ),
-              const SizedBox(height: 16),
-              _kpiRow('Total Bundles', '22'),
-              const SizedBox(height: 8),
-              _kpiRow('Total Loads', '2'),
-              const SizedBox(height: 8),
-              _kpiRow('Total Weight', '55,789.2 LBS'),
-            ],
+          child: Obx(
+            () => Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Load Summary',
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                ),
+                const SizedBox(height: 16),
+                _kpiRow('Planned Truck Loads', '${controller.truckloadPlannedLoads}'),
+                const SizedBox(height: 8),
+                _kpiRow('Total Bundles', '${controller.truckloadTotalBundles}'),
+                const SizedBox(height: 8),
+                _kpiRow('Total Weight', controller.truckloadTotalWeightText),
+              ],
+            ),
           ),
         ),
         const SizedBox(height: 24),
+
+        // Truckloads Table
         Container(
           width: double.infinity,
           decoration: _cardDecoration(),
@@ -1534,120 +1879,86 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
               const Padding(
                 padding: EdgeInsets.all(20),
                 child: Text(
-                  'Truckload Summary',
+                  'Final Load Allocation',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                 ),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                color: const Color(0xFF1E293B),
+                decoration: const BoxDecoration(color: Color(0xFF1E293B)),
                 child: Row(
                   children: const [
-                    SizedBox(width: 32, child: Text('#', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
-                    Expanded(flex: 2, child: Text('Load ID', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
-                    Expanded(flex: 2, child: Text('Bundle', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
-                    Expanded(flex: 2, child: Text('Total Weight', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
-                    Expanded(flex: 2, child: Text('Ready', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
-                    SizedBox(width: 100, child: Text('Action', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold), textAlign: TextAlign.right)),
+                    SizedBox(width: 36, child: Text('#', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
+                    Expanded(flex: 2, child: Text('LOAD ID', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
+                    Expanded(flex: 2, child: Text('TRUCK', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
+                    Expanded(flex: 1, child: Text('BUNDLES', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
+                    Expanded(flex: 2, child: Text('WEIGHT', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
+                    Expanded(flex: 1, child: Text('STATUS', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
+                    SizedBox(width: 100, child: Text('ACTIONS', textAlign: TextAlign.center, style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
                   ],
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                child: Row(
-                  children: [
-                    const SizedBox(width: 32, child: Text('1', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold))),
-                    const Expanded(flex: 2, child: Text('PL-001', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold))),
-                    const Expanded(flex: 2, child: Text('18', style: TextStyle(fontSize: 12, color: AppColors.textSecondary))),
-                    const Expanded(flex: 2, child: Text('44,651.8 LBS', style: TextStyle(fontSize: 12, color: AppColors.textSecondary))),
-                    const Expanded(flex: 2, child: Icon(Icons.check, size: 18, color: Color(0xFF1E293B))),
-                    SizedBox(
-                      width: 100,
-                      child: Align(
-                        alignment: Alignment.centerRight,
-                        child: ElevatedButton(
-                          onPressed: () => _showPackingListDetailsDialog(context, 'PL-001', '53 ft Semi', 18, '44,651.80'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF64748B),
-                            elevation: 0,
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+              Obx(() {
+                final lists = controller.rawPackingLists;
+                if (lists.isEmpty) {
+                  return Container(
+                    padding: const EdgeInsets.all(32),
+                    alignment: Alignment.center,
+                    child: const Text('No load allocations available.'),
+                  );
+                }
+                return ListView.separated(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: lists.length,
+                  separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                  itemBuilder: (context, index) {
+                    final item = lists[index];
+                    final pNo = (item['packingListNo'] ?? 'PL-00${index + 1}').toString();
+                    final truck = (item['truckLabel'] ?? item['truckType'] ?? item['truckNo'] ?? '—').toString();
+                    final bundles = item['totalBundles']?.toString() ?? '—';
+                    final weight = item['totalWeight'] is num ? '${(item['totalWeight'] as num).toStringAsFixed(1)} LBS' : '—';
+                    final status = (item['status'] ?? 'Ready').toString();
+
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      child: Row(
+                        children: [
+                          SizedBox(width: 36, child: Text('${index + 1}', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary))),
+                          Expanded(flex: 2, child: Text(pNo, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary))),
+                          Expanded(flex: 2, child: Text(truck, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary))),
+                          Expanded(flex: 1, child: Text(bundles, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary))),
+                          Expanded(flex: 2, child: Text(weight, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary))),
+                          Expanded(flex: 1, child: Text(status, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary))),
+                          SizedBox(
+                            width: 100,
+                            child: Center(
+                              child: ElevatedButton(
+                                onPressed: () => PackingListModalDialog.show(
+                                  context,
+                                  packingList: item,
+                                  allBundles: controller.rawBundles,
+                                  projectName: controller.displayProjectName,
+                                  planNumber: controller.displayPackingListPlanId,
+                                  showQr: false,
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFFF1F5F9),
+                                  foregroundColor: const Color(0xFF334155),
+                                  elevation: 0,
+                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                                ),
+                                child: const Text('View', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                              ),
+                            ),
                           ),
-                          child: const Text('View', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white)),
-                        ),
+                        ],
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              const Divider(height: 1, color: Color(0xFFF1F5F9)),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                child: Row(
-                  children: [
-                    const SizedBox(width: 32, child: Text('2', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold))),
-                    const Expanded(flex: 2, child: Text('PL-002', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold))),
-                    const Expanded(flex: 2, child: Text('4', style: TextStyle(fontSize: 12, color: AppColors.textSecondary))),
-                    const Expanded(flex: 2, child: Text('11,137.4 LBS', style: TextStyle(fontSize: 12, color: AppColors.textSecondary))),
-                    const Expanded(flex: 2, child: Icon(Icons.check, size: 18, color: Color(0xFF1E293B))),
-                    SizedBox(
-                      width: 100,
-                      child: Align(
-                        alignment: Alignment.centerRight,
-                        child: ElevatedButton(
-                          onPressed: () => _showPackingListDetailsDialog(context, 'PL-002', '40 ft Hot Shot', 4, '11,137.40'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF64748B),
-                            elevation: 0,
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-                          ),
-                          child: const Text('View', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white)),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 24),
-        Container(
-          width: double.infinity,
-          decoration: _cardDecoration(),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Padding(
-                padding: EdgeInsets.all(20),
-                child: Text(
-                  'Bundle Verification',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                color: const Color(0xFF1E293B),
-                child: Row(
-                  children: const [
-                    SizedBox(width: 32, child: Text('#', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
-                    Expanded(flex: 2, child: Text('Bundle ID', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
-                    Expanded(flex: 2, child: Text('Parts', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
-                    Expanded(flex: 2, child: Text('Weight', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
-                    Expanded(flex: 3, child: Text('Packing List Generated', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
-                    Expanded(flex: 3, child: Text('QR Labels Generated', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
-                    Expanded(flex: 3, child: Text('Bundles Assigned to Truck', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
-                  ],
-                ),
-              ),
-              _verificationRow(1, 'B-012', 'framing', '4,940.7 LBS'),
-              const Divider(height: 1, color: Color(0xFFF1F5F9)),
-              _verificationRow(2, 'B-004', 'framing', '4,848.3 LBS'),
-              const Divider(height: 1, color: Color(0xFFF1F5F9)),
-              _verificationRow(3, 'B-005', 'framing', '3,426.3 LBS'),
-              const Divider(height: 1, color: Color(0xFFF1F5F9)),
-              _verificationRow(4, 'B-009', 'framing', '2,747.4 LBS'),
+                    );
+                  },
+                );
+              }),
             ],
           ),
         ),
@@ -1655,386 +1966,41 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
     );
   }
 
-  Widget _verificationRow(int num, String bundleId, String parts, String weight) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        children: [
-          SizedBox(width: 32, child: Text('$num', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold))),
-          Expanded(flex: 2, child: Text(bundleId, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold))),
-          Expanded(flex: 2, child: Text(parts, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary))),
-          Expanded(flex: 2, child: Text(weight, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary))),
-          Expanded(
-            flex: 3,
-            child: Image.asset(
-              AppImages.icSuccessfully,
-              width: 20,
-              height: 20,
-              errorBuilder: (ctx, err, stack) => const Icon(Icons.check_circle, size: 20, color: Color(0xFF16A34A)),
-            ),
-          ),
-          Expanded(
-            flex: 3,
-            child: Image.asset(
-              AppImages.icSuccessfully,
-              width: 20,
-              height: 20,
-              errorBuilder: (ctx, err, stack) => const Icon(Icons.check_circle, size: 20, color: Color(0xFF16A34A)),
-            ),
-          ),
-          Expanded(
-            flex: 3,
-            child: Image.asset(
-              AppImages.icSuccessfully,
-              width: 20,
-              height: 20,
-              errorBuilder: (ctx, err, stack) => const Icon(Icons.check_circle, size: 20, color: Color(0xFF16A34A)),
-            ),
-          ),
-        ],
-      ),
-    );
+  Future<void> _downloadPackingListPdf(Map<String, dynamic> item) async {
+    try {
+      final pListNo = (item['packingListNo'] ?? item['loadId'] ?? 'PL-001').toString();
+      final id = (item['_id'] ?? item['id'] ?? pListNo).toString();
+      final url = 'https://storage-material-vendor-deployment.vercel.app/packing-list/$id';
+      final bytes = await FileExportService.qrPdf(
+        title: 'Packing List — $pListNo',
+        payload: url,
+      );
+      await FileExportService.savePdf(
+        fileName: 'packing_list_$pListNo',
+        bytes: Uint8List.fromList(bytes),
+      );
+      CommonSnackbar.showSuccess(
+        title: 'Download Successful',
+        message: 'Packing list PDF has been downloaded.',
+      );
+    } catch (e) {
+      CommonSnackbar.showError(
+        title: 'Download Failed',
+        message: e.toString(),
+      );
+    }
   }
 
-  // --- DIALOGS FOR PACKING LIST & QR LABEL DETAILS ---
-  void _showPackingListDetailsDialog(
-    BuildContext context,
-    String loadId,
-    String truckName,
-    int bundlesCount,
-    String totalWeight,
-  ) {
-    Get.dialog(
-      Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: Container(
-          width: 820,
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  children: [
-                    OutlinedButton(
-                      onPressed: () => Get.back(),
-                      style: OutlinedButton.styleFrom(
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                      ),
-                      child: const Text('Back', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-                    ),
-                    const Spacer(),
-                    ElevatedButton(
-                      onPressed: () {},
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF7C3AED),
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-                      ),
-                      child: const Text('Download PDF', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
-                    ),
-                    const SizedBox(width: 8),
-                    ElevatedButton(
-                      onPressed: controller.exportExcel,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF7C3AED),
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-                      ),
-                      child: const Text('Export Excel', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('Load Information', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-                          const SizedBox(height: 12),
-                          _kpiRow('Packing List ID', loadId),
-                          const SizedBox(height: 6),
-                          _kpiRow('Load ID', controller.packingListPlanId),
-                          const SizedBox(height: 6),
-                          _kpiRow('Project', controller.projectName),
-                          const SizedBox(height: 6),
-                          _kpiRow('Truck', truckName),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 32),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('Packing Summary', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-                          const SizedBox(height: 12),
-                          _kpiRow('Total Bundles', '$bundlesCount'),
-                          const SizedBox(height: 6),
-                          _kpiRow('Total Items', '${bundlesCount * 2}'),
-                          const SizedBox(height: 6),
-                          _kpiRow('Total weight', '$totalWeight lbs'),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-                const Text('Bundle List', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-                const SizedBox(height: 12),
-                Container(
-                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFFE2E8F0))),
-                  child: Column(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                        color: const Color(0xFF1E293B),
-                        child: Row(
-                          children: const [
-                            SizedBox(width: 30, child: Text('#', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
-                            Expanded(flex: 2, child: Text('Bundle ID', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
-                            Expanded(flex: 2, child: Text('Part Number', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
-                            Expanded(flex: 2, child: Text('Quantity', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
-                            Expanded(flex: 2, child: Text('Length', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
-                            Expanded(flex: 2, child: Text('Weight', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
-                            Expanded(flex: 2, child: Text('Status', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
-                          ],
-                        ),
-                      ),
-                      _bundleDetailRow(1, 'B-012', 'framing', '72', '26.29ft', '4,940.70 LBS', 'Assigned_to_truck'),
-                      const Divider(height: 1, color: Color(0xFFF1F5F9)),
-                      _bundleDetailRow(2, 'B-004', 'framing', '9', '28.06ft', '4,848.30 LBS', 'Assigned_to_truck'),
-                      const Divider(height: 1, color: Color(0xFFF1F5F9)),
-                      _bundleDetailRow(3, 'B-009', 'framing', '2', '51.67ft', '2,747.40 LBS', 'Assigned_to_truck'),
-                      const Divider(height: 1, color: Color(0xFFF1F5F9)),
-                      _bundleDetailRow(4, 'B-010', 'framing', '30', '25.13ft', '2,403.20 LBS', 'Assigned_to_truck'),
-                      const Divider(height: 1, color: Color(0xFFF1F5F9)),
-                      _bundleDetailRow(5, 'B-013', 'framing', '26', '26.29ft', '1,772.90 LBS', 'Assigned_to_truck'),
-                      const Divider(height: 1, color: Color(0xFFF1F5F9)),
-                      _bundleDetailRow(6, 'B-011', 'framing', '24', '27.29ft', '1,709.60 LBS', 'Assigned_to_truck'),
-                      const Divider(height: 1, color: Color(0xFFF1F5F9)),
-                      _bundleDetailRow(7, 'B-016', 'panels', '74', '27.00ft', '5,280.70 LBS', 'Assigned_to_truck'),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _showQrLabelDetailsDialog(
-    BuildContext context,
-    String loadId,
-    String truckName,
-    int bundlesCount,
-    String totalWeight,
-  ) {
-    Get.dialog(
-      Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: Container(
-          width: 820,
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  children: [
-                    OutlinedButton(
-                      onPressed: () => Get.back(),
-                      style: OutlinedButton.styleFrom(
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                      ),
-                      child: const Text('Back', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-                    ),
-                    const Spacer(),
-                    ElevatedButton(
-                      onPressed: () async {
-                        final bytes = await _generateQrLabelPdf(
-                          projectName: controller.projectName,
-                          shipperId: controller.requestId.isNotEmpty ? controller.requestId : '6a85db8f4aba512f82285789',
-                          loadId: loadId,
-                          bundleId: 'B-009',
-                          parts: 'framing',
-                          weight: totalWeight,
-                          length: '51.67 ft',
-                        );
-                        await Printing.sharePdf(
-                          bytes: bytes,
-                          filename: 'QR_Label_$loadId.pdf',
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF7C3AED),
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-                      ),
-                      child: const Text('Download PDF', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
-                    ),
-                    const SizedBox(width: 8),
-                    ElevatedButton(
-                      onPressed: controller.exportExcel,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF7C3AED),
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-                      ),
-                      child: const Text('Export Excel', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(
-                      width: 160,
-                      height: 160,
-                      child: QrImageView(
-                        data:
-                            'project=${controller.projectName}\nShipper: shipper=${controller.packingListPlanId}\nLoad: load_id=$loadId\nBundles: bundle_ids=B-012, B-004, B-009, B-010, B-013, B-011, B-016\nParts: parts=framing, panels\nWeight: weight=$totalWeight LBS\nLength: length=51.67 FT',
-                        version: QrVersions.auto,
-                        size: 160.0,
-                      ),
-                    ),
-                    const SizedBox(width: 24),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('project=${controller.projectName}', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-                          const SizedBox(height: 6),
-                          _qrDetailRow('Shipper :', 'shipper=${controller.packingListPlanId}'),
-                          _qrDetailRow('Load :', 'load_id=$loadId'),
-                          _qrDetailRow('Bundles :', 'bundle_ids=B-012, B-004, B-009, B-010, B-013...'),
-                          _qrDetailRow('Parts :', 'parts=framing, panels, mixed'),
-                          _qrDetailRow('Weight :', 'weight=$totalWeight LBS'),
-                          _qrDetailRow('Length :', 'length=51.67 FT'),
-                          _qrDetailRow('URL :', 'https://mr-storage-vendor.vercel.app/packing-list-plan/6a86e4590340d598d3f34df6'),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('Load Information', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-                          const SizedBox(height: 12),
-                          _kpiRow('Packing List ID', loadId),
-                          const SizedBox(height: 6),
-                          _kpiRow('Load ID', controller.packingListPlanId),
-                          const SizedBox(height: 6),
-                          _kpiRow('Project', controller.projectName),
-                          const SizedBox(height: 6),
-                          _kpiRow('Truck', truckName),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 32),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('Packing Summary', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-                          const SizedBox(height: 12),
-                          _kpiRow('Total Bundles', '$bundlesCount'),
-                          const SizedBox(height: 6),
-                          _kpiRow('Total Items', '${bundlesCount * 2}'),
-                          const SizedBox(height: 6),
-                          _kpiRow('Total weight', '$totalWeight lbs'),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-                const Text('Bundle List', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-                const SizedBox(height: 12),
-                Container(
-                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFFE2E8F0))),
-                  child: Column(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                        color: const Color(0xFF1E293B),
-                        child: Row(
-                          children: const [
-                            SizedBox(width: 30, child: Text('#', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
-                            Expanded(flex: 2, child: Text('Bundle ID', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
-                            Expanded(flex: 2, child: Text('Part Number', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
-                            Expanded(flex: 2, child: Text('Quantity', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
-                            Expanded(flex: 2, child: Text('Length', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
-                            Expanded(flex: 2, child: Text('Weight', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
-                            Expanded(flex: 2, child: Text('Status', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
-                          ],
-                        ),
-                      ),
-                      _bundleDetailRow(1, 'B-012', 'framing', '72', '26.29ft', '4,940.70 LBS', 'Assigned_to_truck'),
-                      const Divider(height: 1, color: Color(0xFFF1F5F9)),
-                      _bundleDetailRow(2, 'B-004', 'framing', '9', '28.06ft', '4,848.30 LBS', 'Assigned_to_truck'),
-                      const Divider(height: 1, color: Color(0xFFF1F5F9)),
-                      _bundleDetailRow(3, 'B-009', 'framing', '2', '51.67ft', '2,747.40 LBS', 'Assigned_to_truck'),
-                      const Divider(height: 1, color: Color(0xFFF1F5F9)),
-                      _bundleDetailRow(4, 'B-010', 'framing', '30', '25.13ft', '2,403.20 LBS', 'Assigned_to_truck'),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _bundleDetailRow(int num, String bId, String part, String qty, String len, String wt, String st) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      child: Row(
-        children: [
-          SizedBox(width: 30, child: Text('$num', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold))),
-          Expanded(flex: 2, child: Text(bId, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold))),
-          Expanded(flex: 2, child: Text(part, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary))),
-          Expanded(flex: 2, child: Text(qty, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary))),
-          Expanded(flex: 2, child: Text(len, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary))),
-          Expanded(flex: 2, child: Text(wt, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary))),
-          Expanded(flex: 2, child: Text(st, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary))),
-        ],
-      ),
-    );
-  }
-
-  // --- STEP 6: CREATE FREIGHT REQUEST (Screenshots 2, 3, 4 & 5) ---
   Widget _freightSelectionStep(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            IconButton(
-              onPressed: Get.back,
-              icon: const Icon(Icons.arrow_back, size: 20),
+            AppBackButton(
+              onPressed: () => controller.goToStep(5),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 16),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: const [
@@ -2049,72 +2015,70 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
                 SizedBox(height: 4),
                 Text(
                   'Request freight pricing from carriers and compare competitive bids',
-                  style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                  ),
                 ),
               ],
             ),
           ],
         ),
         const SizedBox(height: 24),
-        Obx(() {
-          if (controller.hasActiveRequest.value) {
-            return _buildActiveFreightRequestCard(context);
-          }
-          return LayoutBuilder(
-            builder: (context, constraints) {
-              final isMobile = constraints.maxWidth < 850;
-              if (isMobile) {
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _freightFormSection(context),
-                    const SizedBox(height: 24),
-                    _selectCarriersSection(context),
-                  ],
-                );
-              }
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final isWide = constraints.maxWidth >= 960;
+            if (isWide) {
               return Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(flex: 7, child: _freightFormSection(context)),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildAvailableDeliveriesSection(context),
+                        const SizedBox(height: 24),
+                        _freightFormSection(context),
+                      ],
+                    ),
+                  ),
                   const SizedBox(width: 24),
-                  Expanded(flex: 4, child: _selectCarriersSection(context)),
+                  SizedBox(
+                    width: 360,
+                    child: _buildRightCarriersSidebar(context),
+                  ),
                 ],
               );
-            },
-          );
-        }),
+            }
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildAvailableDeliveriesSection(context),
+                const SizedBox(height: 24),
+                _freightFormSection(context),
+                const SizedBox(height: 24),
+                _buildRightCarriersSidebar(context),
+              ],
+            );
+          },
+        ),
       ],
     );
   }
 
-  Widget _buildActiveFreightRequestCard(BuildContext context) {
-    final active = controller.activeDelivery.value ?? {};
-    final reqId = (active['requestId'] ?? '').toString();
-    final status = (active['status'] ?? 'BIDDING SENT').toString();
-    final fromLoc = (active['from'] ?? 'New York, United States').toString();
-    final toLoc = (active['to'] ?? 'A, Los Angeles County, California, United St...').toString();
-    final pickupDate = (active['pickup'] ?? '02/09/2026').toString();
-    final deliveryDate = (active['delivery'] ?? '03/10/2026').toString();
-    final weightStr = (active['weight'] ?? '55789.2 Lbs').toString();
-
+  Widget _buildAvailableDeliveriesSection(BuildContext context) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.inputBorder),
-      ),
+      decoration: _cardDecoration(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                width: 42,
-                height: 42,
+                width: 36,
+                height: 36,
                 decoration: const BoxDecoration(
                   color: Color(0xFFEFF6FF),
                   shape: BoxShape.circle,
@@ -2125,239 +2089,784 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
                   size: 20,
                 ),
               ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    Text(
-                      'Freight Request In Progress',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      'An active freight bid request has already been initiated for this project.',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 16),
-              ElevatedButton.icon(
-                onPressed: () {
-                  if (reqId.isNotEmpty) {
-                    Get.toNamed(
-                      AppRoutes.freightRequestDetails,
-                      parameters: {'id': reqId},
-                    );
-                  } else {
-                    Get.toNamed(AppRoutes.freightLoads);
-                  }
-                },
-                icon: const Text(
-                  'Go to Freight Request',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-                label: const Icon(Icons.send_rounded, size: 14, color: Colors.white),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2563EB),
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 28),
-          const Text(
-            'ACTIVE DELIVERIES',
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textSecondary,
-              letterSpacing: 0.8,
-            ),
-          ),
-          const SizedBox(height: 14),
-          InkWell(
-            onTap: () {
-              if (reqId.isNotEmpty) {
-                Get.toNamed(
-                  AppRoutes.freightRequestDetails,
-                  parameters: {'id': reqId},
-                );
-              } else {
-                Get.toNamed(AppRoutes.freightLoads);
-              }
-            },
-            borderRadius: BorderRadius.circular(12),
-            child: Container(
-              width: 290,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
-              ),
-              child: Column(
+              const SizedBox(width: 12),
+              Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFEFF6FF),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        status,
-                        style: const TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF2563EB),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  RichText(
-                    text: TextSpan(
-                      children: [
-                        const TextSpan(
-                          text: 'From: ',
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                        TextSpan(
-                          text: fromLoc,
-                          style: const TextStyle(
-                            fontSize: 11,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  RichText(
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    text: TextSpan(
-                      children: [
-                        const TextSpan(
-                          text: 'To: ',
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                        TextSpan(
-                          text: toLoc,
-                          style: const TextStyle(
-                            fontSize: 11,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  RichText(
-                    text: TextSpan(
-                      children: [
-                        const TextSpan(
-                          text: 'Pickup: ',
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                        TextSpan(
-                          text: pickupDate,
-                          style: const TextStyle(
-                            fontSize: 11,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  RichText(
-                    text: TextSpan(
-                      children: [
-                        const TextSpan(
-                          text: 'Delivery: ',
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                        TextSpan(
-                          text: deliveryDate,
-                          style: const TextStyle(
-                            fontSize: 11,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 12),
+                children: const [
                   Text(
-                    weightStr,
-                    style: const TextStyle(
-                      fontSize: 13,
+                    'Available Deliveries to Send',
+                    style: TextStyle(
+                      fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF2563EB),
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  SizedBox(height: 2),
+                  Text(
+                    'Select an existing delivery load to pre-fill details',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
                     ),
                   ),
                 ],
               ),
-            ),
+            ],
           ),
+          const SizedBox(height: 20),
+          Obx(() {
+            final deliveries = controller.projectDeliveries;
+            final isLoading = controller.isLoadingDeliveries.value;
+
+            return SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (isLoading && deliveries.isEmpty)
+                    Container(
+                      width: 260,
+                      height: 180,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                      ),
+                      child: const Center(
+                        child: SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      ),
+                    )
+                  else if (deliveries.isEmpty)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 24,
+                      ),
+                      child: const Text(
+                        'No deliveries available for this project.',
+                        style: TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 13,
+                        ),
+                      ),
+                    )
+                  else
+                    ...deliveries.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final delivery = entry.value;
+                      final id = (delivery['_id'] ??
+                              delivery['id'] ??
+                              delivery['deliveryId'] ??
+                              delivery['requestId'] ??
+                              '')
+                          .toString();
+                      final isSelected =
+                          controller.selectedDeliveryId.value == id;
+                      return Padding(
+                        padding: EdgeInsets.only(left: index == 0 ? 0 : 16),
+                        child: _buildDeliveryLoadCard(
+                          delivery: delivery,
+                          isSelected: isSelected,
+                        ),
+                      );
+                    }),
+                ],
+              ),
+            );
+          }),
         ],
       ),
     );
   }
 
-  Future<void> _selectDate(BuildContext context, TextEditingController controller) async {
+  Widget _buildDeliveryLoadCard({
+    required Map<String, dynamic> delivery,
+    required bool isSelected,
+  }) {
+    final statusRaw = (delivery['status'] ?? 'draft').toString().toUpperCase().replaceAll('_', ' ');
+    final isDraft = statusRaw.contains('DRAFT');
+
+    final fromLoc = (delivery['pickupLocation'] ?? delivery['from'] ?? delivery['vendorAddress'] ?? 'Plant Yard').toString();
+    final toLoc = (delivery['deliveryLocation'] ?? delivery['to'] ?? delivery['siteAddress'] ?? 'Destination Site').toString();
+
+    final pickupDate = controller.formatDateDisplay(delivery['pickupDate'] ?? delivery['pickup']);
+    final deliveryDate = controller.formatDateDisplay(delivery['deliveryDate'] ?? delivery['delivery']);
+
+    final weightVal = delivery['weight'] ?? delivery['loadWeight'] ?? delivery['totalWeight'] ?? controller.totalPlannedWeightValue;
+    final weightStr = '$weightVal Lbs';
+
+    return InkWell(
+      onTap: () => controller.selectDelivery(isSelected ? null : delivery),
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        width: 270,
+        height: 180,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFFF8FAFC) : Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected ? const Color(0xFF2563EB) : const Color(0xFFE2E8F0),
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Align(
+              alignment: Alignment.centerRight,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: isDraft ? const Color(0xFFFEF3C7) : const Color(0xFFEFF6FF),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  statusRaw,
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: isDraft ? const Color(0xFFD97706) : const Color(0xFF2563EB),
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 6),
+            RichText(
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              text: TextSpan(
+                children: [
+                  const TextSpan(
+                    text: 'From: ',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  TextSpan(
+                    text: fromLoc,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 4),
+            RichText(
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              text: TextSpan(
+                children: [
+                  const TextSpan(
+                    text: 'To: ',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  TextSpan(
+                    text: toLoc,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 4),
+            RichText(
+              text: TextSpan(
+                children: [
+                  const TextSpan(
+                    text: 'Pickup: ',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  TextSpan(
+                    text: pickupDate,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 4),
+            RichText(
+              text: TextSpan(
+                children: [
+                  const TextSpan(
+                    text: 'Delivery: ',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  TextSpan(
+                    text: deliveryDate,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Spacer(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  weightStr,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF2563EB),
+                  ),
+                ),
+                if (isSelected)
+                  Container(
+                    width: 20,
+                    height: 20,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF2563EB),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.check,
+                      size: 13,
+                      color: Colors.white,
+                    ),
+                  ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRightCarriersSidebar(BuildContext context) {
+    return Obx(() {
+      final selectedCount = controller.selectedCarriers.length;
+      final loading = controller.carriersLoading.value;
+      final error = controller.carriersError.value;
+      final carriers = controller.filteredCarriers;
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: _cardDecoration(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 32,
+                          height: 32,
+                          decoration: const BoxDecoration(
+                            color: Color(0xFFEFF6FF),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.local_shipping_outlined,
+                            color: Color(0xFF2563EB),
+                            size: 18,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: const [
+                            Text(
+                              'Select Carriers',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                            SizedBox(height: 2),
+                            Text(
+                              'Send bid request to carriers',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    InkWell(
+                      onTap: () => _showCarrierFilterDialog(context),
+                      borderRadius: BorderRadius.circular(8),
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: controller.activeFiltersCount > 0
+                              ? const Color(0xFFEFF6FF)
+                              : const Color(0xFFF1F5F9),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: controller.activeFiltersCount > 0
+                                ? AppColors.primary
+                                : const Color(0xFFCBD5E1),
+                          ),
+                        ),
+                        child: Icon(
+                          Icons.tune,
+                          size: 18,
+                          color: controller.activeFiltersCount > 0
+                              ? AppColors.primary
+                              : const Color(0xFF334155),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                if (controller.activeFiltersCount > 0) ...[
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: controller.clearCarrierFilters,
+                        style: TextButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                        child: const Text('Clear filter', style: TextStyle(fontSize: 12)),
+                      ),
+                    ],
+                  ),
+                ],
+                const SizedBox(height: 16),
+                if (loading) const LinearProgressIndicator(),
+                if (error.isNotEmpty) ...[
+                  Text(error, style: const TextStyle(fontSize: 12, color: Colors.red)),
+                  TextButton(onPressed: controller.loadCarriers, child: const Text('Retry')),
+                ],
+                if (!loading && error.isEmpty && controller.availableCarriers.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                    child: Text('No active carriers available.', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                  ),
+                if (!loading && error.isEmpty && controller.availableCarriers.isNotEmpty && carriers.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    child: Column(
+                      children: [
+                        const Text('No carriers match filter.', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                        TextButton(onPressed: controller.clearCarrierFilters, child: const Text('Clear Filter')),
+                      ],
+                    ),
+                  ),
+                if (carriers.isNotEmpty)
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxHeight: 440),
+                    child: ListView.separated(
+                      shrinkWrap: true,
+                      itemCount: carriers.length,
+                      separatorBuilder: (context, index) => const SizedBox(height: 10),
+                      itemBuilder: (context, index) {
+                        final carrier = carriers[index];
+                        final id = (carrier['_id'] ?? '').toString();
+                        final name = (carrier['carrierName'] ?? carrier['name'] ?? '').toString();
+                        final isSelected = controller.selectedCarriers.contains(id);
+                        final rating = carrier['rating']?.toString() ?? '4.8';
+                        final lastPrice = carrier['lastPrice']?.toString() ?? '\$0';
+                        final services = carrier['services']?.toString() ?? 'Dry Vans';
+                        final onTimeRate = carrier['onTimeRate']?.toString() ?? '94%';
+                        final serviceArea = carrier['serviceArea']?.toString() ?? 'Texas';
+
+                        return _buildCarrierSidebarItem(
+                          id: id,
+                          name: name,
+                          isSelected: isSelected,
+                          rating: rating,
+                          lastPrice: lastPrice,
+                          services: services,
+                          onTimeRate: onTimeRate,
+                          serviceArea: serviceArea,
+                        );
+                      },
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              color: const Color(0xFFEFF6FF),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFBFDBFE)),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFDBEAFE),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.attach_money,
+                    color: Color(0xFF2563EB),
+                    size: 18,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '$selectedCount Carriers Selected',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1E40AF),
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      const Text(
+                        'Select carriers to request freight quotes',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Color(0xFF3B82F6),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            height: 44,
+            child: ElevatedButton.icon(
+              onPressed: controller.actionLoading.value
+                  ? null
+                  : () {
+                      if (!controller.validateFreightForm()) {
+                        CommonSnackbar.showError(
+                          title: 'Required fields missing',
+                          message: 'Please fill in all required fields indicated in red.',
+                        );
+                        return;
+                      }
+                      if (controller.selectedCarriers.isEmpty) {
+                        CommonSnackbar.showError(
+                          title: 'Select carriers',
+                          message: 'Please select at least one carrier to send quote request.',
+                        );
+                        return;
+                      }
+                      _showEmailQuoteDialog(context);
+                    },
+              icon: const Icon(Icons.send_rounded, size: 16),
+              label: Text(
+                'Send to $selectedCount Carriers',
+                style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF2563EB),
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          SizedBox(
+            height: 44,
+            child: OutlinedButton.icon(
+              onPressed: controller.actionLoading.value
+                  ? null
+                  : () => controller.submitFreightRequest(isDraft: true),
+              icon: const Icon(Icons.bookmark_outline, size: 16),
+              label: const Text(
+                'Save as Draft',
+                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+              ),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.textPrimary,
+                side: const BorderSide(color: Color(0xFFCBD5E1)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+            ),
+          ),
+          const SizedBox(height: 6),
+          TextButton(
+            onPressed: () => controller.goToStep(5),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+            ),
+          ),
+        ],
+      );
+    });
+  }
+
+  Widget _buildCarrierSidebarItem({
+    required String id,
+    required String name,
+    required bool isSelected,
+    required String rating,
+    required String lastPrice,
+    required String services,
+    required String onTimeRate,
+    required String serviceArea,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: id.isEmpty ? null : () => controller.toggleCarrier(id),
+        borderRadius: BorderRadius.circular(10),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: isSelected ? const Color(0xFFF0F7FF) : Colors.white,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: isSelected ? const Color(0xFF2563EB) : const Color(0xFFE2E8F0),
+              width: isSelected ? 1.5 : 1.0,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: isSelected
+                    ? const Color(0x1A2563EB)
+                    : const Color(0x0A000000),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: Checkbox(
+                      value: isSelected,
+                      onChanged: id.isEmpty ? null : (_) => controller.toggleCarrier(id),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                      activeColor: const Color(0xFF2563EB),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      name,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFEF3C7),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.star_rounded, color: Color(0xFFD97706), size: 14),
+                        const SizedBox(width: 2),
+                        Text(
+                          rating,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF92400E),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Flexible(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.local_shipping_outlined, size: 12, color: Color(0xFF64748B)),
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: Text(
+                              services,
+                              style: const TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500,
+                                color: Color(0xFF475569),
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Last: $lastPrice',
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.check_circle_outline, size: 12, color: Color(0xFF16A34A)),
+                      const SizedBox(width: 4),
+                      Text(
+                        'On-time: $onTimeRate',
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                          color: Color(0xFF16A34A),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.location_on_outlined, size: 12, color: Color(0xFF64748B)),
+                      const SizedBox(width: 2),
+                      ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 100),
+                        child: Text(
+                          serviceArea,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: Color(0xFF64748B),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  DateTime _initialDateFor(TextEditingController controller) {
+    final text = controller.text.trim();
+    if (text.isNotEmpty) {
+      try {
+        if (text.contains('/')) {
+          final parts = text.split(RegExp(r'[/, ]+'));
+          if (parts.length >= 3) {
+            final day = int.tryParse(parts[0]);
+            final month = int.tryParse(parts[1]);
+            final year = int.tryParse(parts[2]);
+            if (day != null && month != null && year != null) {
+              final d = DateTime(year, month, day);
+              if (d.isAfter(DateTime(2020)) && d.isBefore(DateTime(2030))) {
+                return d;
+              }
+            }
+          }
+        }
+        final parsed = DateTime.tryParse(text);
+        if (parsed != null &&
+            parsed.isAfter(DateTime(2020)) &&
+            parsed.isBefore(DateTime(2030))) {
+          return parsed;
+        }
+      } catch (_) {}
+    }
+    return DateTime.now();
+  }
+
+  Future<void> _selectDate(
+    BuildContext context,
+    TextEditingController controller,
+  ) async {
     final picked = await showDatePicker(
       context: context,
-      initialDate: DateTime.now(),
+      initialDate: _initialDateFor(controller),
       firstDate: DateTime(2020),
       lastDate: DateTime(2030),
     );
     if (picked != null) {
-      final formatted = '${picked.day.toString().padLeft(2, '0')}/${picked.month.toString().padLeft(2, '0')}/${picked.year}';
+      final formatted =
+          '${picked.day.toString().padLeft(2, '0')}/${picked.month.toString().padLeft(2, '0')}/${picked.year}';
       controller.text = formatted;
     }
   }
 
-  Future<void> _selectTime(BuildContext context, TextEditingController controller) async {
+  Future<void> _selectTime(
+    BuildContext context,
+    TextEditingController controller,
+  ) async {
     final picked = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.now(),
@@ -2365,15 +2874,19 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
     if (picked != null) {
       final period = picked.period == DayPeriod.am ? 'AM' : 'PM';
       final hour = picked.hourOfPeriod == 0 ? 12 : picked.hourOfPeriod;
-      final formatted = '${hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')} $period';
+      final formatted =
+          '${hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')} $period';
       controller.text = formatted;
     }
   }
 
-  Future<void> _selectDateTime(BuildContext context, TextEditingController controller) async {
+  Future<void> _selectDateTime(
+    BuildContext context,
+    TextEditingController controller,
+  ) async {
     final date = await showDatePicker(
       context: context,
-      initialDate: DateTime.now(),
+      initialDate: _initialDateFor(controller),
       firstDate: DateTime(2020),
       lastDate: DateTime(2030),
     );
@@ -2386,8 +2899,10 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
       if (time != null) {
         final period = time.period == DayPeriod.am ? 'AM' : 'PM';
         final hour = time.hourOfPeriod == 0 ? 12 : time.hourOfPeriod;
-        final formattedDate = '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
-        final formattedTime = '${hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')} $period';
+        final formattedDate =
+            '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
+        final formattedTime =
+            '${hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')} $period';
         controller.text = '$formattedDate, $formattedTime';
       }
     }
@@ -2397,12 +2912,14 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
     try {
       final result = await FilePicker.pickFiles(
         type: FileType.custom,
-        allowedExtensions: ['pdf', 'doc', 'docx', 'png', 'jpg'],
+        allowedExtensions: ['pdf'],
       );
       if (result.isNotEmpty) {
-        controller.uploadedDocumentName.value = result.first.name;
+        await controller.uploadFreightDocument(result.first.name, await result.first.readAsBytes());
       }
-    } catch (_) {}
+    } catch (error) {
+      Get.snackbar('Upload failed', error.toString());
+    }
   }
 
   Widget _freightFormSection(BuildContext context) {
@@ -2417,14 +2934,31 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
             children: [
               Row(
                 children: const [
-                  Icon(Icons.inventory_2_outlined, color: Color(0xFFF97316), size: 20),
+                  Icon(
+                    Icons.inventory_2_outlined,
+                    color: Color(0xFFF97316),
+                    size: 20,
+                  ),
                   SizedBox(width: 10),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Load Details (Auto-Fill)', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                      Text(
+                        'Load Details (Auto-Fill)',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
                       SizedBox(height: 2),
-                      Text('Describe what needs to be transported', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                      Text(
+                        'Describe what needs to be transported',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
                     ],
                   ),
                 ],
@@ -2432,7 +2966,11 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
               const SizedBox(height: 20),
               _formLabel('Load Description *'),
               const SizedBox(height: 6),
-              _formTextField(controller: controller.loadDescriptionCtrl),
+              Obx(() => _formTextField(
+                controller: controller.loadDescriptionCtrl,
+                errorText: controller.formErrors['loadDescription'],
+                onChanged: (_) => controller.clearFormError('loadDescription'),
+              )),
               const SizedBox(height: 16),
               Row(
                 children: [
@@ -2442,7 +2980,12 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
                       children: [
                         _formLabel('Weight *'),
                         const SizedBox(height: 6),
-                        _formTextField(controller: controller.weightCtrl, suffix: 'Lbs ˅'),
+                        Obx(() => _formTextField(
+                          controller: controller.weightCtrl,
+                          suffix: 'Lbs ˅',
+                          errorText: controller.formErrors['weight'],
+                          onChanged: (_) => controller.clearFormError('weight'),
+                        )),
                       ],
                     ),
                   ),
@@ -2453,7 +2996,10 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
                       children: [
                         _formLabel('Dimensions'),
                         const SizedBox(height: 6),
-                        _formTextField(controller: controller.dimensionsCtrl, prefixIcon: Icons.straighten),
+                        _formTextField(
+                          controller: controller.dimensionsCtrl,
+                          prefixIcon: Icons.straighten,
+                        ),
                       ],
                     ),
                   ),
@@ -2479,10 +3025,7 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
               const SizedBox(height: 6),
               _formDropdownField(
                 controller: controller.loadingEquipmentCtrl,
-                options: const [
-                  'Crane',
-                  'Forklift',
-                ],
+                options: const ['Crane', 'Forklift'],
                 hintText: 'Select Loading Equipment',
               ),
               const SizedBox(height: 16),
@@ -2494,12 +3037,26 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
                       children: [
                         _formLabel('Bid Deadline *'),
                         const SizedBox(height: 6),
-                        _formTextField(
+                        Obx(() => _formTextField(
                           controller: controller.bidDeadlineCtrl,
                           suffixIcon: Icons.calendar_today,
-                          onTap: () => _selectDateTime(context, controller.bidDeadlineCtrl),
-                          onSuffixTap: () => _selectDateTime(context, controller.bidDeadlineCtrl),
-                        ),
+                          hintText: 'dd/mm/yyyy, --:-- --',
+                          errorText: controller.formErrors['bidDeadline'],
+                          onTap: () async {
+                            await _selectDateTime(
+                              context,
+                              controller.bidDeadlineCtrl,
+                            );
+                            controller.clearFormError('bidDeadline');
+                          },
+                          onSuffixTap: () async {
+                            await _selectDateTime(
+                              context,
+                              controller.bidDeadlineCtrl,
+                            );
+                            controller.clearFormError('bidDeadline');
+                          },
+                        )),
                       ],
                     ),
                   ),
@@ -2510,31 +3067,47 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
                       children: [
                         _formLabel('Document Upload'),
                         const SizedBox(height: 6),
-                        Obx(() => Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFF8FAFC),
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: AppColors.inputBorder),
-                              ),
-                              child: InkWell(
-                                onTap: _pickDocument,
-                                child: Row(
-                                  children: [
-                                    const Icon(Icons.attach_file, size: 16, color: AppColors.textSecondary),
-                                    const SizedBox(width: 8),
-                                    Expanded(
-                                      child: Text(
-                                        controller.uploadedDocumentName.value,
-                                        style: const TextStyle(fontSize: 12, color: AppColors.textPrimary),
-                                        overflow: TextOverflow.ellipsis,
+                        Obx(
+                          () => Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 10,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF8FAFC),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: AppColors.inputBorder),
+                            ),
+                            child: InkWell(
+                              onTap: _pickDocument,
+                              child: Row(
+                                children: [
+                                  const Icon(
+                                    Icons.attach_file,
+                                    size: 16,
+                                    color: AppColors.textSecondary,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      controller.uploadedDocumentName.value,
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: AppColors.textPrimary,
                                       ),
+                                      overflow: TextOverflow.ellipsis,
                                     ),
-                                    const Icon(Icons.file_upload_outlined, size: 16, color: AppColors.textSecondary),
-                                  ],
-                                ),
+                                  ),
+                                  const Icon(
+                                    Icons.file_upload_outlined,
+                                    size: 16,
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ],
                               ),
-                            )),
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -2554,14 +3127,31 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
             children: [
               Row(
                 children: const [
-                  Icon(Icons.location_on_outlined, color: Color(0xFF2563EB), size: 20),
+                  Icon(
+                    Icons.location_on_outlined,
+                    color: Color(0xFF2563EB),
+                    size: 20,
+                  ),
                   SizedBox(width: 10),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Locations', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                      Text(
+                        'Locations',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
                       SizedBox(height: 2),
-                      Text('Pickup and delivery addresses', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                      Text(
+                        'Pickup and delivery addresses',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
                     ],
                   ),
                 ],
@@ -2571,45 +3161,117 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
               // Pickup Location with Live Search
               _formLabel('Pickup Location *'),
               const SizedBox(height: 6),
-              _formTextField(
+              Obx(() => _formTextField(
                 controller: controller.pickupLocationCtrl,
+                hintText: 'e.g., Steel Mill, Pittsburgh, PA',
                 prefixIcon: Icons.location_on,
                 prefixColor: Colors.green,
                 suffixIcon: Icons.close,
+                errorText: controller.formErrors['pickupLocation'],
                 onSuffixTap: () {
                   controller.pickupLocationCtrl.clear();
                   controller.pickupSuggestions.clear();
+                  controller.clearFormError('pickupLocation');
                 },
-                onChanged: (val) => controller.searchPickupAddress(val),
-              ),
+                onChanged: (val) {
+                  controller.clearFormError('pickupLocation');
+                  controller.searchPickupAddress(val);
+                },
+              )),
               Obx(() {
                 if (controller.isSearchingPickup.value) {
-                  return const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 8),
-                    child: SizedBox(height: 16, width: 16, child: CircularProgressIndicator(strokeWidth: 2)),
-                  );
-                }
-                if (controller.pickupSuggestions.isNotEmpty) {
                   return Container(
-                    margin: const EdgeInsets.only(top: 4),
+                    margin: const EdgeInsets.only(top: 6),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(color: const Color(0xFFE2E8F0)),
-                      boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 2))],
                     ),
-                    child: Column(
-                      children: controller.pickupSuggestions.map((addr) {
-                        return ListTile(
-                          dense: true,
-                          leading: const Icon(Icons.location_on, size: 16, color: Colors.green),
-                          title: Text(addr, style: const TextStyle(fontSize: 12)),
-                          onTap: () {
-                            controller.pickupLocationCtrl.text = addr;
-                            controller.pickupSuggestions.clear();
-                          },
-                        );
-                      }).toList(),
+                    child: Row(
+                      children: const [
+                        SizedBox(
+                          height: 14,
+                          width: 14,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Color(0xFF1E51A4),
+                          ),
+                        ),
+                        SizedBox(width: 10),
+                        Text(
+                          'Searching locations...',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Color(0xFF64748B),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+                if (controller.pickupSuggestions.isNotEmpty) {
+                  return Container(
+                    margin: const EdgeInsets.only(top: 6),
+                    constraints: const BoxConstraints(maxHeight: 220),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Colors.black12,
+                          blurRadius: 6,
+                          offset: Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: controller.pickupSuggestions.map((addr) {
+                          return InkWell(
+                            onTap: () {
+                              controller.pickupLocationCtrl.text = addr;
+                              controller.pickupSuggestions.clear();
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 10,
+                              ),
+                              decoration: const BoxDecoration(
+                                border: Border(
+                                  bottom: BorderSide(
+                                    color: Color(0xFFF1F5F9),
+                                    width: 1,
+                                  ),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(
+                                    Icons.location_on,
+                                    size: 16,
+                                    color: Colors.green,
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Text(
+                                      addr,
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: AppColors.textPrimary,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
                     ),
                   );
                 }
@@ -2620,45 +3282,117 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
               // Delivery Location with Live Search
               _formLabel('Delivery Location *'),
               const SizedBox(height: 6),
-              _formTextField(
+              Obx(() => _formTextField(
                 controller: controller.deliveryLocationCtrl,
+                hintText: 'e.g., Construction Site, Austin, TX',
                 prefixIcon: Icons.location_on,
                 prefixColor: Colors.red,
                 suffixIcon: Icons.close,
+                errorText: controller.formErrors['deliveryLocation'],
                 onSuffixTap: () {
                   controller.deliveryLocationCtrl.clear();
                   controller.deliverySuggestions.clear();
+                  controller.clearFormError('deliveryLocation');
                 },
-                onChanged: (val) => controller.searchDeliveryAddress(val),
-              ),
+                onChanged: (val) {
+                  controller.clearFormError('deliveryLocation');
+                  controller.searchDeliveryAddress(val);
+                },
+              )),
               Obx(() {
                 if (controller.isSearchingDelivery.value) {
-                  return const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 8),
-                    child: SizedBox(height: 16, width: 16, child: CircularProgressIndicator(strokeWidth: 2)),
-                  );
-                }
-                if (controller.deliverySuggestions.isNotEmpty) {
                   return Container(
-                    margin: const EdgeInsets.only(top: 4),
+                    margin: const EdgeInsets.only(top: 6),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(color: const Color(0xFFE2E8F0)),
-                      boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 2))],
                     ),
-                    child: Column(
-                      children: controller.deliverySuggestions.map((addr) {
-                        return ListTile(
-                          dense: true,
-                          leading: const Icon(Icons.location_on, size: 16, color: Colors.red),
-                          title: Text(addr, style: const TextStyle(fontSize: 12)),
-                          onTap: () {
-                            controller.deliveryLocationCtrl.text = addr;
-                            controller.deliverySuggestions.clear();
-                          },
-                        );
-                      }).toList(),
+                    child: Row(
+                      children: const [
+                        SizedBox(
+                          height: 14,
+                          width: 14,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Color(0xFF1E51A4),
+                          ),
+                        ),
+                        SizedBox(width: 10),
+                        Text(
+                          'Searching locations...',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Color(0xFF64748B),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+                if (controller.deliverySuggestions.isNotEmpty) {
+                  return Container(
+                    margin: const EdgeInsets.only(top: 6),
+                    constraints: const BoxConstraints(maxHeight: 220),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Colors.black12,
+                          blurRadius: 6,
+                          offset: Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: controller.deliverySuggestions.map((addr) {
+                          return InkWell(
+                            onTap: () {
+                              controller.deliveryLocationCtrl.text = addr;
+                              controller.deliverySuggestions.clear();
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 10,
+                              ),
+                              decoration: const BoxDecoration(
+                                border: Border(
+                                  bottom: BorderSide(
+                                    color: Color(0xFFF1F5F9),
+                                    width: 1,
+                                  ),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(
+                                    Icons.location_on,
+                                    size: 16,
+                                    color: Colors.red,
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Text(
+                                      addr,
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: AppColors.textPrimary,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
                     ),
                   );
                 }
@@ -2678,14 +3412,31 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
             children: [
               Row(
                 children: const [
-                  Icon(Icons.calendar_month_outlined, color: Color(0xFF16A34A), size: 20),
+                  Icon(
+                    Icons.calendar_month_outlined,
+                    color: Color(0xFF16A34A),
+                    size: 20,
+                  ),
                   SizedBox(width: 10),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Timing', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                      Text(
+                        'Timing',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
                       SizedBox(height: 2),
-                      Text('Pickup and delivery schedule', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                      Text(
+                        'Pickup and delivery schedule',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
                     ],
                   ),
                 ],
@@ -2699,12 +3450,21 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
                       children: [
                         _formLabel('Pickup Date *'),
                         const SizedBox(height: 6),
-                        _formTextField(
+                        Obx(() => _formTextField(
                           controller: controller.pickupDateCtrl,
-                          suffixIcon: Icons.calendar_today,
-                          onTap: () => _selectDate(context, controller.pickupDateCtrl),
-                          onSuffixTap: () => _selectDate(context, controller.pickupDateCtrl),
-                        ),
+                          hintText: 'dd/mm/yyyy',
+                          prefixIcon: Icons.calendar_today_outlined,
+                          suffixIcon: Icons.calendar_month,
+                          errorText: controller.formErrors['pickupDate'],
+                          onTap: () async {
+                            await _selectDate(context, controller.pickupDateCtrl);
+                            controller.clearFormError('pickupDate');
+                          },
+                          onSuffixTap: () async {
+                            await _selectDate(context, controller.pickupDateCtrl);
+                            controller.clearFormError('pickupDate');
+                          },
+                        )),
                       ],
                     ),
                   ),
@@ -2717,9 +3477,13 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
                         const SizedBox(height: 6),
                         _formTextField(
                           controller: controller.pickupTimeCtrl,
+                          hintText: '--:-- --',
+                          prefixIcon: Icons.access_time,
                           suffixIcon: Icons.access_time,
-                          onTap: () => _selectTime(context, controller.pickupTimeCtrl),
-                          onSuffixTap: () => _selectTime(context, controller.pickupTimeCtrl),
+                          onTap: () =>
+                              _selectTime(context, controller.pickupTimeCtrl),
+                          onSuffixTap: () =>
+                              _selectTime(context, controller.pickupTimeCtrl),
                         ),
                       ],
                     ),
@@ -2735,12 +3499,21 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
                       children: [
                         _formLabel('Delivery Date *'),
                         const SizedBox(height: 6),
-                        _formTextField(
+                        Obx(() => _formTextField(
                           controller: controller.deliveryDateCtrl,
-                          suffixIcon: Icons.calendar_today,
-                          onTap: () => _selectDate(context, controller.deliveryDateCtrl),
-                          onSuffixTap: () => _selectDate(context, controller.deliveryDateCtrl),
-                        ),
+                          hintText: 'dd/mm/yyyy',
+                          prefixIcon: Icons.calendar_today_outlined,
+                          suffixIcon: Icons.calendar_month,
+                          errorText: controller.formErrors['deliveryDate'],
+                          onTap: () async {
+                            await _selectDate(context, controller.deliveryDateCtrl);
+                            controller.clearFormError('deliveryDate');
+                          },
+                          onSuffixTap: () async {
+                            await _selectDate(context, controller.deliveryDateCtrl);
+                            controller.clearFormError('deliveryDate');
+                          },
+                        )),
                       ],
                     ),
                   ),
@@ -2753,9 +3526,13 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
                         const SizedBox(height: 6),
                         _formTextField(
                           controller: controller.deliveryTimeCtrl,
+                          hintText: '--:-- --',
+                          prefixIcon: Icons.access_time,
                           suffixIcon: Icons.access_time,
-                          onTap: () => _selectTime(context, controller.deliveryTimeCtrl),
-                          onSuffixTap: () => _selectTime(context, controller.deliveryTimeCtrl),
+                          onTap: () =>
+                              _selectTime(context, controller.deliveryTimeCtrl),
+                          onSuffixTap: () =>
+                              _selectTime(context, controller.deliveryTimeCtrl),
                         ),
                       ],
                     ),
@@ -2775,35 +3552,84 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
-                children: const [
-                  Icon(Icons.person_outline, color: Color(0xFF8B5CF6), size: 20),
-                  SizedBox(width: 10),
-                  Column(
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFF3E8FF),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Center(
+                      child: Icon(
+                        Icons.person_outline,
+                        color: Color(0xFF8B5CF6),
+                        size: 22,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  const Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Coordination', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                      Text(
+                        'Coordination',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
                       SizedBox(height: 2),
-                      Text('Contact and special requirements', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                      Text(
+                        'Contact and special requirements',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
                     ],
                   ),
                 ],
               ),
+              const SizedBox(height: 16),
+              const Divider(color: Color(0xFFF1F5F9), height: 1),
               const SizedBox(height: 20),
               _formLabel('Receiving POC *'),
               const SizedBox(height: 6),
-              _formTextField(controller: controller.receivingPocCtrl, prefixIcon: Icons.person_outline),
+              Obx(() => _formTextField(
+                controller: controller.receivingPocCtrl,
+                hintText: 'Full name of on-site contact',
+                prefixIcon: Icons.person_outline,
+                errorText: controller.formErrors['receivingPoc'],
+                onChanged: (_) => controller.clearFormError('receivingPoc'),
+              )),
               const SizedBox(height: 16),
               _formLabel('Pickup Contact Phone *'),
               const SizedBox(height: 6),
-              _formTextField(controller: controller.pickupPhoneCtrl, prefixIcon: Icons.phone_outlined),
+              Obx(() => _formTextField(
+                controller: controller.pickupPhoneCtrl,
+                prefixIcon: Icons.person_outline,
+                errorText: controller.formErrors['pickupPhone'],
+                onChanged: (_) => controller.clearFormError('pickupPhone'),
+              )),
               const SizedBox(height: 16),
               _formLabel('Special Requirements'),
               const SizedBox(height: 6),
-              _formTextField(controller: controller.specialRequirementsCtrl, hintText: 'e.g., Crane unloading required, liftgate needed, fragile...', maxLines: 3),
+              _formTextField(
+                controller: controller.specialRequirementsCtrl,
+                hintText:
+                    'e.g., Crane unloading required, liftgate needed, fragile...',
+                maxLines: 3,
+              ),
               const SizedBox(height: 16),
               _formLabel('Additional Notes'),
               const SizedBox(height: 6),
-              _formTextField(controller: controller.additionalNotesCtrl, hintText: 'Any other information for carriers...', maxLines: 3),
+              _formTextField(
+                controller: controller.additionalNotesCtrl,
+                hintText: 'Any other information for carriers...',
+                maxLines: 3,
+              ),
             ],
           ),
         ),
@@ -2811,204 +3637,321 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
     );
   }
 
-  Widget _selectCarriersSection(BuildContext context) {
-    return Column(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: _cardDecoration(),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: const [
+  void _showCarrierFilterDialog(BuildContext context) {
+    String tempEquipment = controller.selectedFilterEquipment.value;
+    String tempRegion = controller.selectedFilterRegion.value;
+    int? tempRating = controller.selectedFilterRating.value;
+
+    Get.dialog(
+      Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        backgroundColor: Colors.white,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+        child: Container(
+          width: 440,
+          padding: const EdgeInsets.all(24),
+          child: StatefulBuilder(
+            builder: (context, setDialogState) {
+              Widget buildOptionItem({
+                required String label,
+                required bool isSelected,
+                required VoidCallback onTap,
+              }) {
+                return InkWell(
+                  onTap: onTap,
+                  borderRadius: BorderRadius.circular(16),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 6,
+                      horizontal: 4,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 18,
+                          height: 18,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: isSelected
+                                ? const Color(0xFF22C55E)
+                                : Colors.transparent,
+                            border: isSelected
+                                ? null
+                                : Border.all(
+                                    color: const Color(0xFF3B82F6),
+                                    width: 2,
+                                  ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          label,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xFF1E293B),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }
+
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Carrier Filter',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1E293B),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Equipment type section
+                  const Text(
+                    'Equipment type',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF1E293B),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
                   Row(
                     children: [
-                      Icon(Icons.local_shipping_outlined, color: Color(0xFF2563EB), size: 20),
-                      SizedBox(width: 8),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Select Carriers', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-                          SizedBox(height: 2),
-                          Text('Send bid request to carriers', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-                        ],
+                      buildOptionItem(
+                        label: 'Equipment 1',
+                        isSelected: tempEquipment == 'Equipment 1',
+                        onTap: () {
+                          setDialogState(() {
+                            tempEquipment = tempEquipment == 'Equipment 1'
+                                ? ''
+                                : 'Equipment 1';
+                          });
+                        },
+                      ),
+                      const SizedBox(width: 16),
+                      buildOptionItem(
+                        label: 'Equipment 2',
+                        isSelected: tempEquipment == 'Equipment 2',
+                        onTap: () {
+                          setDialogState(() {
+                            tempEquipment = tempEquipment == 'Equipment 2'
+                                ? ''
+                                : 'Equipment 2';
+                          });
+                        },
+                      ),
+                      const SizedBox(width: 16),
+                      buildOptionItem(
+                        label: 'Equipment 3',
+                        isSelected: tempEquipment == 'Equipment 3',
+                        onTap: () {
+                          setDialogState(() {
+                            tempEquipment = tempEquipment == 'Equipment 3'
+                                ? ''
+                                : 'Equipment 3';
+                          });
+                        },
                       ),
                     ],
                   ),
-                  Icon(Icons.tune, color: AppColors.textSecondary, size: 18),
-                ],
-              ),
-              const SizedBox(height: 20),
+                  const SizedBox(height: 16),
+                  const Divider(
+                    height: 1,
+                    thickness: 1,
+                    color: Color(0xFFF1F5F9),
+                  ),
+                  const SizedBox(height: 16),
 
-              // Carrier Item 1 (Unchecked)
-              Obx(() {
-                final isSelected = controller.selectedCarriers.contains('React6 Carrier Pvt Ltd');
-                return InkWell(
-                  onTap: () => controller.toggleCarrier('React6 Carrier Pvt Ltd'),
-                  child: Container(
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: isSelected ? const Color(0xFF16A34A) : const Color(0xFFE2E8F0), width: isSelected ? 1.5 : 1),
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Checkbox(
-                          value: isSelected,
-                          onChanged: (val) => controller.toggleCarrier('React6 Carrier Pvt Ltd'),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: const [
-                              Text('React6 Carrier Pvt Ltd', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-                              SizedBox(height: 4),
-                              Row(
-                                children: [
-                                  Icon(Icons.star, size: 13, color: Color(0xFFEAB308)),
-                                  SizedBox(width: 4),
-                                  Text('4.7  •  Last: \$8,066.67', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-                                ],
-                              ),
-                              SizedBox(height: 4),
-                              Text('Flatbed', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-                              Text('On-time rate: 94%', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-                              Text('Service Area: texas, oklahoma', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-                            ],
-                          ),
-                        ),
-                      ],
+                  // Region section
+                  const Text(
+                    'Region',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF1E293B),
                     ),
                   ),
-                );
-              }),
-              const SizedBox(height: 12),
-
-              // Carrier Item 2 (Checked by default)
-              Obx(() {
-                final isSelected = controller.selectedCarriers.contains('Ayesha LLC');
-                return InkWell(
-                  onTap: () => controller.toggleCarrier('Ayesha LLC'),
-                  child: Container(
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: isSelected ? const Color(0xFFF0FDF4) : Colors.white,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: isSelected ? const Color(0xFF16A34A) : const Color(0xFFE2E8F0), width: isSelected ? 1.5 : 1),
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Checkbox(
-                          value: isSelected,
-                          onChanged: (val) => controller.toggleCarrier('Ayesha LLC'),
-                          activeColor: const Color(0xFF16A34A),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: const [
-                              Text('Ayesha LLC', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-                              SizedBox(height: 4),
-                              Row(
-                                children: [
-                                  Icon(Icons.star, size: 13, color: Color(0xFFEAB308)),
-                                  SizedBox(width: 4),
-                                  Text('5.0  •  Last: \$14,812.5', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-                                ],
-                              ),
-                              SizedBox(height: 4),
-                              Text('Dry Vans', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-                              Text('On-time rate: 94%', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-                              Text('Service Area: Texas', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              }),
-              const SizedBox(height: 20),
-
-              // Selected Carriers Info Banner
-              Obx(() {
-                final count = controller.selectedCarriers.length;
-                return Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFEFF6FF),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
+                  const SizedBox(height: 12),
+                  Row(
                     children: [
-                      const Icon(Icons.attach_money, size: 16, color: Color(0xFF2563EB)),
-                      const SizedBox(width: 6),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('$count Carriers Selected', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF2563EB))),
-                          const Text('Select carriers to request freight quotes', style: TextStyle(fontSize: 10, color: AppColors.textSecondary)),
-                        ],
+                      buildOptionItem(
+                        label: 'Region 1',
+                        isSelected: tempRegion == 'Region 1',
+                        onTap: () {
+                          setDialogState(() {
+                            tempRegion =
+                                tempRegion == 'Region 1' ? '' : 'Region 1';
+                          });
+                        },
+                      ),
+                      const SizedBox(width: 16),
+                      buildOptionItem(
+                        label: 'Region 2',
+                        isSelected: tempRegion == 'Region 2',
+                        onTap: () {
+                          setDialogState(() {
+                            tempRegion =
+                                tempRegion == 'Region 2' ? '' : 'Region 2';
+                          });
+                        },
+                      ),
+                      const SizedBox(width: 16),
+                      buildOptionItem(
+                        label: 'Region 3',
+                        isSelected: tempRegion == 'Region 3',
+                        onTap: () {
+                          setDialogState(() {
+                            tempRegion =
+                                tempRegion == 'Region 3' ? '' : 'Region 3';
+                          });
+                        },
                       ),
                     ],
                   ),
-                );
-              }),
-            ],
+                  const SizedBox(height: 16),
+                  const Divider(
+                    height: 1,
+                    thickness: 1,
+                    color: Color(0xFFF1F5F9),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Rating section
+                  const Text(
+                    'Rating',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF1E293B),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [1, 2, 3, 4, 5].map((rating) {
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 18),
+                        child: buildOptionItem(
+                          label: '$rating',
+                          isSelected: tempRating == rating,
+                          onTap: () {
+                            setDialogState(() {
+                              tempRating =
+                                  tempRating == rating ? null : rating;
+                            });
+                          },
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 28),
+
+                  // Actions
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      OutlinedButton(
+                        onPressed: () => Get.back(),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: const Color(0xFF1E293B),
+                          side: const BorderSide(color: Color(0xFFE2E8F0)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 12,
+                          ),
+                        ),
+                        child: const Text(
+                          'Cancel',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      ElevatedButton(
+                        onPressed: () {
+                          controller.applyCarrierFilters(
+                            equipment: tempEquipment,
+                            region: tempRegion,
+                            rating: tempRating,
+                          );
+                          Get.back();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF3754DB),
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 12,
+                          ),
+                        ),
+                        child: const Text(
+                          'Apply Filter',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              );
+            },
           ),
         ),
-        const SizedBox(height: 16),
-
-        // Action Buttons Column
-        Obx(() {
-          final count = controller.selectedCarriers.length;
-          return Column(
-            children: [
-              ElevatedButton.icon(
-                onPressed: () => _showEmailQuoteDialog(context),
-                icon: const Icon(Icons.send, size: 16, color: Colors.white),
-                label: Text('Send to $count Carriers', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white)),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2563EB),
-                  minimumSize: const Size(double.infinity, 44),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                ),
-              ),
-              const SizedBox(height: 10),
-              OutlinedButton.icon(
-                onPressed: () => controller.submitFreightRequest(isDraft: true),
-                icon: const Icon(Icons.save_outlined, size: 16, color: AppColors.textPrimary),
-                label: const Text('Save as Draft', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-                style: OutlinedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  side: const BorderSide(color: AppColors.inputBorder),
-                  minimumSize: const Size(double.infinity, 44),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                ),
-              ),
-              const SizedBox(height: 10),
-              TextButton(
-                onPressed: Get.back,
-                child: const Text('Cancel', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
-              ),
-            ],
-          );
-        }),
-      ],
+      ),
     );
   }
 
-  Widget _formLabel(String label) => Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary));
+  Widget _formLabel(String label) {
+    if (label.endsWith('*')) {
+      final textPart = label.substring(0, label.length - 1);
+      return RichText(
+        text: TextSpan(
+          text: textPart,
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
+            color: AppColors.textPrimary,
+          ),
+          children: const [
+            TextSpan(
+              text: '*',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFFEF4444),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+    return Text(
+      label,
+      style: const TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.bold,
+        color: AppColors.textPrimary,
+      ),
+    );
+  }
 
   Widget _formTextField({
     required TextEditingController controller,
@@ -3022,48 +3965,90 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
     bool readOnly = false,
     String? suffix,
     int maxLines = 1,
+    String? errorText,
   }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.inputBorder),
-      ),
-      child: Row(
-        children: [
-          if (prefixIcon != null) ...[
-            Icon(prefixIcon, size: 16, color: prefixColor ?? AppColors.textSecondary),
-            const SizedBox(width: 8),
-          ],
-          Expanded(
-            child: TextField(
-              controller: controller,
-              readOnly: readOnly,
-              onTap: onTap,
-              onChanged: onChanged,
-              maxLines: maxLines,
-              style: const TextStyle(fontSize: 12, color: AppColors.textPrimary),
-              decoration: InputDecoration(
-                hintText: hintText,
-                hintStyle: const TextStyle(fontSize: 12, color: AppColors.textHint),
-                border: InputBorder.none,
-                isDense: true,
-                contentPadding: const EdgeInsets.symmetric(vertical: 10),
-              ),
+    final hasError = errorText != null && errorText.isNotEmpty;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF8FAFC),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: hasError ? const Color(0xFFEF4444) : AppColors.inputBorder,
+              width: hasError ? 1.2 : 1.0,
             ),
           ),
-          if (suffix != null) ...[
-            Text(suffix, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-          ],
-          if (suffixIcon != null) ...[
-            GestureDetector(
-              onTap: onSuffixTap ?? onTap,
-              child: Icon(suffixIcon, size: 16, color: AppColors.textSecondary),
+          child: Row(
+            children: [
+              if (prefixIcon != null) ...[
+                Icon(
+                  prefixIcon,
+                  size: 16,
+                  color: prefixColor ?? AppColors.textSecondary,
+                ),
+                const SizedBox(width: 8),
+              ],
+              Expanded(
+                child: TextField(
+                  controller: controller,
+                  readOnly: readOnly,
+                  onTap: onTap,
+                  onChanged: onChanged,
+                  maxLines: maxLines,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textPrimary,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: hintText,
+                    hintStyle: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textHint,
+                    ),
+                    border: InputBorder.none,
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                  ),
+                ),
+              ),
+              if (suffix != null) ...[
+                Text(
+                  suffix,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+              if (suffixIcon != null) ...[
+                GestureDetector(
+                  onTap: onSuffixTap ?? onTap,
+                  child: Icon(
+                    suffixIcon,
+                    size: 16,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+        if (hasError) ...[
+          const SizedBox(height: 4),
+          Text(
+            errorText,
+            style: const TextStyle(
+              fontSize: 12,
+              color: Color(0xFFEF4444),
+              fontWeight: FontWeight.w400,
             ),
-          ],
+          ),
         ],
-      ),
+      ],
     );
   }
 
@@ -3089,27 +4074,29 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         offset: const Offset(0, 42),
         itemBuilder: (context) => options
-            .map((opt) => PopupMenuItem<String>(
-                  value: opt,
-                  child: ValueListenableBuilder<TextEditingValue>(
-                    valueListenable: controller,
-                    builder: (context, val, _) {
-                      final isSelected = val.text == opt;
-                      return Text(
-                        opt,
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: isSelected
-                              ? const Color(0xFF2563EB)
-                              : AppColors.textPrimary,
-                          fontWeight: isSelected
-                              ? FontWeight.bold
-                              : FontWeight.normal,
-                        ),
-                      );
-                    },
-                  ),
-                ))
+            .map(
+              (opt) => PopupMenuItem<String>(
+                value: opt,
+                child: ValueListenableBuilder<TextEditingValue>(
+                  valueListenable: controller,
+                  builder: (context, val, _) {
+                    final isSelected = val.text == opt;
+                    return Text(
+                      opt,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: isSelected
+                            ? const Color(0xFF2563EB)
+                            : AppColors.textPrimary,
+                        fontWeight: isSelected
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                      ),
+                    );
+                  },
+                ),
+              ),
+            )
             .toList(),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -3124,7 +4111,9 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
                       text.isNotEmpty ? text : (hintText ?? 'Select option'),
                       style: TextStyle(
                         fontSize: 12,
-                        color: text.isNotEmpty ? AppColors.textPrimary : AppColors.textHint,
+                        color: text.isNotEmpty
+                            ? AppColors.textPrimary
+                            : AppColors.textHint,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -3132,13 +4121,15 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
                   },
                 ),
               ),
-              Obx(() => Icon(
-                    isOpen.value
-                        ? Icons.keyboard_arrow_up
-                        : Icons.keyboard_arrow_down,
-                    size: 18,
-                    color: AppColors.textSecondary,
-                  )),
+              Obx(
+                () => Icon(
+                  isOpen.value
+                      ? Icons.keyboard_arrow_up
+                      : Icons.keyboard_arrow_down,
+                  size: 18,
+                  color: AppColors.textSecondary,
+                ),
+              ),
             ],
           ),
         ),
@@ -3146,181 +4137,327 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
     );
   }
 
-  // EMAIL QUOTE PREVIEW DIALOG (Screenshot 4)
+  // EMAIL QUOTE PREVIEW DIALOG (Gmail style matching screenshot)
   void _showEmailQuoteDialog(BuildContext context) {
+    if (!controller.validateFreightForm()) {
+      CommonSnackbar.showError(
+        title: 'Required fields missing',
+        message: 'Please fill in all required fields indicated in red.',
+      );
+      return;
+    }
+
+    final loadDesc = controller.loadDescriptionCtrl.text.trim().isNotEmpty
+        ? controller.loadDescriptionCtrl.text.trim()
+        : (controller.totalBundlesCount > 0
+            ? '${controller.totalBundlesCount} bundle(s) for bundle plan ${controller.displayBundlePlanId.isNotEmpty ? controller.displayBundlePlanId : 'BP-0012'}'
+            : (controller.projectName.isNotEmpty ? controller.projectName : 'Load Plan'));
+
+    final projectDisplay = loadDesc;
+    final pickupDateDisplay = _formatEmailDate(controller.pickupDateCtrl.text.trim());
+    final deliveryDateDisplay = _formatEmailDate(controller.deliveryDateCtrl.text.trim());
+    final pocDisplay = controller.receivingPocCtrl.text.trim().isNotEmpty
+        ? controller.receivingPocCtrl.text.trim()
+        : 'N/A';
+    final deliveryLocDisplay = controller.deliveryLocationCtrl.text.trim().isNotEmpty
+        ? controller.deliveryLocationCtrl.text.trim()
+        : 'N/A';
+
+    final rawWeight = controller.weightCtrl.text.trim();
+    String totalWeightDisplay = 'N/A';
+    if (rawWeight.isNotEmpty) {
+      final numVal = double.tryParse(rawWeight.replaceAll(',', ''));
+      if (numVal != null) {
+        final parts = numVal.toStringAsFixed(1).split('.');
+        final whole = parts[0].replaceAllMapped(
+          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+          (Match m) => '${m[1]},',
+        );
+        totalWeightDisplay = '$whole.${parts[1]} Lbs';
+      } else {
+        totalWeightDisplay = '$rawWeight Lbs';
+      }
+    }
+
+    final rawBundles = controller.palletCountCtrl.text.trim();
+    final bundlesDisplay = rawBundles.isNotEmpty ? rawBundles : 'N/A';
+    final materialDisplay = controller.materialTypeCtrl.text.trim().isNotEmpty
+        ? controller.materialTypeCtrl.text.trim()
+        : 'N/A';
+    final equipmentDisplay = controller.loadingEquipmentCtrl.text.trim().isNotEmpty
+        ? controller.loadingEquipmentCtrl.text.trim()
+        : 'Crane';
+
+    final pickupDisplay = controller.pickupLocationCtrl.text.trim().isNotEmpty
+        ? controller.pickupLocationCtrl.text.trim()
+        : 'Texas, United States';
+    final deadlineDisplay = _formatEmailDate(controller.bidDeadlineCtrl.text.trim());
+
     Get.dialog(
       Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        backgroundColor: Colors.white,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
         child: Container(
-          width: 680,
-          padding: const EdgeInsets.all(28),
-          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text('Email', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-                const SizedBox(height: 20),
-
-                // Email Header Banner
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFEF2F2),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Icon(Icons.email, color: Color(0xFFEF4444), size: 24),
+          width: 660,
+          padding: const EdgeInsets.fromLTRB(32, 24, 32, 28),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Email',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
                     ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Text(
-                        'Freight Request – 22 bundle(s) for bundle plan ${controller.bundlePlanId} | Pickup & Delivery Details',
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
-                      ),
+                  ),
+                  IconButton(
+                    onPressed: () => Get.back(),
+                    icon: const Icon(Icons.close, size: 20, color: AppColors.textSecondary),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    splashRadius: 18,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+
+              // Banner: Gmail icon + Subject
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: Image.asset(
+                      'assets/icons/ic_gmail.png',
+                      width: 44,
+                      height: 34,
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) => _buildGmailFallbackIcon(),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-
-                _emailDetailLine('Project:', '22 bundle(s) for bundle plan ${controller.bundlePlanId}'),
-                _emailDetailLine('Pickup Date:', 'August 21, 2026 at 21:10'),
-                _emailDetailLine('Delivery Date:', 'August 29, 2026 at 20:10'),
-                _emailDetailLine('POC:', 'Jouns'),
-                _emailDetailLine('Delivery Location:', 'Califonia craft beer, 43381;43387, Mission Boulevard, Mission San Jose District, Fremont, Alameda County, California, 94537, United States'),
-
-                const SizedBox(height: 20),
-                const Divider(),
-                const SizedBox(height: 16),
-
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('Load Details:', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-                          const SizedBox(height: 8),
-                          const Text('•  Total Weight: 55,789.2 Lbs', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-                          const SizedBox(height: 4),
-                          const Text('•  Bundles: 22', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-                          const SizedBox(height: 4),
-                          const Text('•  Material: framing, panels, mixed, accessories', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-                          const SizedBox(height: 4),
-                          const Text('•  Equipment: Crane', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-                        ],
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Text(
+                      'Freight Request – $loadDesc | Pickup & Delivery Details',
+                      style: const TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF0F172A),
+                        height: 1.25,
                       ),
                     ),
-                    const SizedBox(width: 24),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('Site Details:', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-                          const SizedBox(height: 8),
-                          const Text('•  Pickup: Texas, United States', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-                          const SizedBox(height: 4),
-                          const Text('•  Deadline: August 28, 2026 at 21:10', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 28),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
 
-                Center(
+              // Metadata list
+              _buildEmailMetaRow('Project', projectDisplay),
+              _buildEmailMetaRow('Pickup Date', pickupDateDisplay),
+              _buildEmailMetaRow('Delivery Date', deliveryDateDisplay),
+              _buildEmailMetaRow('POC', pocDisplay),
+              _buildEmailMetaRow('Delivery Location', deliveryLocDisplay),
+
+              const SizedBox(height: 16),
+
+              // Two columns: Load Details & Site Details
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Left: Load Details
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Load Details:',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF0F172A),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        _buildEmailBulletItem('Total Weight', totalWeightDisplay),
+                        _buildEmailBulletItem('Bundles', bundlesDisplay),
+                        _buildEmailBulletItem('Material', materialDisplay),
+                        _buildEmailBulletItem('Equipment', equipmentDisplay),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 24),
+                  // Right: Site Details
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Site Details:',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF0F172A),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        _buildEmailBulletItem('Pickup', pickupDisplay),
+                        _buildEmailBulletItem('Deadline', deadlineDisplay),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+
+              // Centered Submit Button
+              Center(
+                child: SizedBox(
+                  height: 42,
                   child: ElevatedButton(
-                    onPressed: () async {
+                    onPressed: () {
                       Get.back();
-                      await controller.submitFreightRequest(isDraft: false);
-                      _showFreightRequestSentDialog(context);
+                      controller.submitFreightRequest(isDraft: false);
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF6366F1),
-                      padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      backgroundColor: const Color(0xFF2563EB),
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 11),
                     ),
-                    child: const Text('Submit your quote to Carriers', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white)),
+                    child: const Text(
+                      'Submit your quote to Carriers',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
+      barrierDismissible: true,
     );
   }
 
-  Widget _emailDetailLine(String label, String value) {
+  String _formatEmailDate(String raw) {
+    if (raw.trim().isEmpty) return 'N/A';
+    final parsed = controller.parseDateFlexible(raw.trim());
+    if (parsed != null) {
+      const months = [
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
+      ];
+      return '${months[parsed.month - 1]} ${parsed.day}, ${parsed.year}';
+    }
+    return raw;
+  }
+
+  Widget _buildEmailMetaRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
       child: RichText(
         text: TextSpan(
-          style: const TextStyle(fontSize: 12, color: AppColors.textPrimary),
+          style: const TextStyle(
+            fontSize: 13,
+            color: Color(0xFF334155),
+            height: 1.35,
+          ),
           children: [
-            TextSpan(text: '$label ', style: const TextStyle(fontWeight: FontWeight.bold)),
-            TextSpan(text: value, style: const TextStyle(color: AppColors.textSecondary)),
+            TextSpan(
+              text: '$label: ',
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF0F172A),
+              ),
+            ),
+            TextSpan(
+              text: value.isNotEmpty ? value : 'N/A',
+              style: const TextStyle(
+                fontWeight: FontWeight.normal,
+                color: Color(0xFF475569),
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  // FREIGHT REQUEST SENT SUCCESS DIALOG (Screenshot 5)
-  void _showFreightRequestSentDialog(BuildContext context) {
-    final count = controller.selectedCarriers.length;
-    Get.dialog(
-      Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: Container(
-          width: 440,
-          padding: const EdgeInsets.all(28),
-          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'Freight request sent to $count Carriers',
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
-              ),
-              const SizedBox(height: 24),
-              Image.asset(
-                AppImages.icSuccessfully,
-                height: 110,
-                width: 110,
-                errorBuilder: (ctx, err, stack) => Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: const BoxDecoration(color: Color(0xFFDCFCE7), shape: BoxShape.circle),
-                  child: const Icon(Icons.check_circle, color: Color(0xFF16A34A), size: 64),
-                ),
-              ),
-              const SizedBox(height: 28),
-              ElevatedButton(
-                onPressed: () {
-                  Get.back(); // close dialog
-                  Get.offNamed(AppRoutes.freightLoads); // navigate to Freight Loads list view
-                  CommonSnackbar.showSuccess(title: 'Request Sent', message: 'Freight request sent to selected carriers successfully.');
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF6366F1),
-                  minimumSize: const Size(double.infinity, 44),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                ),
-                child: const Text('View Carriers Quotations', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)),
-              ),
-            ],
+  Widget _buildEmailBulletItem(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            '•  ',
+            style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF334155)),
           ),
-        ),
+          Expanded(
+            child: RichText(
+              text: TextSpan(
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: Color(0xFF334155),
+                  height: 1.3,
+                ),
+                children: [
+                  TextSpan(
+                    text: '$label: ',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF0F172A),
+                    ),
+                  ),
+                  TextSpan(
+                    text: value.isNotEmpty ? value : 'N/A',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.normal,
+                      color: Color(0xFF475569),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  // --- GENERIC WORKFLOW STEP ---
+  Widget _buildGmailFallbackIcon() {
+    return Container(
+      width: 44,
+      height: 34,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: CustomPaint(
+        size: const Size(44, 34),
+        painter: _GmailEnvelopePainter(),
+      ),
+    );
+  }
+
   Widget _genericWorkflowStep() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -3350,323 +4487,21 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
 
   // --- DIALOGS (Screenshot 2 & Screenshot 3) ---
 
-  Widget _buildEditBundleScreen(BuildContext context, BundleDataModel item) {
-    final instructionsCtrl = TextEditingController(text: item.handlingInstructions);
-    final notesCtrl = TextEditingController(text: item.notes);
-    final qty1Ctrl = TextEditingController(text: '${item.qty > 0 ? item.qty : 74}');
-    final qty2Ctrl = TextEditingController(text: '24');
-    final qty3Ctrl = TextEditingController(text: '1');
-    final qty4Ctrl = TextEditingController(text: '1');
+  Widget _buildEditBundleScreen(BuildContext context, BundleDataModel item) =>
+      _BundleEditor(
+        key: ValueKey(item.recordId),
+        item: item,
+        controller: controller,
+      );
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            IconButton(
-              onPressed: controller.cancelEditBundle,
-              icon: const Icon(Icons.arrow_back, size: 20),
-            ),
-            const SizedBox(width: 8),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
-                Text(
-                  'Edit Bundle',
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                SizedBox(height: 4),
-                Text(
-                  'Select Items and edit details to update the bundle',
-                  style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
-                ),
-              ],
-            ),
-            const Spacer(),
-            ElevatedButton(
-              onPressed: () {
-                item.handlingInstructions = instructionsCtrl.text;
-                item.notes = notesCtrl.text;
-                final newQty = int.tryParse(qty1Ctrl.text) ?? item.qty;
-                item.qty = newQty;
-                item.unitWeight = newQty * (item.unitWeightSingle > 0 ? item.unitWeightSingle : 68.62);
-                controller.bundleList.refresh();
-                controller.cancelEditBundle();
-                CommonSnackbar.showSuccess(
-                  title: 'Bundle Saved',
-                  message: 'Bundle ${item.bundleId} details updated successfully.',
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF7C3AED),
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              child: const Text(
-                'Save Bundle',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 20),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(24),
-          decoration: _cardDecoration(),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFFE2E8F0)),
-                ),
-                child: Column(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      decoration: const BoxDecoration(
-                        color: Color(0xFF1E293B),
-                        borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
-                      ),
-                      child: Row(
-                        children: const [
-                          SizedBox(width: 32, child: Text('#', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
-                          Expanded(flex: 2, child: Text('BUNDLE ID', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
-                          Expanded(flex: 2, child: Text('PROFILE', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
-                          Expanded(flex: 2, child: Text('ITEMS', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
-                          Expanded(flex: 2, child: Text('LENGTH', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
-                          Expanded(flex: 2, child: Text('TOTAL WEIGHT', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
-                          Expanded(flex: 2, child: Text('STATUS', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
-                        ],
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                      child: Row(
-                        children: [
-                          const SizedBox(width: 32, child: Text('1', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold))),
-                          Expanded(flex: 2, child: Text(item.bundleId, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold))),
-                          Expanded(flex: 2, child: Text(item.profile, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary))),
-                          Expanded(flex: 2, child: Text('${item.partNumber} × ${item.itemsCount}', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary))),
-                          Expanded(flex: 2, child: Text(item.length, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary))),
-                          Expanded(flex: 2, child: Text('${item.unitWeight.toStringAsFixed(2)} LBS', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold))),
-                          Expanded(flex: 2, child: Text(item.status.capitalizeFirst!, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary))),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-              Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'HANDLING INSTRUCTIONS',
-                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary),
-                        ),
-                        const SizedBox(height: 6),
-                        TextField(
-                          controller: instructionsCtrl,
-                          decoration: InputDecoration(
-                            hintText: 'Enter handling instructions',
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'NOTES',
-                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary),
-                        ),
-                        const SizedBox(height: 6),
-                        TextField(
-                          controller: notesCtrl,
-                          decoration: InputDecoration(
-                            hintText: 'Enter notes',
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFFE2E8F0)),
-                ),
-                child: Column(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFF8FAFC),
-                        borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
-                      ),
-                      child: Row(
-                        children: const [
-                          SizedBox(width: 32, child: Icon(Icons.check_box, size: 18, color: Color(0xFF2563EB))),
-                          SizedBox(width: 80, child: Text('QTY ↕', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textPrimary))),
-                          SizedBox(width: 100, child: Text('Item ↕', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textPrimary))),
-                          Expanded(child: Text('DESCRIPTION', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textPrimary))),
-                          SizedBox(width: 90, child: Text('Length ↕', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textPrimary))),
-                          SizedBox(width: 100, child: Text('UNIT WEIGHT', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textPrimary))),
-                          SizedBox(width: 100, child: Text('TOTAL WEIGHT', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textPrimary))),
-                        ],
-                      ),
-                    ),
-                    const Divider(height: 1, color: Color(0xFFF1F5F9)),
-                    _editableItemRow(
-                      qtyCtrl: qty1Ctrl,
-                      itemCode: item.partNumber,
-                      description: item.description,
-                      length: item.length,
-                      unitWeight: item.unitWeightSingle > 0 ? item.unitWeightSingle : 68.62,
-                      totalWeight: item.unitWeight > 0 ? item.unitWeight : 5077.94,
-                    ),
-                    const Divider(height: 1, color: Color(0xFFF1F5F9)),
-                    _editableItemRow(
-                      qtyCtrl: qty2Ctrl,
-                      itemCode: item.partNumber,
-                      description: 'Wall Girt',
-                      length: item.length,
-                      unitWeight: 0.00,
-                      totalWeight: 0.00,
-                    ),
-                    const Divider(height: 1, color: Color(0xFFF1F5F9)),
-                    _editableItemRow(
-                      qtyCtrl: qty3Ctrl,
-                      itemCode: item.partNumber,
-                      description: 'Wall Girt',
-                      length: '24.13 ft',
-                      unitWeight: 0.00,
-                      totalWeight: 0.00,
-                    ),
-                    const Divider(height: 1, color: Color(0xFFF1F5F9)),
-                    _editableItemRow(
-                      qtyCtrl: qty4Ctrl,
-                      itemCode: item.partNumber,
-                      description: 'Wall Girt',
-                      length: '24.13 ft',
-                      unitWeight: 0.00,
-                      totalWeight: 0.00,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _editableItemRow({
-    required TextEditingController qtyCtrl,
-    required String itemCode,
-    required String description,
-    required String length,
-    required double unitWeight,
-    required double totalWeight,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      child: Row(
-        children: [
-          const SizedBox(
-            width: 32,
-            child: Icon(Icons.check_box, size: 18, color: Color(0xFF2563EB)),
-          ),
-          SizedBox(
-            width: 80,
-            child: SizedBox(
-              height: 36,
-              child: TextField(
-                controller: qtyCtrl,
-                textAlign: TextAlign.center,
-                decoration: InputDecoration(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
-                ),
-                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          SizedBox(
-            width: 88,
-            child: Text(
-              itemCode,
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              description,
-              style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
-            ),
-          ),
-          SizedBox(
-            width: 90,
-            child: Text(
-              length,
-              style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
-            ),
-          ),
-          SizedBox(
-            width: 100,
-            child: Text(
-              unitWeight.toStringAsFixed(2),
-              style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
-            ),
-          ),
-          SizedBox(
-            width: 100,
-            child: Text(
-              totalWeight.toStringAsFixed(2),
-              style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // QR CODE DATA DIALOG (Screenshot 3)
   void _showQrDialog(BuildContext context, BundleDataModel item) {
+    final bundleTargetId =
+        item.recordId.isNotEmpty ? item.recordId : item.bundleId;
+    final bundleUrl =
+        'https://storage-material-vendor-deployment.vercel.app/bundle/$bundleTargetId';
     Get.dialog(
       Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: Container(
           width: 540,
           padding: const EdgeInsets.all(24),
@@ -3690,7 +4525,10 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
                   ),
                   IconButton(
                     onPressed: () => Get.back(),
-                    icon: const Icon(Icons.close, color: AppColors.textSecondary),
+                    icon: const Icon(
+                      Icons.close,
+                      color: AppColors.textSecondary,
+                    ),
                   ),
                 ],
               ),
@@ -3698,14 +4536,18 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  SizedBox(
+                  Container(
                     width: 140,
                     height: 140,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: AppColors.inputBorder),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    padding: const EdgeInsets.all(6),
                     child: QrImageView(
-                      data:
-                          'project=${controller.projectName}\nLoad : load_id=1\nBundle : bundle_id=${item.bundleId}\nParts : parts=${item.profile.toLowerCase()}\nWeight : weight=${item.unitWeight}\nLength : Length=${item.length.replaceAll(' ft', '')}',
+                      data: bundleUrl,
                       version: QrVersions.auto,
-                      size: 140.0,
+                      size: 128.0,
                     ),
                   ),
                   const SizedBox(width: 24),
@@ -3724,9 +4566,29 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
                         const SizedBox(height: 6),
                         _qrDetailRow('Load :', 'load_id=1'),
                         _qrDetailRow('Bundle :', 'bundle_id=${item.bundleId}'),
-                        _qrDetailRow('Parts :', 'parts=${item.profile.toLowerCase()}'),
-                        _qrDetailRow('Weight :', 'weight=${item.unitWeight.toStringAsFixed(2)}'),
-                        _qrDetailRow('Length :', 'Length=${item.length.replaceAll(' ft', '')}'),
+                        _qrDetailRow(
+                          'Parts :',
+                          'parts=${item.profile.toLowerCase()}',
+                        ),
+                        _qrDetailRow(
+                          'Weight :',
+                          'weight=${item.unitWeight.toStringAsFixed(2)}',
+                        ),
+                        _qrDetailRow(
+                          'Length :',
+                          'Length=${item.length.replaceAll(' ft', '')}',
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'URL: $bundleUrl',
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: Color(0xFF2563EB),
+                            fontWeight: FontWeight.w500,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ],
                     ),
                   ),
@@ -3740,9 +4602,12 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
                       onPressed: () async {
                         final bytes = await _generateQrLabelPdf(
                           projectName: controller.projectName,
-                          shipperId: controller.requestId.isNotEmpty ? controller.requestId : '6a85db8f4aba512f82285789',
+                          shipperId: controller.requestId.isNotEmpty
+                              ? controller.requestId
+                              : '6a85db8f4aba512f82285789',
                           loadId: '4',
                           bundleId: item.bundleId,
+                          recordId: item.recordId,
                           parts: item.profile.toLowerCase(),
                           weight: item.unitWeight.toStringAsFixed(2),
                           length: item.length,
@@ -3775,9 +4640,12 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
                       onPressed: () async {
                         final bytes = await _generateQrLabelPdf(
                           projectName: controller.projectName,
-                          shipperId: controller.requestId.isNotEmpty ? controller.requestId : '6a85db8f4aba512f82285789',
+                          shipperId: controller.requestId.isNotEmpty
+                              ? controller.requestId
+                              : '6a85db8f4aba512f82285789',
                           loadId: '4',
                           bundleId: item.bundleId,
+                          recordId: item.recordId,
                           parts: item.profile.toLowerCase(),
                           weight: item.unitWeight.toStringAsFixed(2),
                           length: item.length,
@@ -3846,14 +4714,17 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
     required String shipperId,
     required String loadId,
     required String bundleId,
+    String? recordId,
     required String parts,
     required String weight,
     required String length,
   }) async {
     final pdf = pw.Document();
 
+    final bundleTarget =
+        (recordId != null && recordId.isNotEmpty) ? recordId : bundleId;
     final qrData =
-        'project=$projectName\nShipper: shipper=$shipperId\nLoad: load_id=$loadId\nBundle: bundle_id=$bundleId\nParts: parts=$parts\nWeight: weight=$weight LBS\nLength: length=$length';
+        'https://storage-material-vendor-deployment.vercel.app/bundle/$bundleTarget';
 
     pdf.addPage(
       pw.Page(
@@ -3867,7 +4738,10 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
               decoration: pw.BoxDecoration(
                 color: PdfColors.white,
                 borderRadius: pw.BorderRadius.circular(16),
-                border: pw.Border.all(color: PdfColor.fromHex('#E2E8F0'), width: 1.5),
+                border: pw.Border.all(
+                  color: PdfColor.fromHex('#E2E8F0'),
+                  width: 1.5,
+                ),
               ),
               child: pw.Column(
                 mainAxisSize: pw.MainAxisSize.min,
@@ -3897,31 +4771,55 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
                     decoration: pw.BoxDecoration(
                       color: PdfColor.fromHex('#F8FAFC'),
                       borderRadius: pw.BorderRadius.circular(12),
-                      border: pw.Border.all(color: PdfColor.fromHex('#E2E8F0'), width: 1),
+                      border: pw.Border.all(
+                        color: PdfColor.fromHex('#E2E8F0'),
+                        width: 1,
+                      ),
                     ),
                     child: pw.Column(
                       children: [
                         _pdfDetailRowItem('Shipper:', shipperId),
                         pw.SizedBox(height: 4),
-                        pw.Divider(color: PdfColor.fromHex('#E2E8F0'), thickness: 0.5),
+                        pw.Divider(
+                          color: PdfColor.fromHex('#E2E8F0'),
+                          thickness: 0.5,
+                        ),
                         pw.SizedBox(height: 4),
                         _pdfDetailRowItem('Load ID:', loadId),
                         pw.SizedBox(height: 4),
-                        pw.Divider(color: PdfColor.fromHex('#E2E8F0'), thickness: 0.5),
+                        pw.Divider(
+                          color: PdfColor.fromHex('#E2E8F0'),
+                          thickness: 0.5,
+                        ),
                         pw.SizedBox(height: 4),
                         _pdfDetailRowItem('Bundle ID:', bundleId),
                         pw.SizedBox(height: 4),
-                        pw.Divider(color: PdfColor.fromHex('#E2E8F0'), thickness: 0.5),
+                        pw.Divider(
+                          color: PdfColor.fromHex('#E2E8F0'),
+                          thickness: 0.5,
+                        ),
                         pw.SizedBox(height: 4),
                         _pdfDetailRowItem('Parts:', parts),
                         pw.SizedBox(height: 4),
-                        pw.Divider(color: PdfColor.fromHex('#E2E8F0'), thickness: 0.5),
+                        pw.Divider(
+                          color: PdfColor.fromHex('#E2E8F0'),
+                          thickness: 0.5,
+                        ),
                         pw.SizedBox(height: 4),
-                        _pdfDetailRowItem('Weight:', weight.contains('LBS') ? weight : '$weight LBS'),
+                        _pdfDetailRowItem(
+                          'Weight:',
+                          weight.contains('LBS') ? weight : '$weight LBS',
+                        ),
                         pw.SizedBox(height: 4),
-                        pw.Divider(color: PdfColor.fromHex('#E2E8F0'), thickness: 0.5),
+                        pw.Divider(
+                          color: PdfColor.fromHex('#E2E8F0'),
+                          thickness: 0.5,
+                        ),
                         pw.SizedBox(height: 4),
-                        _pdfDetailRowItem('Length:', length.contains('ft') ? length : '$length ft'),
+                        _pdfDetailRowItem(
+                          'Length:',
+                          length.contains('ft') ? length : '$length ft',
+                        ),
                       ],
                     ),
                   ),
@@ -3950,10 +4848,7 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
         ),
         pw.Text(
           value,
-          style: pw.TextStyle(
-            fontSize: 11,
-            color: PdfColor.fromHex('#0F172A'),
-          ),
+          style: pw.TextStyle(fontSize: 11, color: PdfColor.fromHex('#0F172A')),
         ),
       ],
     );
@@ -3986,20 +4881,32 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
             children: [
               Text(
                 '$idLabel  ',
-                style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: AppColors.textSecondary,
+                ),
               ),
               Text(
                 idValue,
-                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(width: 32),
               Text(
                 '$planLabel  ',
-                style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: AppColors.textSecondary,
+                ),
               ),
               Text(
                 planValue,
-                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ],
           ),
@@ -4146,6 +5053,7 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: DataTable(
+              border: TableBorder.all(color: const Color(0xFFCBD5E1), width: 1),
               headingRowColor: WidgetStateProperty.all(const Color(0xFF1E293B)),
               headingTextStyle: const TextStyle(
                 color: Colors.white,
@@ -4188,9 +5096,7 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
           backgroundColor: const Color(0xFF7C3AED),
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
         child: controller.actionLoading.value
             ? const SizedBox(
@@ -4271,3 +5177,158 @@ class LoadPlanningWorkflowView extends GetView<LoadPlanningWorkflowController> {
       .join(' ');
 }
 
+class _BundleEditor extends StatefulWidget {
+  const _BundleEditor({
+    super.key,
+    required this.item,
+    required this.controller,
+  });
+  final BundleDataModel item;
+  final LoadPlanningWorkflowController controller;
+  @override
+  State<_BundleEditor> createState() => _BundleEditorState();
+}
+
+class _BundleEditorState extends State<_BundleEditor> {
+  final formKey = GlobalKey<FormState>();
+  late final instructions = TextEditingController(
+    text: widget.item.handlingInstructions,
+  );
+  late final notes = TextEditingController(text: widget.item.notes);
+  late final quantities = widget.item.items
+      .map((item) => TextEditingController(text: '${item['qty'] ?? 0}'))
+      .toList();
+  @override
+  void dispose() {
+    instructions.dispose();
+    notes.dispose();
+    for (final quantity in quantities) {
+      quantity.dispose();
+    }
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => Form(
+    key: formKey,
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TextButton.icon(
+          onPressed: widget.controller.cancelEditBundle,
+          icon: const Icon(Icons.arrow_back),
+          label: const Text('Back to bundles'),
+        ),
+        Text(
+          'Edit ${widget.item.bundleId}',
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
+        for (var index = 0; index < widget.item.items.length; index++)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: TextFormField(
+              controller: quantities[index],
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                labelText:
+                    '${widget.item.items[index]['partCode'] ?? ''} ${widget.item.items[index]['description'] ?? ''} — quantity',
+              ),
+              validator: (value) => (int.tryParse(value ?? '') ?? -1) < 0
+                  ? 'Enter a non-negative whole quantity.'
+                  : null,
+            ),
+          ),
+        TextFormField(
+          controller: instructions,
+          decoration: const InputDecoration(labelText: 'Handling instructions'),
+        ),
+        TextFormField(
+          controller: notes,
+          decoration: const InputDecoration(labelText: 'Notes'),
+        ),
+        const SizedBox(height: 16),
+        Obx(
+          () => ElevatedButton(
+            onPressed: widget.controller.actionLoading.value
+                ? null
+                : () {
+                    if (!formKey.currentState!.validate()) return;
+                    final rows = List.generate(
+                      widget.item.items.length,
+                      (index) => <String, dynamic>{
+                        if (widget.item.items[index]['_id'] != null)
+                          '_id': widget.item.items[index]['_id'],
+                        'vendorQuoteLineId':
+                            widget.item.items[index]['vendorQuoteLineId'],
+                        'qty': int.parse(quantities[index].text),
+                      },
+                    );
+                    widget.controller.saveBundle(
+                      widget.item,
+                      rows,
+                      instructions.text,
+                      notes.text,
+                    );
+                  },
+            child: Text(
+              widget.controller.actionLoading.value ? 'Saving…' : 'Save bundle',
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+class _GmailEnvelopePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final borderPaint = Paint()
+      ..color = const Color(0xFFD1D5DB)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.0;
+
+    final bgPaint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.fill;
+
+    final rect = RRect.fromRectAndRadius(
+      Rect.fromLTWH(0, 0, size.width, size.height),
+      const Radius.circular(3),
+    );
+    canvas.drawRRect(rect, bgPaint);
+    canvas.drawRRect(rect, borderPaint);
+
+    final redPaint = Paint()
+      ..color = const Color(0xFFEA4335)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.8
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+
+    final path = Path();
+    path.moveTo(5, size.height - 5);
+    path.lineTo(5, 7);
+    path.lineTo(size.width / 2, size.height * 0.58);
+    path.lineTo(size.width - 5, 7);
+    path.lineTo(size.width - 5, size.height - 5);
+    canvas.drawPath(path, redPaint);
+
+    final bluePaint = Paint()
+      ..color = const Color(0xFF4285F4)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.8
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(const Offset(5, 7), Offset(5, size.height - 5), bluePaint);
+
+    final greenPaint = Paint()
+      ..color = const Color(0xFF34A853)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.8
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(Offset(size.width - 5, 7), Offset(size.width - 5, size.height - 5), greenPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}

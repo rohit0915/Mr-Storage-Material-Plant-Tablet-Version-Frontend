@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../app/routes/app_routes.dart';
 import '../../../app/utils/app_colors.dart';
+import '../controller/home_controller.dart';
 import '../model/dashboard_models.dart';
 
 class DrawingApprovalStatusTable extends StatelessWidget {
@@ -208,7 +209,25 @@ class DrawingApprovalStatusTable extends StatelessWidget {
                                 ),
                                 // Eye Action Button
                                 InkWell(
-                                  onTap: () => Get.toNamed(AppRoutes.projectDrawings),
+                                  onTap: () {
+                                    if (Get.isRegistered<HomeController>()) {
+                                      Get.find<HomeController>().openShipperFileDetails(
+                                        requestId: row.requestId,
+                                        projectName: row.projectName,
+                                        clientName: row.clientName,
+                                        projectId: row.projectId,
+                                        buildingId: row.buildingId,
+                                        fileName: row.fileName,
+                                      );
+                                    } else if (row.requestId.isNotEmpty) {
+                                      Get.toNamed(
+                                        AppRoutes.shipperFileDetails,
+                                        parameters: {'id': row.requestId},
+                                      );
+                                    } else {
+                                      Get.toNamed(AppRoutes.shipperFiles);
+                                    }
+                                  },
                                   borderRadius: BorderRadius.circular(8),
                                   child: Container(
                                     width: 30,
@@ -276,7 +295,7 @@ class DrawingApprovalStatusTable extends StatelessWidget {
       decoration: BoxDecoration(
         color: bg,
         borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: fg.withOpacity(0.4)),
+        border: Border.all(color: fg.withValues(alpha: 0.4)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

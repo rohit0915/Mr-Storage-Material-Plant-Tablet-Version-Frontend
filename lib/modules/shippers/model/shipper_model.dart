@@ -38,6 +38,7 @@ class VendorDetailsModel {
   final int activeOrders;
   final String avgDeliveryTime;
   final String onTimeRate;
+  final String notes;
 
   VendorDetailsModel({
     required this.vendorCode,
@@ -55,6 +56,7 @@ class VendorDetailsModel {
     required this.activeOrders,
     required this.avgDeliveryTime,
     required this.onTimeRate,
+    this.notes = '',
   });
 }
 
@@ -72,6 +74,7 @@ class VendorContactRoleModel {
 
 class VendorOrderHistoryModel {
   final String orderId;
+  final String project;
   final String material;
   final String quantity;
   final String orderValue;
@@ -79,8 +82,9 @@ class VendorOrderHistoryModel {
 
   VendorOrderHistoryModel({
     required this.orderId,
-    required this.material,
-    required this.quantity,
+    this.project = '-',
+    this.material = '-',
+    this.quantity = '-',
     required this.orderValue,
     required this.status,
   });

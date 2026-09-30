@@ -78,6 +78,35 @@ class FileExportService {
     ),
   );
 
+  static Future<Uint8List> qrPdf({
+    required String title,
+    required String payload,
+  }) async {
+    final document = pw.Document();
+    document.addPage(
+      pw.Page(
+        build: (_) => pw.Column(
+          children: [
+            pw.Text(
+              title,
+              style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
+            ),
+            pw.SizedBox(height: 24),
+            pw.BarcodeWidget(
+              barcode: pw.Barcode.qrCode(),
+              data: payload,
+              width: 200,
+              height: 200,
+            ),
+            pw.SizedBox(height: 24),
+            pw.Text(payload),
+          ],
+        ),
+      ),
+    );
+    return document.save();
+  }
+
   static Future<Uint8List> tablePdf({
     required String title,
     String? subtitle,

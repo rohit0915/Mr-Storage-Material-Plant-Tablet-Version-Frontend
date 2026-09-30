@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../app/utils/app_colors.dart';
+import '../../../app/widgets/app_back_button.dart';
 import '../../../app/widgets/common_loader.dart';
 import '../../../app/widgets/common_error_widget.dart';
 import '../../../app/widgets/common_pagination.dart';
@@ -65,21 +66,31 @@ class PackingListView extends GetView<PackingListController> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Column(
+        Row(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
-            Text(
-              'Packing List',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
-              ),
-            ),
-            SizedBox(height: 4),
-            Text(
-              'View and manage packing lists generated from load planning for plant loading and\nshipment verification.',
-              style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+          children: [
+            const AppBackButton(),
+            const SizedBox(width: 16),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                Text(
+                  'Packing List',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  'View and manage packing lists generated from load planning for plant loading and\nshipment verification.',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -123,11 +134,13 @@ class PackingListView extends GetView<PackingListController> {
             border: Border.all(color: AppColors.inputBorder),
           ),
           child: Row(
-            children: const [
+            children: [
               Icon(Icons.search, size: 16, color: AppColors.textSecondary),
               SizedBox(width: 8),
               Expanded(
-                child: TextField(
+                child: TextFormField(
+                  initialValue: controller.searchQuery.value,
+                  onChanged: (value) => controller.searchQuery.value = value,
                   decoration: InputDecoration(
                     hintText: 'Search',
                     hintStyle: TextStyle(
@@ -147,12 +160,12 @@ class PackingListView extends GetView<PackingListController> {
         OutlinedButton.icon(
           onPressed: controller.loadProjectsData,
           icon: const Icon(
-            Icons.filter_list,
+            Icons.refresh,
             size: 14,
             color: AppColors.textSecondary,
           ),
           label: const Text(
-            'Filter',
+            'Refresh',
             style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
           ),
           style: OutlinedButton.styleFrom(
@@ -195,7 +208,8 @@ class PackingListView extends GetView<PackingListController> {
                           controller.projectsList.every(
                             (item) => item.isSelected,
                           ),
-                      onChanged: (val) => controller.toggleSelectAllProjects(val),
+                      onChanged: (val) =>
+                          controller.toggleSelectAllProjects(val),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(4),
                       ),
@@ -223,7 +237,9 @@ class PackingListView extends GetView<PackingListController> {
                 return IntrinsicHeight(
                   child: Container(
                     decoration: const BoxDecoration(
-                      border: Border(bottom: BorderSide(color: Color(0xFFF1F5F9))),
+                      border: Border(
+                        bottom: BorderSide(color: Color(0xFFF1F5F9)),
+                      ),
                     ),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -292,7 +308,9 @@ class PackingListView extends GetView<PackingListController> {
                             icon: Container(
                               padding: const EdgeInsets.all(4),
                               decoration: BoxDecoration(
-                                border: Border.all(color: AppColors.inputBorder),
+                                border: Border.all(
+                                  color: AppColors.inputBorder,
+                                ),
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: const Icon(
@@ -317,7 +335,12 @@ class PackingListView extends GetView<PackingListController> {
     );
   }
 
-  Widget _buildTh(String label, {int flex = 2, double? width, bool isLast = false}) {
+  Widget _buildTh(
+    String label, {
+    int flex = 2,
+    double? width,
+    bool isLast = false,
+  }) {
     return _buildThWidget(
       Text(
         label,
@@ -333,13 +356,20 @@ class PackingListView extends GetView<PackingListController> {
     );
   }
 
-  Widget _buildThWidget(Widget child, {int flex = 2, double? width, bool isLast = false}) {
+  Widget _buildThWidget(
+    Widget child, {
+    int flex = 2,
+    double? width,
+    bool isLast = false,
+  }) {
     final container = Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       decoration: BoxDecoration(
         color: const Color(0xFFF8FAFC),
         border: Border(
-          right: isLast ? BorderSide.none : const BorderSide(color: Color(0xFFE2E8F0)),
+          right: isLast
+              ? BorderSide.none
+              : const BorderSide(color: Color(0xFFE2E8F0)),
         ),
       ),
       alignment: Alignment.centerLeft,
@@ -349,12 +379,19 @@ class PackingListView extends GetView<PackingListController> {
     return Expanded(flex: flex, child: container);
   }
 
-  Widget _buildTdWidget(Widget child, {int flex = 2, double? width, bool isLast = false}) {
+  Widget _buildTdWidget(
+    Widget child, {
+    int flex = 2,
+    double? width,
+    bool isLast = false,
+  }) {
     final container = Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       decoration: BoxDecoration(
         border: Border(
-          right: isLast ? BorderSide.none : const BorderSide(color: Color(0xFFF1F5F9)),
+          right: isLast
+              ? BorderSide.none
+              : const BorderSide(color: Color(0xFFF1F5F9)),
         ),
       ),
       alignment: Alignment.centerLeft,
@@ -365,10 +402,15 @@ class PackingListView extends GetView<PackingListController> {
   }
 
   Widget _buildPaginationFooter() {
-    return CommonPaginationFooter(
-      currentPage: 1,
-      totalPages: 15,
-      rowsPerPage: 10,
+    return Obx(
+      () => CommonPaginationFooter(
+        currentPage: controller.currentPage.value,
+        totalPages: controller.totalPages,
+        rowsPerPage: controller.rowsPerPage.value,
+        totalEntries: controller.totalProjects.value,
+        onPageChanged: controller.changePage,
+        onRowsPerPageChanged: controller.changeRows,
+      ),
     );
   }
 }

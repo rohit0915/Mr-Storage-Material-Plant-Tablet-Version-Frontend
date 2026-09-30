@@ -39,7 +39,7 @@ class PackingListItemModel {
     required this.destination,
     required this.date,
     required this.status,
-    this.totalItems = 36,
+    this.totalItems = 0,
     this.bundleList = const [],
     this.rawData = const {},
     this.isSelected = false,

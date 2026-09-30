@@ -338,7 +338,11 @@ class ProjectShipperFilesView extends GetView<ShipperFilesController> {
             ),
             child: Row(
               children: [
-                const Icon(Icons.search, size: 16, color: AppColors.textSecondary),
+                const Icon(
+                  Icons.search,
+                  size: 16,
+                  color: AppColors.textSecondary,
+                ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: TextField(
@@ -363,14 +367,14 @@ class ProjectShipperFilesView extends GetView<ShipperFilesController> {
 
         // Filter Button
         OutlinedButton.icon(
-          onPressed: () {},
+          onPressed: controller.loadData,
           icon: const Icon(
-            Icons.filter_list,
+            Icons.refresh,
             size: 14,
             color: AppColors.textSecondary,
           ),
           label: const Text(
-            'Filter',
+            'Refresh',
             style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
           ),
           style: OutlinedButton.styleFrom(
@@ -437,70 +441,265 @@ class ProjectShipperFilesView extends GetView<ShipperFilesController> {
   }
 
   Widget _buildFilesTableCard() {
-    return Obx(() {
-      final files = controller.filteredShipperFiles;
-      return Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.inputBorder),
-        ),
-        child: Column(
-          children: [
-            // Table Header
-            Container(
-              decoration: const BoxDecoration(
-                color: Color(0xFFF8FAFC),
-                border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
-              ),
-              child: Row(
-                children: [
-                  _buildThWidget(
-                    SizedBox(
-                      width: 32,
-                      child: Checkbox(
-                        value: files.isNotEmpty &&
-                            files.every(
-                              (item) => item.isSelected,
-                            ),
-                        onChanged: (val) {
-                          for (var item in files) {
-                            item.isSelected = val ?? false;
-                          }
-                          controller.shipperFiles.refresh();
-                        },
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                      ),
-                    ),
-                    width: 44,
-                  ),
-                  _buildTh('Shipper', flex: 3),
-                  _buildTh('File Name', flex: 4),
-                  _buildTh('Upload Date', flex: 3),
-                  _buildTh('Rate', flex: 2),
-                  _buildTh('File Status', flex: 3),
-                  _buildTh('Action', width: 72, isLast: true),
-                ],
+    return LayoutBuilder(builder: (context, constraints) {
+      final isMobile = constraints.maxWidth < 650;
+      return Obx(() {
+        final files = controller.filteredShipperFiles;
+        if (files.isEmpty) {
+          return Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 40),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.inputBorder),
+            ),
+            alignment: Alignment.center,
+            child: const Text(
+              'No Shipper Files Found',
+              style: TextStyle(
+                fontSize: 14,
+                color: AppColors.textSecondary,
               ),
             ),
-
-            // Table Data Rows
-            if (files.isEmpty)
-              Container(
-                padding: const EdgeInsets.symmetric(vertical: 40),
-                alignment: Alignment.center,
-                child: const Text(
-                  'No Shipper Files Found',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: AppColors.textSecondary,
-                  ),
+          );
+        }
+        
+        if (isMobile) {
+          return ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: files.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 12),
+            itemBuilder: (context, index) {
+              final item = files[index];
+              return Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.inputBorder),
                 ),
-              )
-            else
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: Checkbox(
+                            value: item.isSelected,
+                            onChanged: (val) {
+                              item.isSelected = val ?? false;
+                              controller.shipperFiles.refresh();
+                            },
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        CircleAvatar(
+                          radius: 12,
+                          backgroundColor: const Color(0xFFDBEAFE),
+                          child: Text(
+                            item.shipperName.isNotEmpty
+                                ? item.shipperName[0]
+                                : 'S',
+                            style: const TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF2563EB),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                item.shipperName,
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.textPrimary,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                item.fileName,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.textSecondary,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Upload Date',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              item.uploadDate,
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            const Text(
+                              'Rate',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              item.rate,
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        _buildStatusBadge(item.status),
+                        Builder(
+                          builder: (context) {
+                            final statusLower = item.status.toLowerCase();
+                            final hasFile =
+                                item.fileName.isNotEmpty &&
+                                item.fileName != '-' &&
+                                !statusLower.contains('sent');
+                            if (!hasFile) {
+                              return const SizedBox.shrink();
+                            }
+                            return InkWell(
+                              onTap: () =>
+                                  controller.openShipperFileDetails(item),
+                              borderRadius: BorderRadius.circular(8),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF4F46E5),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.remove_red_eye_outlined,
+                                      color: Colors.white,
+                                      size: 14,
+                                    ),
+                                    SizedBox(width: 6),
+                                    Text(
+                                      'View',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            },
+          );
+        }
+
+        return Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.inputBorder),
+          ),
+          child: Column(
+            children: [
+              // Table Header
+              Container(
+                decoration: const BoxDecoration(
+                  color: Color(0xFFF8FAFC),
+                  border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
+                ),
+                child: Row(
+                  children: [
+                    _buildThWidget(
+                      SizedBox(
+                        width: 32,
+                        child: Checkbox(
+                          value:
+                              files.isNotEmpty &&
+                              files.every((item) => item.isSelected),
+                          onChanged: (val) {
+                            for (var item in files) {
+                              item.isSelected = val ?? false;
+                            }
+                            controller.shipperFiles.refresh();
+                          },
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                      ),
+                      width: 44,
+                    ),
+                    _buildTh('Shipper', flex: 3),
+                    _buildTh('File Name', flex: 4),
+                    _buildTh('Upload Date', flex: 3),
+                    _buildTh('Rate', flex: 2),
+                    _buildTh('File Status', flex: 3),
+                    _buildTh('Action', width: 72, isLast: true),
+                  ],
+                ),
+              ),
+
+              // Table Data Rows
               ListView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
@@ -510,7 +709,9 @@ class ProjectShipperFilesView extends GetView<ShipperFilesController> {
                   return IntrinsicHeight(
                     child: Container(
                       decoration: const BoxDecoration(
-                        border: Border(bottom: BorderSide(color: Color(0xFFF1F5F9))),
+                        border: Border(
+                          bottom: BorderSide(color: Color(0xFFF1F5F9)),
+                        ),
                       ),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -539,7 +740,9 @@ class ProjectShipperFilesView extends GetView<ShipperFilesController> {
                                   radius: 12,
                                   backgroundColor: const Color(0xFFDBEAFE),
                                   child: Text(
-                                    item.shipperName.isNotEmpty ? item.shipperName[0] : 'S',
+                                    item.shipperName.isNotEmpty
+                                        ? item.shipperName[0]
+                                        : 'S',
                                     style: const TextStyle(
                                       fontSize: 10,
                                       fontWeight: FontWeight.bold,
@@ -611,36 +814,40 @@ class ProjectShipperFilesView extends GetView<ShipperFilesController> {
                             ),
                             flex: 3,
                           ),
-                          // Action Column with Eye Icon Button (Shown ONLY when file is uploaded/received)
+                          // Action Column with Eye Icon Button
                           _buildTdWidget(
-                            Builder(builder: (context) {
-                              final statusLower = item.status.toLowerCase();
-                              final hasFile = item.fileName.isNotEmpty &&
-                                  item.fileName != '-' &&
-                                  !statusLower.contains('sent');
-                              if (!hasFile) {
-                                return const SizedBox.shrink();
-                              }
-                              return Center(
-                                child: InkWell(
-                                  onTap: () => controller.openShipperFileDetails(item),
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: Container(
-                                    width: 32,
-                                    height: 32,
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFF4F46E5),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: const Icon(
-                                      Icons.remove_red_eye_outlined,
-                                      color: Colors.white,
-                                      size: 16,
+                            Builder(
+                              builder: (context) {
+                                final statusLower = item.status.toLowerCase();
+                                final hasFile =
+                                    item.fileName.isNotEmpty &&
+                                    item.fileName != '-' &&
+                                    !statusLower.contains('sent');
+                                if (!hasFile) {
+                                  return const SizedBox.shrink();
+                                }
+                                return Center(
+                                  child: InkWell(
+                                    onTap: () =>
+                                        controller.openShipperFileDetails(item),
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Container(
+                                      width: 32,
+                                      height: 32,
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFF4F46E5),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: const Icon(
+                                        Icons.remove_red_eye_outlined,
+                                        color: Colors.white,
+                                        size: 16,
+                                      ),
                                     ),
                                   ),
-                                ),
-                              );
-                            }),
+                                );
+                              },
+                            ),
                             width: 72,
                             isLast: true,
                           ),
@@ -650,13 +857,19 @@ class ProjectShipperFilesView extends GetView<ShipperFilesController> {
                   );
                 },
               ),
-          ],
-        ),
-      );
+            ],
+          ),
+        );
+      });
     });
   }
 
-  Widget _buildTh(String label, {int flex = 2, double? width, bool isLast = false}) {
+  Widget _buildTh(
+    String label, {
+    int flex = 2,
+    double? width,
+    bool isLast = false,
+  }) {
     return _buildThWidget(
       Row(
         children: [
@@ -669,11 +882,7 @@ class ProjectShipperFilesView extends GetView<ShipperFilesController> {
             ),
           ),
           const SizedBox(width: 4),
-          const Icon(
-            Icons.swap_vert,
-            size: 14,
-            color: AppColors.textSecondary,
-          ),
+          const Icon(Icons.swap_vert, size: 14, color: AppColors.textSecondary),
         ],
       ),
       flex: flex,
@@ -682,13 +891,20 @@ class ProjectShipperFilesView extends GetView<ShipperFilesController> {
     );
   }
 
-  Widget _buildThWidget(Widget child, {int flex = 2, double? width, bool isLast = false}) {
+  Widget _buildThWidget(
+    Widget child, {
+    int flex = 2,
+    double? width,
+    bool isLast = false,
+  }) {
     final container = Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       decoration: BoxDecoration(
         color: const Color(0xFFF8FAFC),
         border: Border(
-          right: isLast ? BorderSide.none : const BorderSide(color: Color(0xFFE2E8F0)),
+          right: isLast
+              ? BorderSide.none
+              : const BorderSide(color: Color(0xFFE2E8F0)),
         ),
       ),
       alignment: Alignment.centerLeft,
@@ -698,12 +914,19 @@ class ProjectShipperFilesView extends GetView<ShipperFilesController> {
     return Expanded(flex: flex, child: container);
   }
 
-  Widget _buildTdWidget(Widget child, {int flex = 2, double? width, bool isLast = false}) {
+  Widget _buildTdWidget(
+    Widget child, {
+    int flex = 2,
+    double? width,
+    bool isLast = false,
+  }) {
     final container = Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       decoration: BoxDecoration(
         border: Border(
-          right: isLast ? BorderSide.none : const BorderSide(color: Color(0xFFF1F5F9)),
+          right: isLast
+              ? BorderSide.none
+              : const BorderSide(color: Color(0xFFF1F5F9)),
         ),
       ),
       alignment: Alignment.centerLeft,

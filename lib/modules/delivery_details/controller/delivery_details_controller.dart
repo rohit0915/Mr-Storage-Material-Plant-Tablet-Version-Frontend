@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'package:get/get.dart';
+import '../../../app/services/plant_socket_service.dart';
 import '../../../app/widgets/common_snackbar.dart';
 import '../../freight_carriers/repository/freight_carriers_repository.dart';
 import '../model/delivery_details_model.dart';
@@ -19,15 +21,28 @@ class DeliveryDetailsController extends GetxController {
       <Map<String, dynamic>>[].obs;
   final RxSet<String> selectedCarrierIds = <String>{}.obs;
 
-  late final DeliveryDetailsModel delivery;
+  late DeliveryDetailsModel delivery;
   final RxList<StatusHistoryItem> statusHistory = <StatusHistoryItem>[].obs;
   final RxList<NotificationHistoryItem> notificationHistory =
       <NotificationHistoryItem>[].obs;
+  StreamSubscription<PlantSocketEvent>? _socketSubscription;
 
   @override
   void onInit() {
     super.onInit();
+    if (Get.isRegistered<PlantSocketService>()) {
+      _socketSubscription = Get.find<PlantSocketService>().listenFor({
+        'freight_bid_submitted',
+        'all_freight_bids_submitted',
+      }, (_) => loadDeliveryDetails());
+    }
     loadDeliveryDetails();
+  }
+
+  @override
+  void onClose() {
+    _socketSubscription?.cancel();
+    super.onClose();
   }
 
   Future<void> loadDeliveryDetails() async {
@@ -35,28 +50,20 @@ class DeliveryDetailsController extends GetxController {
     hasNoDeliveries.value = false;
     errorMessage.value = '';
     try {
-      final routeId = Get.parameters['id'] ?? '';
+      final routeId = Get.parameters['id'] ?? Get.parameters['deliveryId'] ?? '';
       if (routeId.isEmpty) throw Exception('Project id is missing.');
-      final projectData = await repository.fetchProjectDeliveries(routeId);
-
-      final deliveries = projectData['requests'] is List
-          ? projectData['requests'] as List
-          : (projectData['deliveries'] is List
-                ? projectData['deliveries'] as List
-                : const []);
-
-      if (deliveries.isEmpty) {
-        hasNoDeliveries.value = true;
-        return;
+      Map<String, dynamic> first = {};
+      var deliveryId = Get.parameters['deliveryId'] ?? rawDeliveryId.value;
+      if (deliveryId.isEmpty) {
+        final projectData = await repository.fetchProjectDeliveries(routeId);
+        final deliveries = projectData['requests'] as List? ?? projectData['deliveries'] as List? ?? [];
+        if (deliveries.isEmpty) { hasNoDeliveries.value = true; return; }
+        first = Map<String, dynamic>.from(deliveries.first as Map);
+        deliveryId = (first['_id'] ?? first['deliveryId'] ?? '').toString();
       }
-      final first = Map<String, dynamic>.from(
-        deliveries.whereType<Map>().first,
-      );
-      final deliveryId = (first['_id'] ?? first['deliveryId'] ?? '').toString();
+      if (deliveryId.isEmpty) throw StateError('Delivery ID is missing.');
       rawDeliveryId.value = deliveryId;
-      final detailData = deliveryId.isEmpty
-          ? <String, dynamic>{'delivery': first}
-          : await repository.fetchDetail(deliveryId);
+      final detailData = await repository.fetchDetail(deliveryId);
       final raw = detailData['delivery'] is Map
           ? Map<String, dynamic>.from(detailData['delivery'] as Map)
           : first;
@@ -83,7 +90,7 @@ class DeliveryDetailsController extends GetxController {
         siteAddress: (raw['deliveryLocation'] ?? raw['siteAddress'] ?? 'N/A')
             .toString(),
         description: (raw['description'] ?? 'N/A').toString(),
-        materialCategory: (raw['materialCategory'] ?? 'Steel').toString(),
+        materialCategory: (raw['materialCategory'] ?? '—').toString(),
         pickupDate: _text(raw['pickupDate']),
         vendorName: (raw['vendorName'] ?? 'N/A').toString(),
         vendorContact: (raw['vendorContact'] ?? 'N/A').toString(),
@@ -96,7 +103,7 @@ class DeliveryDetailsController extends GetxController {
         internalOwner: (raw['internalOwner'] ?? 'N/A').toString(),
         internalContact: (raw['internalContact'] ?? 'N/A').toString(),
         priority: _status(raw['priority']),
-        deliveryType: (raw['deliveryType'] ?? 'Material').toString(),
+        deliveryType: (raw['deliveryType'] ?? '—').toString(),
         quantity: (raw['packageCount'] ?? raw['quantity'] ?? 'N/A').toString(),
         siteInstructions: (raw['siteInstructions'] ?? 'N/A').toString(),
         requiredEquipment: (raw['requiredEquipment'] ?? 'N/A').toString(),
@@ -104,7 +111,7 @@ class DeliveryDetailsController extends GetxController {
         specialNotes: (raw['specialNotes'] ?? 'N/A').toString(),
         freightLoadId: (raw['freightLoadId'] ?? 'N/A').toString(),
         awardedCarrier: (carrier['name'] ?? 'N/A').toString(),
-        price: raw['price'] == null ? r'$0' : '\$${raw['price']}',
+        price: raw['price'] == null ? '—' : '\$${raw['price']}',
         receivingName: (raw['receivingName'] ?? customer['firstName'] ?? 'N/A')
             .toString(),
         receivingPhone: (raw['receivingPhone'] ?? customer['phone'] ?? 'N/A')
@@ -113,71 +120,34 @@ class DeliveryDetailsController extends GetxController {
             .toString(),
       );
 
-      statusHistory.assignAll([
-        StatusHistoryItem(
-          title: 'Created',
-          timestamp: '2024-03-15 10:30 AM',
-          description: 'Delivery created and scheduled by John Smith',
-        ),
-        StatusHistoryItem(
-          title: 'Scheduled',
-          timestamp: '2024-03-16 2:15 PM',
-          description: 'Auto-notifications scheduled by System',
-          isCurrent: true,
-        ),
-        StatusHistoryItem(
-          title: 'Confirmed',
-          timestamp: '2024-03-16 2:15 PM',
-          description: 'Delivery confirmed by vendor by System',
-        ),
-        StatusHistoryItem(
-          title: 'Rescheduled',
-          timestamp: '2024-04-01 2:15 PM',
-          description: 'Delivery confirmed by vendor by System',
-        ),
-        StatusHistoryItem(
-          title: 'In Transit',
-          timestamp: '2024-04-01 2:15 PM',
-          description: 'Delivery confirmed by vendor by System',
-        ),
-        StatusHistoryItem(
-          title: 'Delivered',
-          timestamp: '2024-04-01 2:15 PM',
-          description: 'Delivery confirmed by vendor by System',
-        ),
-      ]);
-
-      notificationHistory.assignAll([
-        NotificationHistoryItem(
-          title: 'Email Confirmation',
-          subtitle: 'austin@acmecorp.com',
-          timestamp: '2024-03-15 10:30 AM',
-          status: 'Sent',
-        ),
-        NotificationHistoryItem(
-          title: '48-Hour SMS Reminder, Email ✓ SMS ✓',
-          subtitle: '+1 555-0303',
-          timestamp: '2024-03-23 8:00 AM',
-          status: 'Scheduled',
-        ),
-        NotificationHistoryItem(
-          title: '24-Hour SMS Reminder, Email ✓ SMS ✓',
-          subtitle: '+1 555-0303',
-          timestamp: '2024-03-24 8:00 AM',
-          status: 'Scheduled',
-        ),
-        NotificationHistoryItem(
-          title: 'Delivery Day Email, Email ✓ SMS ✓',
-          subtitle: 'austin@acmecorp.com',
-          timestamp: '2024-03-25 6:00 AM',
-          status: 'Scheduled',
-        ),
-      ]);
+      statusHistory.assignAll((raw['statusHistory'] as List? ?? []).whereType<Map>().map((row) => StatusHistoryItem(
+        title: _status(row['status']), timestamp: _text(row['changedAt']),
+        description: _text(row['note'] ?? row['reason']), isCurrent: row['status'] == raw['status'],
+      )));
+      notificationHistory.assignAll((detailData['notifications'] as List? ?? raw['notifications'] as List? ?? []).whereType<Map>().map((row) => NotificationHistoryItem(
+        title: _text(row['title'] ?? row['type']), subtitle: _text(row['recipient']),
+        timestamp: _text(row['sentAt'] ?? row['createdAt']), status: _text(row['status']),
+      )));
     } catch (e) {
       errorMessage.value = e.toString();
     } finally {
       isLoading.value = false;
     }
+  }
+
+  final isSaving = false.obs;
+  final saveError = ''.obs;
+  Future<bool> saveDetails(Map<String, dynamic> body, {bool reschedule = false}) async {
+    if (isSaving.value || rawDeliveryId.isEmpty) return false;
+    isSaving.value = true;
+    saveError.value = '';
+    try {
+      if (reschedule) { await repository.reschedule(rawDeliveryId.value, body); }
+      else { await repository.update(rawDeliveryId.value, body); }
+      await loadDeliveryDetails();
+      return true;
+    } catch (error) { saveError.value = error.toString(); return false; }
+    finally { isSaving.value = false; }
   }
 
   String _status(dynamic value) {

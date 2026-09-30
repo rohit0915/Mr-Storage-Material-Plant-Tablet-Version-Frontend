@@ -23,9 +23,26 @@ class MissingItemCostListView extends GetView<MissingItemCostController> {
                   return const CommonLoader();
                 }
 
+                if (controller.errorMessage.isNotEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(controller.errorMessage.value),
+                        TextButton(
+                          onPressed: controller.loadMissingItems,
+                          child: const Text('Retry'),
+                        ),
+                      ],
+                    ),
+                  );
+                }
                 return SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 16,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -76,7 +93,9 @@ class MissingItemCostListView extends GetView<MissingItemCostController> {
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFF2563EB),
             elevation: 0,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           ),
         ),
@@ -94,15 +113,25 @@ class MissingItemCostListView extends GetView<MissingItemCostController> {
         // Export button
         OutlinedButton.icon(
           onPressed: () => controller.exportFile(context),
-          icon: const Icon(Icons.upload_outlined, size: 16, color: Color(0xFF475569)),
+          icon: const Icon(
+            Icons.upload_outlined,
+            size: 16,
+            color: Color(0xFF475569),
+          ),
           label: const Text(
             'Export',
-            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF475569)),
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF475569),
+            ),
           ),
           style: OutlinedButton.styleFrom(
             backgroundColor: Colors.white,
             side: const BorderSide(color: Color(0xFFCBD5E1)),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           ),
         ),
@@ -114,12 +143,18 @@ class MissingItemCostListView extends GetView<MissingItemCostController> {
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFF6366F1),
             elevation: 0,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           ),
           child: const Text(
             'Save & Continue',
-            style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
           ),
         ),
       ],
@@ -152,12 +187,20 @@ class MissingItemCostListView extends GetView<MissingItemCostController> {
             children: [
               const Text(
                 'Missing QTY',
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF334155)),
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF334155),
+                ),
               ),
               Obx(
                 () => Text(
                   '${controller.missingQty.value}',
-                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1E293B),
+                  ),
                 ),
               ),
             ],
@@ -185,7 +228,11 @@ class MissingItemCostListView extends GetView<MissingItemCostController> {
             decoration: const InputDecoration(
               hintText: 'Search',
               hintStyle: TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
-              prefixIcon: Icon(Icons.search, size: 16, color: Color(0xFF94A3B8)),
+              prefixIcon: Icon(
+                Icons.search,
+                size: 16,
+                color: Color(0xFF94A3B8),
+              ),
               border: InputBorder.none,
               contentPadding: EdgeInsets.symmetric(vertical: 10),
             ),
@@ -195,16 +242,22 @@ class MissingItemCostListView extends GetView<MissingItemCostController> {
 
         // Filter button
         OutlinedButton.icon(
-          onPressed: () {},
-          icon: const Icon(Icons.filter_list, size: 16, color: Color(0xFF475569)),
+          onPressed: controller.loadMissingItems,
+          icon: const Icon(Icons.refresh, size: 16, color: Color(0xFF475569)),
           label: const Text(
-            'Filter',
-            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF475569)),
+            'Refresh',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF475569),
+            ),
           ),
           style: OutlinedButton.styleFrom(
             backgroundColor: Colors.white,
             side: const BorderSide(color: Color(0xFFCBD5E1)),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           ),
         ),
@@ -232,8 +285,16 @@ class MissingItemCostListView extends GetView<MissingItemCostController> {
                 child: Obx(
                   () => DropdownButton<String>(
                     value: controller.sortBy.value,
-                    icon: const Icon(Icons.keyboard_arrow_down, size: 16, color: Color(0xFF475569)),
-                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                    icon: const Icon(
+                      Icons.keyboard_arrow_down,
+                      size: 16,
+                      color: Color(0xFF475569),
+                    ),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1E293B),
+                    ),
                     onChanged: (val) {
                       if (val != null) controller.sortBy.value = val;
                     },
@@ -284,7 +345,9 @@ class MissingItemCostListView extends GetView<MissingItemCostController> {
                   child: Checkbox(
                     value: controller.selectAll.value,
                     onChanged: controller.toggleSelectAll,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(4),
+                    ),
                     side: const BorderSide(color: Color(0xFFCBD5E1)),
                   ),
                 ),
@@ -294,7 +357,17 @@ class MissingItemCostListView extends GetView<MissingItemCostController> {
                 _buildTh('Cost', flex: 1, sortable: true),
                 _buildTh('Current Market Cost', flex: 2, sortable: true),
                 _buildTh('Description', flex: 2, sortable: true),
-                const SizedBox(width: 60, child: Text('Actions', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF334155)))),
+                const SizedBox(
+                  width: 60,
+                  child: Text(
+                    'Actions',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF334155),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -306,19 +379,26 @@ class MissingItemCostListView extends GetView<MissingItemCostController> {
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: controller.filteredItems.length,
-              separatorBuilder: (ctx, idx) => const Divider(height: 1, color: Color(0xFFF1F5F9)),
+              separatorBuilder: (ctx, idx) =>
+                  const Divider(height: 1, color: Color(0xFFF1F5F9)),
               itemBuilder: (ctx, index) {
                 final item = controller.filteredItems[index];
                 return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
                   child: Row(
                     children: [
                       SizedBox(
                         width: 32,
                         child: Checkbox(
                           value: item.isSelected,
-                          onChanged: (val) => controller.toggleSelectItem(item, val),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                          onChanged: (val) =>
+                              controller.toggleSelectItem(item, val),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(4),
+                          ),
                           side: const BorderSide(color: Color(0xFFCBD5E1)),
                         ),
                       ),
@@ -332,7 +412,10 @@ class MissingItemCostListView extends GetView<MissingItemCostController> {
                         child: Align(
                           alignment: Alignment.centerLeft,
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
                             decoration: BoxDecoration(
                               color: const Color(0xFFFFE4E6),
                               borderRadius: BorderRadius.circular(4),
@@ -349,25 +432,42 @@ class MissingItemCostListView extends GetView<MissingItemCostController> {
                         ),
                       ),
 
-                      _buildTd(item.currentMarketCost != null ? '\$${item.currentMarketCost}' : '-', flex: 2),
+                      _buildTd(
+                        item.currentMarketCost != null
+                            ? '\$${item.currentMarketCost}'
+                            : '-',
+                        flex: 2,
+                      ),
                       _buildTd(item.description, flex: 2),
 
                       // Add Action Button
                       SizedBox(
                         width: 60,
                         child: ElevatedButton(
-                          onPressed: () => controller.openAddCostForItemDialog(context, item),
+                          onPressed: () => controller.openAddCostForItemDialog(
+                            context,
+                            item,
+                          ),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF2563EB),
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 6,
+                            ),
                             elevation: 0,
                             minimumSize: Size.zero,
                             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(6),
+                            ),
                           ),
                           child: const Text(
                             'Add',
-                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white),
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
                           ),
                         ),
                       ),

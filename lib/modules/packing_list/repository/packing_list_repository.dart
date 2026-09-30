@@ -5,11 +5,20 @@ class PackingListRepository {
   final ApiClient apiClient;
   PackingListRepository({required this.apiClient});
 
-  Future<Map<String, dynamic>> fetchProjects({int page = 1, int limit = 10}) =>
-      _get(
-        ApiEndpoints.plantPackingListProjects,
-        query: {'page': page, 'limit': limit},
-      );
+  Future<Map<String, dynamic>> fetchProjects({
+    int page = 1,
+    int limit = 10,
+    String search = '',
+  }) => _get(
+    ApiEndpoints.plantPackingListProjects,
+    query: {
+      'page': page,
+      'limit': limit,
+      if (search.trim().isNotEmpty) 'search': search.trim(),
+    },
+  );
+  Future<Map<String, dynamic>> fetchPackingListPlan(String id) =>
+      _get(ApiEndpoints.plantPackingListPlan(id));
   Future<Map<String, dynamic>> fetchPackingList(String id) =>
       _get(ApiEndpoints.plantPackingList(id));
 
@@ -22,6 +31,10 @@ class PackingListRepository {
     if (body is Map && body['success'] == true && body['data'] is Map) {
       return Map<String, dynamic>.from(body['data'] as Map);
     }
-    return <String, dynamic>{};
+    throw Exception(
+      body is Map
+          ? body['message'] ?? 'Invalid packing response.'
+          : 'Invalid packing response.',
+    );
   }
 }

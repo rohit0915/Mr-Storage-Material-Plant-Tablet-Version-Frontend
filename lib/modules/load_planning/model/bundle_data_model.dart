@@ -1,5 +1,7 @@
 class BundleDataModel {
   String bundleId;
+  final String recordId;
+  final List<Map<String, dynamic>> items;
   String profile;
   int itemsCount;
   String length;
@@ -15,15 +17,17 @@ class BundleDataModel {
 
   BundleDataModel({
     required this.bundleId,
+    this.recordId = '',
+    this.items = const [],
     required this.profile,
     this.itemsCount = 1,
     required this.length,
     required this.unitWeight,
     this.status = 'Draft',
-    this.partNumber = 'Z82516',
-    this.qty = 72,
-    this.description = 'Roof Purlin',
-    this.unitWeightSingle = 68.62,
+    this.partNumber = '',
+    this.qty = 0,
+    this.description = '',
+    this.unitWeightSingle = 0,
     this.handlingInstructions = '',
     this.notes = '',
     this.isSelected = true,

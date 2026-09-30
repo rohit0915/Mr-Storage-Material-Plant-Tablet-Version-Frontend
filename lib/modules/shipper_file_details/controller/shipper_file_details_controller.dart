@@ -3,8 +3,11 @@ import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:get/get.dart';
 import 'package:printing/printing.dart';
+import '../../../app/network/api_endpoints.dart';
 import '../../../app/routes/app_routes.dart';
+import '../../../app/services/shared_pref_service.dart';
 import '../../../app/widgets/common_snackbar.dart';
+import '../../comparison_result/controller/comparison_result_controller.dart';
 import '../../shipper_files/repository/shipper_request_workflow_repository.dart';
 
 class SalesOrderItemModel {
@@ -80,12 +83,83 @@ class ShipperFileDetailsController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    requestId.value = Get.parameters['id'] ?? '';
-    loadSalesOrderDetails();
+    initOrUpdate();
+  }
+
+  @override
+  void onReady() {
+    super.onReady();
+    initOrUpdate();
+  }
+
+  Future<void> initOrUpdate([String? incomingId]) async {
+    final paramId = Get.parameters['id'];
+    final argId = Get.arguments is Map
+        ? Get.arguments['id']?.toString()
+        : (Get.arguments is String ? Get.arguments as String : null);
+    var targetId = (incomingId != null && incomingId.isNotEmpty)
+        ? incomingId
+        : ((paramId != null && paramId.isNotEmpty)
+            ? paramId
+            : (argId ?? ''));
+
+    if (targetId.isEmpty) {
+      if (Get.isRegistered<SharedPrefService>()) {
+        final cached = Get.find<SharedPrefService>().getLastShipperRequestId();
+        if (cached != null && cached.isNotEmpty) {
+          targetId = cached;
+        }
+      }
+    }
+
+    if (targetId.isNotEmpty) {
+      if (requestId.value != targetId || projectName.value.isEmpty || projectName.value == '-') {
+        requestId.value = targetId;
+        await loadSalesOrderDetails();
+      }
+    } else if (projectName.value.isEmpty || projectName.value == '-') {
+      await loadSalesOrderDetails();
+    }
   }
 
   Future<void> loadSalesOrderDetails() async {
-    if (requestId.value.isEmpty) return;
+    if (requestId.value.isEmpty) {
+      if (Get.isRegistered<SharedPrefService>()) {
+        final cached = Get.find<SharedPrefService>().getLastShipperRequestId();
+        if (cached != null && cached.isNotEmpty) {
+          requestId.value = cached;
+        }
+      }
+    }
+
+    if (requestId.value.isEmpty) {
+      isLoading.value = true;
+      errorMessage.value = '';
+      try {
+        final res = await repository.apiClient.get(ApiEndpoints.plantDashboard);
+        final d = res.data;
+        if (d is Map && d['data'] is Map) {
+          final files = d['data']['recentShipperFiles'];
+          if (files is List && files.isNotEmpty && files.first is Map) {
+            final firstId = (files.first['requestId'] ?? files.first['_id'] ?? files.first['id'])?.toString() ?? '';
+            if (firstId.isNotEmpty) {
+              requestId.value = firstId;
+            }
+          }
+        }
+      } catch (_) {}
+    }
+
+    if (requestId.value.isEmpty) {
+      isLoading.value = false;
+      errorMessage.value = 'Shipper request id is missing.';
+      return;
+    }
+
+    if (Get.isRegistered<SharedPrefService>()) {
+      Get.find<SharedPrefService>().setLastShipperRequestId(requestId.value);
+    }
+
     isLoading.value = true;
     errorMessage.value = '';
     try {
@@ -179,6 +253,19 @@ class ShipperFileDetailsController extends GetxController {
       if (leadId.value.isNotEmpty) 'projectId': leadId.value,
     },
   );
+
+  void openComparisonResult() {
+    final id = requestId.value.trim();
+    if (id.isNotEmpty) {
+      if (Get.isRegistered<ComparisonResultController>()) {
+        Get.find<ComparisonResultController>().updateRequestIdAndReload(id);
+      }
+      Get.toNamed(
+        AppRoutes.comparisonResult,
+        parameters: {'id': id},
+      );
+    }
+  }
 
   Future<void> openFile() async {
     showEmbeddedView.value = true;

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../modules/shipper_file_details/controller/shipper_file_details_controller.dart';
 
 import '../routes/app_routes.dart';
 import '../utils/app_colors.dart';
+
 
 class ShipperFileReceivedDialog extends StatelessWidget {
   final String vendorName;
@@ -26,22 +28,28 @@ class ShipperFileReceivedDialog extends StatelessWidget {
   }) {
     if (Get.isDialogOpen == true) return;
     Get.dialog(
-      ShipperFileReceivedDialog(
-        vendorName: vendorName,
-        quoteValue: quoteValue,
-        leadId: leadId,
-        requestId: requestId,
+      PopScope(
+        canPop: false,
+        child: ShipperFileReceivedDialog(
+          vendorName: vendorName,
+          quoteValue: quoteValue,
+          leadId: leadId,
+          requestId: requestId,
+        ),
       ),
-      barrierDismissible: true,
+      barrierDismissible: false,
     );
   }
 
   void _navigateToDetails() {
     Get.back();
     if (requestId != null && requestId!.isNotEmpty) {
+      if (Get.isRegistered<ShipperFileDetailsController>()) {
+        Get.find<ShipperFileDetailsController>().initOrUpdate(requestId!);
+      }
       Get.toNamed(
         AppRoutes.shipperFileDetails,
-        parameters: {'id': requestId!},
+        parameters: {'id': requestId!, if (leadId != null && leadId!.isNotEmpty) 'projectId': leadId!},
       );
     } else if (leadId != null && leadId!.isNotEmpty) {
       Get.toNamed(
@@ -49,7 +57,7 @@ class ShipperFileReceivedDialog extends StatelessWidget {
         parameters: {'id': leadId!},
       );
     } else {
-      Get.toNamed(AppRoutes.shipperFileDetails);
+      Get.toNamed(AppRoutes.shipperFiles);
     }
   }
 
@@ -106,6 +114,14 @@ class ShipperFileReceivedDialog extends StatelessWidget {
                     ],
                   ),
                 ),
+                IconButton(
+                  icon: const Icon(Icons.close, color: AppColors.textSecondary, size: 20),
+                  onPressed: () => Get.back(),
+                  splashRadius: 18,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  tooltip: 'Dismiss',
+                ),
               ],
             ),
             const SizedBox(height: 24),
@@ -136,7 +152,7 @@ class ShipperFileReceivedDialog extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      vendorName.isNotEmpty ? vendorName : 'Namra',
+                      vendorName.isNotEmpty ? vendorName : '—',
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -153,7 +169,7 @@ class ShipperFileReceivedDialog extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      quoteValue.isNotEmpty ? quoteValue : '\$100,000',
+                      quoteValue.isNotEmpty ? quoteValue : '—',
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,

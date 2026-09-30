@@ -10,6 +10,9 @@ class UploadedBomFilesController extends GetxController {
 
   UploadedBomFilesController({required this.repository});
 
+  final searchQuery = ''.obs;
+  Worker? searchWorker;
+  int requestVersion = 0;
   final RxBool isLoading = true.obs;
   final RxString errorMessage = ''.obs;
   final RxList<UploadedBomFileModel> bomFilesList =
@@ -29,6 +32,7 @@ class UploadedBomFilesController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    searchWorker = debounce(searchQuery, (_) { currentPage.value = 1; loadBomFiles(); }, time: const Duration(milliseconds: 350));
     if (Get.isRegistered<PlantSocketService>()) {
       _socketSubscription = Get.find<PlantSocketService>().listenFor({
         'project_assigned',
@@ -42,23 +46,27 @@ class UploadedBomFilesController extends GetxController {
 
   @override
   void onClose() {
+    searchWorker?.dispose();
     _socketSubscription?.cancel();
     super.onClose();
   }
 
   Future<void> loadBomFiles() async {
+    final version = ++requestVersion;
     isLoading.value = true;
     errorMessage.value = '';
     try {
       final results = await Future.wait([
-        repository.fetchStats().catchError((_) => <String, dynamic>{}),
+        repository.fetchStats(),
         repository
             .fetchProjects(
+              search: searchQuery.value,
               page: currentPage.value,
               limit: selectedRowsPerPage.value,
             )
-            .catchError((_) => <String, dynamic>{}),
+,
       ]);
+      if (version != requestVersion) return;
       final stats = results[0];
       final data = results[1];
 
@@ -143,11 +151,12 @@ class UploadedBomFilesController extends GetxController {
         bomFilesList.clear();
       }
     } catch (e) {
+      if (version != requestVersion) return;
       bomFilesList.clear();
       totalItems.value = 0;
       errorMessage.value = e.toString();
     } finally {
-      isLoading.value = false;
+      if (version == requestVersion) isLoading.value = false;
     }
   }
 

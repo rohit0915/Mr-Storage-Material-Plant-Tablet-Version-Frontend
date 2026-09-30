@@ -27,6 +27,8 @@ class FreightLoadsController extends GetxController {
   final Rx<FreightLoadItemModel?> detailLoadItem =
       Rx<FreightLoadItemModel?>(null);
   final RxList<CarrierBidModel> carrierBidsList = <CarrierBidModel>[].obs;
+  final Rx<Map<String, dynamic>> bidsStats = Rx<Map<String, dynamic>>({});
+  final Rx<Map<String, dynamic>> bidRange = Rx<Map<String, dynamic>>({});
   final RxInt selectedDetailsTabIndex = 1.obs;
   final RxString selectedLoadId = ''.obs;
   final RxString searchQuery = ''.obs;
@@ -49,7 +51,12 @@ class FreightLoadsController extends GetxController {
       _socketSubscription = Get.find<PlantSocketService>().listenFor({
         'freight_bid_submitted',
         'all_freight_bids_submitted',
-      }, (_) => loadData());
+      }, (_) {
+        loadData();
+        if (selectedLoadId.value.isNotEmpty) {
+          loadCarrierBidsData(selectedLoadId.value);
+        }
+      });
     }
     loadData();
     if (selectedLoadId.value.isNotEmpty) {
@@ -98,6 +105,7 @@ class FreightLoadsController extends GetxController {
 
   void showFilterDialog() => Get.dialog(
     FreightFilterDialog(
+      statuses: freightLoadsList.map((item) => item.status).toSet().toList(),
       onApplyStatus: (status) {
         selectedStatus.value = status ?? '';
         currentPage.value = 1;
@@ -351,6 +359,17 @@ class FreightLoadsController extends GetxController {
       final bidsData = results[0];
       final detailData = results[1];
 
+      if (bidsData['stats'] is Map) {
+        bidsStats.value = Map<String, dynamic>.from(bidsData['stats']);
+      } else {
+        bidsStats.value = {};
+      }
+      if (bidsData['bidRange'] is Map) {
+        bidRange.value = Map<String, dynamic>.from(bidsData['bidRange']);
+      } else {
+        bidRange.value = {};
+      }
+
       final rawBids = bidsData['bids'] is List ? bidsData['bids'] as List : const [];
       carrierBidsList.assignAll(
         rawBids.whereType<Map>().map((entry) {
@@ -359,15 +378,35 @@ class FreightLoadsController extends GetxController {
           final ratingValue = item['rating'] is num
               ? item['rating'] as num
               : num.tryParse('${item['rating']}') ?? 0;
+          final statusVal = _text(item['status'] ?? item['bidStatus'] ?? '');
+          final isAwardedVal = statusVal.toLowerCase() == 'selected' ||
+              statusVal.toLowerCase() == 'awarded' ||
+              item['isSelected'] == true ||
+              item['isAwarded'] == true;
+
+          final submittedRaw = item['submittedAt'] ?? item['createdAt'] ?? item['submittedDate'];
+          final subDate = _formatSubmittedDate(submittedRaw);
+          final notesVal = _text(item['carrierNote'] ?? item['notes'] ?? item['carrierNotes']);
+
           return CarrierBidModel(
-            id: _text(item['_id'] ?? item['id']),
+            id: _text(item['_id'] ?? item['id'] ?? item['bidId']),
             carrierName: _text(
               item['carrierName'] ?? carrier['companyName'] ?? carrier['name'],
             ),
             rating: ratingValue.toDouble(),
             bidAmount: _money(item['amount'] ?? item['bidAmount']),
-            isBestRate: item['isBestRate'] == true,
+            isBestRate: item['isLowest'] == true || item['isBestRate'] == true,
             deliveryDays: _text(item['deliveryDays'] ?? item['transitTime']),
+            status: statusVal,
+            isAwarded: isAwardedVal,
+            submittedDate: subDate,
+            carrierNotes: notesVal,
+            canRequestResubmit: item['canRequestResubmit'] != false,
+            resubmitRequestedAt: item['resubmitRequestedAt']?.toString(),
+            resubmitNote: item['plantNote']?.toString() ?? item['resubmitNote']?.toString(),
+            resubmitCount: item['resubmitCount'] is int
+                ? item['resubmitCount'] as int
+                : int.tryParse('${item['resubmitCount']}') ?? 0,
           );
         }),
       );
@@ -514,6 +553,8 @@ class FreightLoadsController extends GetxController {
     AwardLoadDialog(
       carrierName: carrier?.carrierName ?? 'Carrier',
       awardAmount: carrier?.bidAmount ?? r'$0',
+      isBestRate: carrier?.isBestRate ?? true,
+      project: detailLoadItem.value?.project ?? '',
       onConfirm: carrier == null || carrier.id.isEmpty
           ? null
           : () async {
@@ -521,6 +562,10 @@ class FreightLoadsController extends GetxController {
                 await repository.selectBid(carrier.id);
                 await loadCarrierBidsData(selectedLoadId.value);
                 await loadData();
+                CommonSnackbar.showSuccess(
+                  title: 'Load Awarded',
+                  message: '${carrier.carrierName} has been awarded this load.',
+                );
                 return true;
               } catch (error) {
                 CommonSnackbar.showError(
@@ -547,6 +592,10 @@ class FreightLoadsController extends GetxController {
                   message: message,
                 );
                 await loadCarrierBidsData(selectedLoadId.value);
+                CommonSnackbar.showSuccess(
+                  title: 'Revision Requested',
+                  message: 'Revision request sent to ${carrier.carrierName}.',
+                );
                 return true;
               } catch (error) {
                 CommonSnackbar.showError(
@@ -585,6 +634,29 @@ class FreightLoadsController extends GetxController {
     }
     return formattedDate;
   }
+
+  String formatCurrency(dynamic value) {
+    if (value == null) return 'N/A';
+    final strVal = value.toString().replaceAll(RegExp(r'[^\d.]'), '');
+    final numVal = num.tryParse(strVal);
+    if (numVal == null) return value.toString();
+    final formatted = numVal.toStringAsFixed(numVal % 1 == 0 ? 0 : 2).replaceAllMapped(
+      RegExp(r'\B(?=(\d{3})+(?!\d))'),
+      (_) => ',',
+    );
+    return '\$$formatted';
+  }
+
+  String _formatSubmittedDate(dynamic dateVal) {
+    if (dateVal == null || dateVal.toString().isEmpty || dateVal.toString() == '-') return '';
+    final dt = DateTime.tryParse(dateVal.toString())?.toLocal();
+    if (dt == null) return dateVal.toString();
+    final d = dt.day.toString().padLeft(2, '0');
+    final m = dt.month.toString().padLeft(2, '0');
+    final y = dt.year.toString();
+    return '$d/$m/$y';
+  }
+
   String _money(dynamic value) {
     final amount = value is num ? value : num.tryParse('$value');
     return amount == null ? '-' : '\$${amount.toStringAsFixed(0)}';

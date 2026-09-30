@@ -26,14 +26,23 @@ class _NewChatDialogState extends State<NewChatDialog> {
           if (snapshot.connectionState != ConnectionState.done) {
             return const Center(child: CircularProgressIndicator());
           }
-          if (snapshot.hasError) return Column(children: [
-            Text(snapshot.error.toString()),
-            TextButton(onPressed: () => setState(() => users = controller.repository.users()), child: const Text('Retry')),
-          ]);
+          if (snapshot.hasError) {
+            return Column(
+              children: [
+                Text(snapshot.error.toString()),
+                TextButton(
+                  onPressed: () => setState(() => users = controller.repository.users()),
+                  child: const Text('Retry'),
+                ),
+              ],
+            );
+          }
           final rows = (snapshot.data ?? []).where((row) =>
             row['_id'] != controller.currentUser['_id'] &&
             '${row['name']} ${row['email']} ${row['role']}'.toLowerCase().contains(search)).toList();
-          if (rows.isEmpty) return const Center(child: Text('No team members found'));
+          if (rows.isEmpty) {
+            return const Center(child: Text('No team members found'));
+          }
           return ListView.builder(itemCount: rows.length, itemBuilder: (context, index) {
             final row = rows[index];
             return ListTile(title: Text(row['name']?.toString() ?? ''),
@@ -41,7 +50,9 @@ class _NewChatDialogState extends State<NewChatDialog> {
               onTap: () {
                 final chat = controller.channelFromApi({...row, 'type': 'direct', 'userId': row['_id']});
                 controller.activeTab.value = chat.type;
-                if (!controller.directChats.any((item) => item.id == chat.id)) controller.directChats.add(chat);
+                if (!controller.directChats.any((item) => item.id == chat.id)) {
+                  controller.directChats.add(chat);
+                }
                 controller.selectChat(chat);
                 Get.back();
               });

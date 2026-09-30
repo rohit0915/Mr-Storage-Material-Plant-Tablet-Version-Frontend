@@ -8,11 +8,13 @@ class ShipperFileDetailsBinding extends Bindings {
   void dependencies() {
     Get.lazyPut<ShipperRequestWorkflowRepository>(
       () => ShipperRequestWorkflowRepository(apiClient: Get.find<ApiClient>()),
+      fenix: true,
     );
     Get.lazyPut<ShipperFileDetailsController>(
       () => ShipperFileDetailsController(
         repository: Get.find<ShipperRequestWorkflowRepository>(),
       ),
+      fenix: true,
     );
   }
 }

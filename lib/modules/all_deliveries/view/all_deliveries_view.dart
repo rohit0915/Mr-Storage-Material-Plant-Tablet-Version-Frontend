@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../app/utils/app_colors.dart';
+import '../../../app/widgets/app_back_button.dart';
 import '../../../app/widgets/common_loader.dart';
-import '../../../app/widgets/common_snackbar.dart';
+import '../../../app/routes/app_routes.dart';
 import '../../home/widgets/app_drawer.dart';
 import '../../home/widgets/dashboard_app_bar.dart';
 import '../controller/all_deliveries_controller.dart';
@@ -35,7 +36,9 @@ class _AllDeliveriesViewState extends State<AllDeliveriesView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFEDF2F7), // Soft neutral background matching design
+      backgroundColor: const Color(
+        0xFFEDF2F7,
+      ), // Soft neutral background matching design
       drawer: const AppDrawer(),
       body: SafeArea(
         child: Column(
@@ -55,21 +58,32 @@ class _AllDeliveriesViewState extends State<AllDeliveriesView> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Header Section
-                      const Text(
-                        'All Deliveries',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF1E293B),
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      const Text(
-                        'Comprehensive delivery management and tracking',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Color(0xFF64748B),
-                        ),
+                      Row(
+                        children: [
+                          const AppBackButton(),
+                          const SizedBox(width: 16),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: const [
+                              Text(
+                                'All Deliveries',
+                                style: TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF1E293B),
+                                ),
+                              ),
+                              SizedBox(height: 4),
+                              Text(
+                                'Comprehensive delivery management and tracking',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Color(0xFF64748B),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 20),
 
@@ -126,40 +140,98 @@ class _AllDeliveriesViewState extends State<AllDeliveriesView> {
   // 8 Metric Cards Layout with Exact Design Palette
   Widget _buildMetricCardsGrid(Map<String, int> statsMap) {
     final cardData = [
-      {'label': 'Draft', 'count': statsMap['Draft'] ?? 1, 'color': const Color(0xFFD97706), 'bg': const Color(0xFFFEF3C7), 'icon': Icons.description_outlined},
-      {'label': 'Total', 'count': statsMap['Total'] ?? 12, 'color': const Color(0xFF475569), 'bg': const Color(0xFFF1F5F9), 'icon': Icons.inventory_2_outlined},
-      {'label': 'Scheduled', 'count': statsMap['Scheduled'] ?? 4, 'color': const Color(0xFF2563EB), 'bg': const Color(0xFFDBEAFE), 'icon': Icons.calendar_month_outlined},
-      {'label': 'Confirmed', 'count': statsMap['Confirmed'] ?? 3, 'color': const Color(0xFF059669), 'bg': const Color(0xFFD1FAE5), 'icon': Icons.check_circle_outline},
-      {'label': 'In Transit', 'count': statsMap['In Transit'] ?? 3, 'color': const Color(0xFF475569), 'bg': const Color(0xFFF1F5F9), 'icon': Icons.local_shipping_outlined},
-      {'label': 'Delivered', 'count': statsMap['Delivered'] ?? 2, 'color': const Color(0xFF475569), 'bg': const Color(0xFFF1F5F9), 'icon': Icons.check_circle_outline},
-      {'label': 'Delayed', 'count': statsMap['Delayed'] ?? 1, 'color': const Color(0xFFDC2626), 'bg': const Color(0xFFFEE2E2), 'icon': Icons.warning_amber_rounded},
-      {'label': 'Cancelled', 'count': statsMap['Cancelled'] ?? 1, 'color': const Color(0xFFEF4444), 'bg': const Color(0xFFFEE2E2), 'icon': Icons.close},
+      {
+        'label': 'Draft',
+        'count': statsMap['Draft'] ?? 1,
+        'color': const Color(0xFFD97706),
+        'bg': const Color(0xFFFEF3C7),
+        'icon': Icons.description_outlined,
+      },
+      {
+        'label': 'Total',
+        'count': statsMap['Total'] ?? 12,
+        'color': const Color(0xFF475569),
+        'bg': const Color(0xFFF1F5F9),
+        'icon': Icons.inventory_2_outlined,
+      },
+      {
+        'label': 'Scheduled',
+        'count': statsMap['Scheduled'] ?? 4,
+        'color': const Color(0xFF2563EB),
+        'bg': const Color(0xFFDBEAFE),
+        'icon': Icons.calendar_month_outlined,
+      },
+      {
+        'label': 'Confirmed',
+        'count': statsMap['Confirmed'] ?? 3,
+        'color': const Color(0xFF059669),
+        'bg': const Color(0xFFD1FAE5),
+        'icon': Icons.check_circle_outline,
+      },
+      {
+        'label': 'In Transit',
+        'count': statsMap['In Transit'] ?? 3,
+        'color': const Color(0xFF475569),
+        'bg': const Color(0xFFF1F5F9),
+        'icon': Icons.local_shipping_outlined,
+      },
+      {
+        'label': 'Delivered',
+        'count': statsMap['Delivered'] ?? 2,
+        'color': const Color(0xFF475569),
+        'bg': const Color(0xFFF1F5F9),
+        'icon': Icons.check_circle_outline,
+      },
+      {
+        'label': 'Delayed',
+        'count': statsMap['Delayed'] ?? 1,
+        'color': const Color(0xFFDC2626),
+        'bg': const Color(0xFFFEE2E2),
+        'icon': Icons.warning_amber_rounded,
+      },
+      {
+        'label': 'Cancelled',
+        'count': statsMap['Cancelled'] ?? 1,
+        'color': const Color(0xFFEF4444),
+        'bg': const Color(0xFFFEE2E2),
+        'icon': Icons.close,
+      },
     ];
 
     return Column(
       children: [
         Row(
-          children: cardData.sublist(0, 4).map((data) => Expanded(
-            child: _buildMetricCard(
-              label: data['label'] as String,
-              count: data['count'] as int,
-              color: data['color'] as Color,
-              bg: data['bg'] as Color,
-              icon: data['icon'] as IconData,
-            ),
-          )).toList(),
+          children: cardData
+              .sublist(0, 4)
+              .map(
+                (data) => Expanded(
+                  child: _buildMetricCard(
+                    label: data['label'] as String,
+                    count: data['count'] as int,
+                    color: data['color'] as Color,
+                    bg: data['bg'] as Color,
+                    icon: data['icon'] as IconData,
+                  ),
+                ),
+              )
+              .toList(),
         ),
         const SizedBox(height: 12),
         Row(
-          children: cardData.sublist(4, 8).map((data) => Expanded(
-            child: _buildMetricCard(
-              label: data['label'] as String,
-              count: data['count'] as int,
-              color: data['color'] as Color,
-              bg: data['bg'] as Color,
-              icon: data['icon'] as IconData,
-            ),
-          )).toList(),
+          children: cardData
+              .sublist(4, 8)
+              .map(
+                (data) => Expanded(
+                  child: _buildMetricCard(
+                    label: data['label'] as String,
+                    count: data['count'] as int,
+                    color: data['color'] as Color,
+                    bg: data['bg'] as Color,
+                    icon: data['icon'] as IconData,
+                  ),
+                ),
+              )
+              .toList(),
         ),
       ],
     );
@@ -213,10 +285,7 @@ class _AllDeliveriesViewState extends State<AllDeliveriesView> {
           ),
           Container(
             padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: bg,
-              shape: BoxShape.circle,
-            ),
+            decoration: BoxDecoration(color: bg, shape: BoxShape.circle),
             child: Icon(icon, color: color, size: 20),
           ),
         ],
@@ -247,10 +316,20 @@ class _AllDeliveriesViewState extends State<AllDeliveriesView> {
               child: TextField(
                 onChanged: (val) => controller.searchQuery.value = val,
                 decoration: InputDecoration(
-                  prefixIcon: const Icon(Icons.search, size: 20, color: Color(0xFF94A3B8)),
+                  prefixIcon: const Icon(
+                    Icons.search,
+                    size: 20,
+                    color: Color(0xFF94A3B8),
+                  ),
                   hintText: 'Search by ID, project, customer, item...',
-                  hintStyle: const TextStyle(fontSize: 13, color: Color(0xFF94A3B8)),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 0),
+                  hintStyle: const TextStyle(
+                    fontSize: 13,
+                    color: Color(0xFF94A3B8),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 0,
+                  ),
                   filled: true,
                   fillColor: const Color(0xFFF8FAFC),
                   border: OutlineInputBorder(
@@ -278,15 +357,23 @@ class _AllDeliveriesViewState extends State<AllDeliveriesView> {
             child: DropdownButtonHideUnderline(
               child: DropdownButton<String>(
                 value: controller.selectedStatus.value,
-                icon: const Icon(Icons.keyboard_arrow_down, color: Color(0xFF64748B)),
-                style: const TextStyle(fontSize: 13, color: Color(0xFF334155), fontWeight: FontWeight.w500),
+                icon: const Icon(
+                  Icons.keyboard_arrow_down,
+                  color: Color(0xFF64748B),
+                ),
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: Color(0xFF334155),
+                  fontWeight: FontWeight.w500,
+                ),
                 items: controller.statuses
-                    .map((status) => DropdownMenuItem(
-                          value: status,
-                          child: Text(status),
-                        ))
+                    .map(
+                      (status) =>
+                          DropdownMenuItem(value: status, child: Text(status)),
+                    )
                     .toList(),
-                onChanged: (val) => controller.selectedStatus.value = val ?? 'All Status',
+                onChanged: (val) =>
+                    controller.selectedStatus.value = val ?? 'All Status',
               ),
             ),
           ),
@@ -297,22 +384,32 @@ class _AllDeliveriesViewState extends State<AllDeliveriesView> {
             style: OutlinedButton.styleFrom(
               minimumSize: const Size(0, 42),
               side: BorderSide(
-                color: controller.isAdvancedFilterOpen.value ? AppColors.primary : const Color(0xFFCBD5E1),
+                color: controller.isAdvancedFilterOpen.value
+                    ? AppColors.primary
+                    : const Color(0xFFCBD5E1),
               ),
-              backgroundColor: controller.isAdvancedFilterOpen.value ? const Color(0xFFEFF6FF) : Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              backgroundColor: controller.isAdvancedFilterOpen.value
+                  ? const Color(0xFFEFF6FF)
+                  : Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
             ),
             icon: Icon(
               Icons.tune_rounded,
               size: 18,
-              color: controller.isAdvancedFilterOpen.value ? AppColors.primary : const Color(0xFF475569),
+              color: controller.isAdvancedFilterOpen.value
+                  ? AppColors.primary
+                  : const Color(0xFF475569),
             ),
             label: Text(
               'Advanced Filters',
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: controller.isAdvancedFilterOpen.value ? AppColors.primary : const Color(0xFF475569),
+                color: controller.isAdvancedFilterOpen.value
+                    ? AppColors.primary
+                    : const Color(0xFF475569),
               ),
             ),
           ),
@@ -324,7 +421,9 @@ class _AllDeliveriesViewState extends State<AllDeliveriesView> {
               minimumSize: const Size(0, 42),
               side: const BorderSide(color: Color(0xFF10B981)),
               foregroundColor: const Color(0xFF10B981),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
             ),
             icon: const Icon(Icons.file_download_outlined, size: 18),
             label: const Text(
@@ -362,19 +461,49 @@ class _AllDeliveriesViewState extends State<AllDeliveriesView> {
               const SizedBox(width: 16),
               Expanded(child: _buildFilterInput('Date To', 'DD/MM/YYYY')),
               const SizedBox(width: 16),
-              Expanded(child: _buildFilterDropdown('Project', controller.selectedProject, controller.options('All Project', (item) => item.project))),
+              Expanded(
+                child: _buildFilterDropdown(
+                  'Project',
+                  controller.selectedProject,
+                  controller.options('All Project', (item) => item.project),
+                ),
+              ),
               const SizedBox(width: 16),
-              Expanded(child: _buildFilterDropdown('Customer', controller.selectedCustomer, controller.options('All Customer', (item) => item.customer))),
+              Expanded(
+                child: _buildFilterDropdown(
+                  'Customer',
+                  controller.selectedCustomer,
+                  controller.options('All Customer', (item) => item.customer),
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 16),
           Row(
             children: [
-              Expanded(child: _buildFilterDropdown('Vendor', controller.selectedVendor, controller.options('All Vendor', (item) => item.vendor))),
+              Expanded(
+                child: _buildFilterDropdown(
+                  'Vendor',
+                  controller.selectedVendor,
+                  controller.options('All Vendor', (item) => item.vendor),
+                ),
+              ),
               const SizedBox(width: 16),
-              Expanded(child: _buildFilterDropdown('Delivery Company', controller.selectedCarrier, controller.options('All Carriers', (item) => item.carrier))),
+              Expanded(
+                child: _buildFilterDropdown(
+                  'Delivery Company',
+                  controller.selectedCarrier,
+                  controller.options('All Carriers', (item) => item.carrier),
+                ),
+              ),
               const SizedBox(width: 16),
-              Expanded(child: _buildFilterDropdown('Material Category', controller.selectedCategory, controller.options('All Categories', (item) => item.category))),
+              Expanded(
+                child: _buildFilterDropdown(
+                  'Material Category',
+                  controller.selectedCategory,
+                  controller.options('All Categories', (item) => item.category),
+                ),
+              ),
               const SizedBox(width: 16),
               const Spacer(),
             ],
@@ -382,11 +511,32 @@ class _AllDeliveriesViewState extends State<AllDeliveriesView> {
           const SizedBox(height: 16),
           Row(
             children: [
-              Expanded(child: _buildFilterDropdown('Equipment Required', controller.selectedEquipment, controller.options('All Equipment', (item) => item.equipment))),
+              Expanded(
+                child: _buildFilterDropdown(
+                  'Equipment Required',
+                  controller.selectedEquipment,
+                  controller.options('All Equipment', (item) => item.equipment),
+                ),
+              ),
               const SizedBox(width: 16),
-              Expanded(child: _buildFilterDropdown('Status', controller.selectedStatus, controller.statuses)),
+              Expanded(
+                child: _buildFilterDropdown(
+                  'Status',
+                  controller.selectedStatus,
+                  controller.statuses,
+                ),
+              ),
               const SizedBox(width: 16),
-              Expanded(child: _buildFilterDropdown('Internal Owner', controller.selectedOwner, controller.options('All Internal Owner', (item) => item.internalOwner))),
+              Expanded(
+                child: _buildFilterDropdown(
+                  'Internal Owner',
+                  controller.selectedOwner,
+                  controller.options(
+                    'All Internal Owner',
+                    (item) => item.internalOwner,
+                  ),
+                ),
+              ),
               const SizedBox(width: 16),
               Expanded(
                 child: SizedBox(
@@ -395,12 +545,22 @@ class _AllDeliveriesViewState extends State<AllDeliveriesView> {
                     onPressed: controller.clearAllFilters,
                     style: OutlinedButton.styleFrom(
                       side: const BorderSide(color: Color(0xFFCBD5E1)),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
-                    icon: const Icon(Icons.clear_all, size: 16, color: Color(0xFF475569)),
+                    icon: const Icon(
+                      Icons.clear_all,
+                      size: 16,
+                      color: Color(0xFF475569),
+                    ),
                     label: const Text(
                       'Clear All Filters',
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF475569)),
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF475569),
+                      ),
                     ),
                   ),
                 ),
@@ -412,29 +572,75 @@ class _AllDeliveriesViewState extends State<AllDeliveriesView> {
     );
   }
 
-  Widget _buildFilterInput(String label, String hint) {
+  Widget _buildFilterInput(String label, String hint) => Obx(() {
+    final selection = label == 'Date From' ? controller.dateFrom : controller.dateTo;
+    final value = selection.value;
+    return InkWell(onTap: () async {
+      final date = await showDatePicker(context: context, initialDate: value ?? DateTime.now(),
+        firstDate: DateTime(2000), lastDate: DateTime(2100));
+      if (date == null) return;
+      final from = label == 'Date From' ? date : controller.dateFrom.value;
+      final to = label == 'Date To' ? date : controller.dateTo.value;
+      if (from != null && to != null && from.isAfter(to)) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('End date must be on or after the start date.')),
+          );
+        }
+        return;
+      }
+      selection.value = date;
+    }, child: InputDecorator(decoration: InputDecoration(labelText: label, suffixIcon: const Icon(Icons.calendar_today)),
+      child: Text(value == null ? hint : '${value.day}/${value.month}/${value.year}')));
+  });
+
+  Widget _buildFilterDropdown(
+    String label,
+    RxString selectedValue,
+    List<String> options,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Color(0xFF475569))),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: Color(0xFF475569),
+          ),
+        ),
         const SizedBox(height: 6),
-        SizedBox(
-          height: 38,
-          child: TextField(
-            readOnly: true,
-            decoration: InputDecoration(
-              hintText: hint,
-              hintStyle: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
-              filled: true,
-              fillColor: Colors.white,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+        Obx(
+          () => Container(
+            height: 38,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: const Color(0xFFCBD5E1)),
+            ),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<String>(
+                value: selectedValue.value,
+                isExpanded: true,
+                icon: const Icon(
+                  Icons.keyboard_arrow_down,
+                  size: 18,
+                  color: Color(0xFF64748B),
+                ),
+                style: const TextStyle(fontSize: 12, color: Color(0xFF334155)),
+                items: <String>{...options, selectedValue.value}
+                    .map(
+                      (opt) => DropdownMenuItem(
+                        value: opt,
+                        child: Text(opt, overflow: TextOverflow.ellipsis),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (val) {
+                  if (val != null) selectedValue.value = val;
+                },
               ),
             ),
           ),
@@ -443,63 +649,144 @@ class _AllDeliveriesViewState extends State<AllDeliveriesView> {
     );
   }
 
-  Widget _buildFilterDropdown(String label, RxString selectedValue, List<String> options) {
+  // Results Count, Items Per Page & Column Visibility Toggle Pills
+  Widget _buildResultsAndColumnTogglesRow() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Color(0xFF475569))),
-        const SizedBox(height: 6),
-        Obx(() => Container(
-          height: 38,
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: const Color(0xFFCBD5E1)),
-          ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              value: options.contains(selectedValue.value) ? selectedValue.value : options.first,
-              isExpanded: true,
-              icon: const Icon(Icons.keyboard_arrow_down, size: 18, color: Color(0xFF64748B)),
-              style: const TextStyle(fontSize: 12, color: Color(0xFF334155)),
-              items: options.map((opt) => DropdownMenuItem(value: opt, child: Text(opt, overflow: TextOverflow.ellipsis))).toList(),
-              onChanged: (val) {
-                if (val != null) selectedValue.value = val;
-              },
-            ),
-          ),
-        )),
-      ],
-    );
-  }
+        // Top Row: Showing count on left, Items per page on right
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Obx(() {
+              final count = controller.filteredDeliveries.length;
+              final start = count == 0
+                  ? 0
+                  : ((controller.currentPage.value - 1) *
+                            controller.itemsPerPage.value) +
+                        1;
+              final end = (start + controller.itemsPerPage.value - 1).clamp(
+                0,
+                count,
+              );
+              return Text.rich(
+                TextSpan(
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: Color(0xFF64748B),
+                  ),
+                  children: [
+                    const TextSpan(text: 'Showing '),
+                    TextSpan(
+                      text: '$start',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1E293B),
+                      ),
+                    ),
+                    const TextSpan(text: ' to '),
+                    TextSpan(
+                      text: '$end',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1E293B),
+                      ),
+                    ),
+                    const TextSpan(text: ' of '),
+                    TextSpan(
+                      text: '$count',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1E293B),
+                      ),
+                    ),
+                    const TextSpan(text: ' deliveries'),
+                  ],
+                ),
+              );
+            }),
 
-  // Results Count & Column Visibility Toggle Pills
-  Widget _buildResultsAndColumnTogglesRow() {
-    final cols = controller.visibleColumns;
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
+            Obx(
+              () => Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'Items per page:',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: Color(0xFF64748B),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    height: 32,
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: const Color(0xFFCBD5E1)),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<int>(
+                        value: controller.itemsPerPage.value,
+                        dropdownColor: Colors.white,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF1E293B),
+                        ),
+                        icon: const Icon(
+                          Icons.keyboard_arrow_down_rounded,
+                          size: 16,
+                          color: Color(0xFF64748B),
+                        ),
+                        items: const [10, 20, 50, 100].map((int count) {
+                          return DropdownMenuItem<int>(
+                            value: count,
+                            child: Text('$count'),
+                          );
+                        }).toList(),
+                        onChanged: (int? newVal) {
+                          if (newVal != null) {
+                            controller.itemsPerPage.value = newVal;
+                            controller.currentPage.value = 1;
+                          }
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+
+        const SizedBox(height: 12),
+
+        // Bottom Row: 9 Toggle Chips
         Obx(() {
-          final count = controller.filteredDeliveries.length;
-          final start = count == 0 ? 0 : ((controller.currentPage.value - 1) * controller.itemsPerPage.value) + 1;
-          final end = (start + controller.itemsPerPage.value - 1).clamp(0, count);
-          return Text(
-            'Showing $start to $end of $count deliveries',
-            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Color(0xFF64748B)),
+          final cols = controller.visibleColumns;
+          return SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                _buildColumnToggleChip('Project', cols['Project'] ?? true),
+                _buildColumnToggleChip('Customer', cols['Customer'] ?? true),
+                _buildColumnToggleChip('Vendor', cols['Vendor'] ?? true),
+                _buildColumnToggleChip('Carrier', cols['Carrier'] ?? true),
+                _buildColumnToggleChip('POC', cols['POC'] ?? true),
+                _buildColumnToggleChip(
+                  'DeliveryDate',
+                  cols['DeliveryDate'] ?? cols['Date'] ?? true,
+                ),
+                _buildColumnToggleChip('Items', cols['Items'] ?? true),
+                _buildColumnToggleChip('Equipment', cols['Equipment'] ?? true),
+                _buildColumnToggleChip('Site', cols['Site'] ?? true),
+              ],
+            ),
           );
         }),
-
-        Obx(() => Row(
-          children: [
-            _buildColumnToggleChip('Project', cols['Project'] ?? true),
-            _buildColumnToggleChip('Customer', cols['Customer'] ?? true),
-            _buildColumnToggleChip('Vendor', cols['Vendor'] ?? true),
-            _buildColumnToggleChip('Carrier', cols['Carrier'] ?? true),
-            _buildColumnToggleChip('POC', cols['POC'] ?? true),
-            _buildColumnToggleChip('Date', cols['Date'] ?? true),
-          ],
-        )),
       ],
     );
   }
@@ -509,27 +796,53 @@ class _AllDeliveriesViewState extends State<AllDeliveriesView> {
       onTap: () => controller.toggleColumn(label),
       borderRadius: BorderRadius.circular(8),
       child: Container(
-        margin: const EdgeInsets.only(left: 8),
+        margin: const EdgeInsets.only(right: 8),
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: const Color(0xFFE2E8F0),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.02),
+              blurRadius: 4,
+              offset: const Offset(0, 1),
+            ),
+          ],
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              isChecked ? Icons.check_box_rounded : Icons.check_box_outline_blank_rounded,
-              size: 16,
-              color: isChecked ? AppColors.accent : const Color(0xFF94A3B8),
+            Container(
+              width: 15,
+              height: 15,
+              decoration: BoxDecoration(
+                color: isChecked ? const Color(0xFF2563EB) : Colors.white,
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(
+                  color: isChecked
+                      ? const Color(0xFF2563EB)
+                      : const Color(0xFFCBD5E1),
+                  width: 1.2,
+                ),
+              ),
+              child: isChecked
+                  ? const Icon(
+                      Icons.check,
+                      size: 11,
+                      color: Colors.white,
+                    )
+                  : null,
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: 7),
             Text(
               label,
               style: TextStyle(
                 fontSize: 12,
-                fontWeight: isChecked ? FontWeight.w600 : FontWeight.normal,
-                color: AppColors.black,
+                fontWeight: isChecked ? FontWeight.w600 : FontWeight.w500,
+                color: const Color(0xFF334155),
               ),
             ),
           ],
@@ -550,7 +863,10 @@ class _AllDeliveriesViewState extends State<AllDeliveriesView> {
           borderRadius: BorderRadius.circular(16),
         ),
         child: const Center(
-          child: Text('No deliveries match the selected filters.', style: TextStyle(color: Color(0xFF64748B))),
+          child: Text(
+            'No deliveries match the selected filters.',
+            style: TextStyle(color: Color(0xFF64748B)),
+          ),
         ),
       );
     }
@@ -579,36 +895,153 @@ class _AllDeliveriesViewState extends State<AllDeliveriesView> {
             controller: _horizontalScrollController,
             scrollDirection: Axis.horizontal,
             child: DataTable(
-              headingRowColor: WidgetStateProperty.all(const Color(0xFFE0E7FF)), // Exact soft periwinkle blue header tint from design!
+              headingRowColor: WidgetStateProperty.all(
+                const Color(0xFFE0E7FF),
+              ), // Exact soft periwinkle blue header tint from design!
               dataRowMaxHeight: 85,
               dataRowMinHeight: 75,
               horizontalMargin: 20,
               columnSpacing: 28,
               columns: [
-                const DataColumn(label: Text('ID ↑↓', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF1E293B)))),
-                const DataColumn(label: Text('Status ↑↓', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF1E293B)))),
-                if (controller.visibleColumns['Date'] ?? true)
-                  const DataColumn(label: Text('Delivery Date-Time', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF1E293B)))),
-                const DataColumn(label: Text('Date & Time / Items ↑↓', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF1E293B)))),
+                const DataColumn(
+                  label: Text(
+                    'ID ↑↓',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                      color: Color(0xFF1E293B),
+                    ),
+                  ),
+                ),
+                const DataColumn(
+                  label: Text(
+                    'Status ↑↓',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                      color: Color(0xFF1E293B),
+                    ),
+                  ),
+                ),
+                if (controller.visibleColumns['DeliveryDate'] ??
+                    controller.visibleColumns['Date'] ??
+                    true)
+                  const DataColumn(
+                    label: Text(
+                      'Delivery Date-Time',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                        color: Color(0xFF1E293B),
+                      ),
+                    ),
+                  ),
+                if (controller.visibleColumns['Items'] ?? true)
+                  const DataColumn(
+                    label: Text(
+                      'Date & Time / Items ↑↓',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                        color: Color(0xFF1E293B),
+                      ),
+                    ),
+                  ),
                 if (controller.visibleColumns['Project'] ?? true)
-                  const DataColumn(label: Text('Project ↑↓', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF1E293B)))),
+                  const DataColumn(
+                    label: Text(
+                      'Project ↑↓',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                        color: Color(0xFF1E293B),
+                      ),
+                    ),
+                  ),
                 if (controller.visibleColumns['Customer'] ?? true)
-                  const DataColumn(label: Text('Customer ↑↓', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF1E293B)))),
+                  const DataColumn(
+                    label: Text(
+                      'Customer ↑↓',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                        color: Color(0xFF1E293B),
+                      ),
+                    ),
+                  ),
                 if (controller.visibleColumns['Vendor'] ?? true)
-                  const DataColumn(label: Text('Vendor ↑↓', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF1E293B)))),
+                  const DataColumn(
+                    label: Text(
+                      'Vendor ↑↓',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                        color: Color(0xFF1E293B),
+                      ),
+                    ),
+                  ),
                 if (controller.visibleColumns['Carrier'] ?? true)
-                  const DataColumn(label: Text('Carrier ↑↓', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF1E293B)))),
+                  const DataColumn(
+                    label: Text(
+                      'Carrier ↑↓',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                        color: Color(0xFF1E293B),
+                      ),
+                    ),
+                  ),
                 if (controller.visibleColumns['POC'] ?? true)
-                  const DataColumn(label: Text('POC', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF1E293B)))),
-                const DataColumn(label: Text('Equipment Required ↑↓', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF1E293B)))),
-                const DataColumn(label: Text('Site Location ↑↓', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF1E293B)))),
-                const DataColumn(label: Text('Actions', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF1E293B)))),
+                  const DataColumn(
+                    label: Text(
+                      'POC',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                        color: Color(0xFF1E293B),
+                      ),
+                    ),
+                  ),
+                if (controller.visibleColumns['Equipment'] ?? true)
+                  const DataColumn(
+                    label: Text(
+                      'Equipment Required ↑↓',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                        color: Color(0xFF1E293B),
+                      ),
+                    ),
+                  ),
+                if (controller.visibleColumns['Site'] ?? true)
+                  const DataColumn(
+                    label: Text(
+                      'Site Location ↑↓',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                        color: Color(0xFF1E293B),
+                      ),
+                    ),
+                  ),
+                const DataColumn(
+                  label: Text(
+                    'Actions',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                      color: Color(0xFF1E293B),
+                    ),
+                  ),
+                ),
               ],
               rows: items.asMap().entries.map((entry) {
                 final index = entry.key;
                 final item = entry.value;
                 return DataRow(
-                  color: WidgetStateProperty.all(index % 2 == 0 ? Colors.white : const Color(0xFFF8FAFC)),
+                  color: WidgetStateProperty.all(
+                    index % 2 == 0 ? Colors.white : const Color(0xFFF8FAFC),
+                  ),
                   cells: _buildDataRowCells(item),
                 );
               }).toList(),
@@ -625,21 +1058,29 @@ class _AllDeliveriesViewState extends State<AllDeliveriesView> {
     return [
       // ID & Priority Pill
       DataCell(
-        Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              item.id,
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF2563EB), // Exact blue text from image!
+        InkWell(
+          onTap: () {
+            Get.toNamed(
+              AppRoutes.deliveryDetails,
+              parameters: {'deliveryId': item.id},
+            );
+          },
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                item.displayId,
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF2563EB), // Exact blue text from image!
+                ),
               ),
-            ),
-            const SizedBox(height: 4),
-            _buildPriorityPill(item.priority),
-          ],
+              const SizedBox(height: 4),
+              _buildPriorityPill(item.priority),
+            ],
+          ),
         ),
       ),
 
@@ -647,7 +1088,7 @@ class _AllDeliveriesViewState extends State<AllDeliveriesView> {
       DataCell(_buildStatusBadge(item.status)),
 
       // Delivery Date-Time (Column 3)
-      if (cols['Date'] ?? true)
+      if (cols['DeliveryDate'] ?? cols['Date'] ?? true)
         DataCell(
           Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -655,7 +1096,11 @@ class _AllDeliveriesViewState extends State<AllDeliveriesView> {
             children: [
               Text(
                 item.deliveryDate,
-                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1E293B),
+                ),
               ),
               Text(
                 item.timeWindow,
@@ -666,23 +1111,28 @@ class _AllDeliveriesViewState extends State<AllDeliveriesView> {
         ),
 
       // Date & Time / Items Description Column
-      DataCell(
-        SizedBox(
-          width: 180,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                item.items,
-                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
-                overflow: TextOverflow.ellipsis,
-                maxLines: 2,
-              ),
-            ],
+      if (cols['Items'] ?? true)
+        DataCell(
+          SizedBox(
+            width: 180,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.items,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1E293B),
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 2,
+                ),
+              ],
+            ),
           ),
         ),
-      ),
 
       // Project
       if (cols['Project'] ?? true)
@@ -691,7 +1141,11 @@ class _AllDeliveriesViewState extends State<AllDeliveriesView> {
             width: 140,
             child: Text(
               item.project,
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Color(0xFF334155)),
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: Color(0xFF334155),
+              ),
               overflow: TextOverflow.ellipsis,
               maxLines: 2,
             ),
@@ -705,7 +1159,11 @@ class _AllDeliveriesViewState extends State<AllDeliveriesView> {
             width: 130,
             child: Text(
               item.customer,
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Color(0xFF334155)),
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: Color(0xFF334155),
+              ),
               overflow: TextOverflow.ellipsis,
             ),
           ),
@@ -746,24 +1204,48 @@ class _AllDeliveriesViewState extends State<AllDeliveriesView> {
             children: [
               Text(
                 item.pocName,
-                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1E293B),
+                ),
               ),
               const SizedBox(height: 2),
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.phone_outlined, size: 11, color: Color(0xFF2563EB)),
+                  const Icon(
+                    Icons.phone_outlined,
+                    size: 11,
+                    color: Color(0xFF2563EB),
+                  ),
                   const SizedBox(width: 4),
-                  Text(item.pocPhone, style: const TextStyle(fontSize: 10, color: Color(0xFF64748B))),
+                  Text(
+                    item.pocPhone,
+                    style: const TextStyle(
+                      fontSize: 10,
+                      color: Color(0xFF64748B),
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: 1),
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.mail_outline_rounded, size: 11, color: Color(0xFF2563EB)),
+                  const Icon(
+                    Icons.mail_outline_rounded,
+                    size: 11,
+                    color: Color(0xFF2563EB),
+                  ),
                   const SizedBox(width: 4),
-                  Text(item.pocEmail, style: const TextStyle(fontSize: 10, color: Color(0xFF64748B))),
+                  Text(
+                    item.pocEmail,
+                    style: const TextStyle(
+                      fontSize: 10,
+                      color: Color(0xFF64748B),
+                    ),
+                  ),
                 ],
               ),
             ],
@@ -771,34 +1253,44 @@ class _AllDeliveriesViewState extends State<AllDeliveriesView> {
         ),
 
       // Equipment Required
-      DataCell(
-        Text(
-          item.equipment,
-          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Color(0xFF64748B)),
-        ),
-      ),
-
-      // Site Location
-      DataCell(
-        SizedBox(
-          width: 160,
-          child: Text(
-            item.site,
-            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Color(0xFF334155)),
-            overflow: TextOverflow.ellipsis,
-            maxLines: 2,
+      if (cols['Equipment'] ?? true)
+        DataCell(
+          Text(
+            item.equipment,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: Color(0xFF64748B),
+            ),
           ),
         ),
-      ),
+
+      // Site Location
+      if (cols['Site'] ?? true)
+        DataCell(
+          SizedBox(
+            width: 160,
+            child: Text(
+              item.site,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: Color(0xFF334155),
+              ),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 2,
+            ),
+          ),
+        ),
 
       // Actions Column (...)
       DataCell(
         IconButton(
           icon: const Icon(Icons.more_horiz_rounded, color: Color(0xFF94A3B8)),
           onPressed: () {
-            CommonSnackbar.showInfo(
-              title: 'Actions',
-              message: 'Options for ${item.id}',
+            Get.toNamed(
+              AppRoutes.deliveryDetails,
+              parameters: {'deliveryId': item.id},
             );
           },
         ),
@@ -808,23 +1300,34 @@ class _AllDeliveriesViewState extends State<AllDeliveriesView> {
 
   // Priority Pill Badge (Normal, High, Critical)
   Widget _buildPriorityPill(String priority) {
+    final p = priority.trim();
+    if (p.isEmpty || p == '—' || p == '-' || p == 'null') {
+      return const SizedBox.shrink();
+    }
     Color bg = const Color(0xFFDCFCE7);
     Color text = const Color(0xFF16A34A);
 
-    if (priority.toLowerCase() == 'high') {
+    if (p.toLowerCase() == 'high') {
       bg = const Color(0xFFFEE2E2);
       text = const Color(0xFFDC2626);
-    } else if (priority.toLowerCase() == 'critical') {
+    } else if (p.toLowerCase() == 'critical') {
       bg = const Color(0xFFFEF3C7);
       text = const Color(0xFFD97706);
     }
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(12)),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(12),
+      ),
       child: Text(
-        priority,
-        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: text),
+        p,
+        style: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.bold,
+          color: text,
+        ),
       ),
     );
   }
@@ -868,7 +1371,10 @@ class _AllDeliveriesViewState extends State<AllDeliveriesView> {
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(20)),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(20),
+      ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -876,7 +1382,11 @@ class _AllDeliveriesViewState extends State<AllDeliveriesView> {
           const SizedBox(width: 4),
           Text(
             status,
-            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: text),
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: text,
+            ),
           ),
         ],
       ),
@@ -901,10 +1411,12 @@ class _AllDeliveriesViewState extends State<AllDeliveriesView> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Obx(() => Text(
-            'Page ${controller.currentPage.value} of ${controller.totalPages}',
-            style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)),
-          )),
+          Obx(
+            () => Text(
+              'Page ${controller.currentPage.value} of ${controller.totalPages}',
+              style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)),
+            ),
+          ),
 
           Obx(() {
             final page = controller.currentPage.value;
@@ -912,9 +1424,17 @@ class _AllDeliveriesViewState extends State<AllDeliveriesView> {
 
             return Row(
               children: [
-                _buildPageNavBtn('First', page > 1, () => controller.currentPage.value = 1),
+                _buildPageNavBtn(
+                  'First',
+                  page > 1,
+                  () => controller.currentPage.value = 1,
+                ),
                 const SizedBox(width: 6),
-                _buildPageNavBtn('<', page > 1, () => controller.currentPage.value--),
+                _buildPageNavBtn(
+                  '<',
+                  page > 1,
+                  () => controller.currentPage.value--,
+                ),
                 const SizedBox(width: 6),
                 _buildPageNumBtn(1, page == 1),
                 if (maxPage >= 2) ...[
@@ -922,17 +1442,27 @@ class _AllDeliveriesViewState extends State<AllDeliveriesView> {
                   _buildPageNumBtn(2, page == 2),
                 ],
                 const SizedBox(width: 6),
-                _buildPageNavBtn('>', page < maxPage, () => controller.currentPage.value++),
+                _buildPageNavBtn(
+                  '>',
+                  page < maxPage,
+                  () => controller.currentPage.value++,
+                ),
                 const SizedBox(width: 6),
-                _buildPageNavBtn('Last', page < maxPage, () => controller.currentPage.value = maxPage),
+                _buildPageNavBtn(
+                  'Last',
+                  page < maxPage,
+                  () => controller.currentPage.value = maxPage,
+                ),
               ],
             );
           }),
 
-          Obx(() => Text(
-            '${controller.filteredDeliveries.length} total results',
-            style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)),
-          )),
+          Obx(
+            () => Text(
+              '${controller.filteredDeliveries.length} total results',
+              style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)),
+            ),
+          ),
         ],
       ),
     );

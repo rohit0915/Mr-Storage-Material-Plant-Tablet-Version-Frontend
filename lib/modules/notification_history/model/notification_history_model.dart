@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 class NotificationItemModel {
   final String id;
+  final String refModel, refId, leadId;
   final String title;
   final String description;
   final String time;
@@ -13,6 +14,9 @@ class NotificationItemModel {
 
   NotificationItemModel({
     required this.id,
+    this.refModel = '',
+    this.refId = '',
+    this.leadId = '',
     required this.title,
     required this.description,
     required this.time,

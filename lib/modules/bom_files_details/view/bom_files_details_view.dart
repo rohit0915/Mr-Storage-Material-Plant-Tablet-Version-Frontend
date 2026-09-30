@@ -244,273 +244,47 @@ class BomFilesDetailsView extends GetView<BomFilesDetailsController> {
 
             const SizedBox(height: 20),
 
-            // Summary Cards Row (BOM Summary + Pricing Summary)
+            // Statistics Row
             Obx(
-              () => Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // BOM Summary Box
-                  Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF8FAFC),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'BOM Summary',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.textPrimary,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          _buildSummaryRow(
-                            'Total Items',
-                            '${controller.summary.value?.totalItems ?? 0}',
-                          ),
-                          const SizedBox(height: 8),
-                          _buildSummaryRow(
-                            'Total Weight',
-                            controller.summary.value?.totalWeight ?? '0 lbs',
-                            isBold: true,
-                          ),
-                          const SizedBox(height: 8),
-                          _buildSummaryRow(
-                            'Priced Items',
-                            '${controller.pricedItems.value}',
-                            isBold: true,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(width: 24),
-
-                  // Pricing Summary Box
-                  Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF8FAFC),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Pricing Summary',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.textPrimary,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          _buildSummaryRow(
-                            'Total Cost',
-                            controller.totalCost.value,
-                            isBold: true,
-                          ),
-                          const SizedBox(height: 8),
-                          _buildSummaryRow(
-                            'Unpriced Items QTY',
-                            '${controller.missingSummary.value?.missingItemQty ?? 0}',
-                            isBold: true,
-                          ),
-                          if ((controller
-                                      .missingSummary
-                                      .value
-                                      ?.missingItemQty ??
-                                  0) >
-                              0) ...[
-                            const SizedBox(height: 14),
-                            ElevatedButton(
-                              onPressed: () =>
-                                  Get.toNamed(AppRoutes.missingItemCostList),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF2563EB),
-                                elevation: 0,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 10,
-                                ),
-                              ),
-                              child: const Text(
-                                'Add Item in Cost List',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
-            // Printable BOM header
-            Obx(
-              () => Container(
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.black, width: 1.5),
-                ),
-                child: Row(
+              () => Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: Wrap(
+                  spacing: 24,
+                  runSpacing: 10,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
-                    // Left Logo Box
-                    Expanded(
-                      flex: 5,
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Image.asset(
-                          'assets/images/logo.png',
-                          height: 74,
-                          fit: BoxFit.contain,
-                        ),
+                    Text(
+                      'Total Parts: ${controller.summary.value?.totalItems ?? 0}',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                    Container(width: 1.5, height: 110, color: Colors.black),
-
-                    // Right Metadata Table Grid
-                    Expanded(
-                      flex: 6,
-                      child: Column(
-                        children: [
-                          // Title row
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 8,
-                              horizontal: 12,
-                            ),
-                            decoration: const BoxDecoration(
-                              border: Border(
-                                bottom: BorderSide(
-                                  color: Colors.black,
-                                  width: 1.5,
-                                ),
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                const Expanded(
-                                  child: Text(
-                                    'STUDS & TOP CHANNELS',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.black,
-                                    ),
-                                  ),
-                                ),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    _buildHeaderGridCell(
-                                      'Date',
-                                      controller.date.value,
-                                    ),
-                                    _buildHeaderGridCell(
-                                      'Job Id',
-                                      controller.jobId.value,
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                          // Customer row
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 6,
-                              horizontal: 12,
-                            ),
-                            decoration: const BoxDecoration(
-                              border: Border(
-                                bottom: BorderSide(
-                                  color: Colors.black,
-                                  width: 1.5,
-                                ),
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                const SizedBox(
-                                  width: 100,
-                                  child: Text(
-                                    'Customer:',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                                Text(
-                                  controller.customerName.value,
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          // Project Name row
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 6,
-                              horizontal: 12,
-                            ),
-                            child: Row(
-                              children: [
-                                const SizedBox(
-                                  width: 100,
-                                  child: Text(
-                                    'Project Name:',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                                Text(
-                                  controller.projectName.value,
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
+                    Text(
+                      'Total Weight (lbs): ${controller.summary.value?.totalWeight ?? '0 lbs'}',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      'Priced Items: ${controller.pricedItems.value}',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      'Total Price: ${controller.totalCost.value}',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ],
                 ),
               ),
             ),
-
-            const SizedBox(height: 24),
-
-            _buildBomTabs(),
 
             const SizedBox(height: 16),
 
@@ -641,236 +415,154 @@ class BomFilesDetailsView extends GetView<BomFilesDetailsController> {
   }
 
   Widget _buildBomDataTable() {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.inputBorder),
-      ),
-      child: Column(
-        children: [
-          // Table Header
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            color: const Color(0xFFF8FAFC),
-            child: Row(
-              children: [
-                _buildTh('QTY', flex: 1, sortable: true),
-                _buildTh('Mark', flex: 1, sortable: true),
-                _buildTh('Description', flex: 2),
-                _buildTh('Part', flex: 1),
-                _buildTh('Color', flex: 1),
-                _buildTh('Thick', flex: 1),
-                _buildTh('Length', flex: 1, sortable: true),
-                _buildTh('Weight', flex: 1, sortable: true),
-                _buildTh('Amount', flex: 1, sortable: true),
-              ],
-            ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const double minTableWidth = 1000.0;
+        final double tableWidth = constraints.maxWidth < minTableWidth
+            ? minTableWidth
+            : constraints.maxWidth;
+
+        return Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: AppColors.inputBorder),
           ),
-          const Divider(height: 1, color: AppColors.divider),
-          // Rows
-          Obx(() {
-            if (controller.groupedBomItems.isEmpty) {
-              final filter = BomFilesDetailsController
-                  .filters[controller.selectedTabIndex.value]
-                  .replaceAll('_', ' ');
-              return Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 54),
-                child: Column(
-                  children: [
-                    const Icon(
-                      Icons.inbox_outlined,
-                      size: 42,
-                      color: AppColors.textHint,
-                    ),
-                    const SizedBox(height: 12),
-                    const Text(
-                      'No BOM items found',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      controller.selectedTabIndex.value == 0
-                          ? 'There are no line items in this BOM file.'
-                          : 'There are no line items matching the "$filter" filter.',
-                      style: const TextStyle(color: AppColors.textSecondary),
-                    ),
-                  ],
-                ),
-              );
-            }
-            return Column(
-              children: controller.groupedBomItems.entries.expand((entry) {
-                final items = entry.value;
-                return <Widget>[
+          clipBehavior: Clip.antiAlias,
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            child: SizedBox(
+              width: tableWidth,
+              child: Column(
+                children: [
+                  // Table Header
                   Container(
-                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     color: const Color(0xFFF8FAFC),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 10,
-                    ),
-                    child: Text(
-                      '${entry.key.replaceAll('_', ' ').toUpperCase()} (${items.length})',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1E56B9),
-                      ),
+                    child: Row(
+                      children: [
+                        _buildTh('Sr.', flex: 1),
+                        _buildTh('Part ID', flex: 2),
+                        _buildTh('Category', flex: 3),
+                        _buildTh('Sub Category', flex: 2),
+                        _buildTh('Total Length (Meters)', flex: 3),
+                        _buildTh('Weight (kg)', flex: 2),
+                        _buildTh('Surface Area (sqm)', flex: 2),
+                        _buildTh('Total Price', flex: 2),
+                      ],
                     ),
                   ),
-                  ...List.generate(items.length, (index) {
-                    final item = items[index];
-                    return Column(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 10,
-                          ),
-                          child: Row(
-                            children: [
-                              _buildTd('${item.qty}', flex: 1, isBold: true),
-                              _buildTd(item.mark, flex: 1),
-                              _buildTd(
-                                item.description,
-                                flex: 2,
-                                color: AppColors.textSecondary,
+                  const Divider(height: 1, color: AppColors.divider),
+                  // Rows
+                  Obx(() {
+                    if (controller.bomItems.isEmpty) {
+                      return Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(vertical: 54),
+                        child: Column(
+                          children: const [
+                            Icon(
+                              Icons.inbox_outlined,
+                              size: 42,
+                              color: AppColors.textHint,
+                            ),
+                            SizedBox(height: 12),
+                            Text(
+                              'No BOM items found',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.textPrimary,
                               ),
-                              _buildTd(item.part, flex: 1, isBold: true),
-                              _buildTd(
-                                item.color,
-                                flex: 1,
-                                color: AppColors.textSecondary,
-                              ),
-                              _buildTd(item.thick, flex: 1),
-                              _buildTd(
-                                item.length,
-                                flex: 1,
-                                color: AppColors.textSecondary,
-                              ),
-                              _buildTd(
-                                item.weight,
-                                flex: 1,
-                                color: AppColors.textSecondary,
-                              ),
-                              if (item.isMissing)
-                                Expanded(
-                                  flex: 1,
-                                  child: const Text(
-                                    'Missing',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                      color: Color(0xFFEF4444),
-                                    ),
-                                  ),
-                                )
-                              else
-                                _buildTd(
-                                  item.amount,
-                                  flex: 1,
-                                  color: AppColors.textPrimary,
-                                ),
-                            ],
-                          ),
+                            ),
+                            SizedBox(height: 4),
+                            Text(
+                              'There are no line items in this BOM file.',
+                              style: TextStyle(color: AppColors.textSecondary),
+                            ),
+                          ],
                         ),
-                        const Divider(height: 1, color: AppColors.divider),
-                      ],
+                      );
+                    }
+                    return Column(
+                      children: List.generate(controller.bomItems.length, (index) {
+                        final item = controller.bomItems[index];
+                        return Column(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 10,
+                              ),
+                              child: Row(
+                                children: [
+                                  _buildTd('${index + 1}', flex: 1, isBold: true),
+                                  _buildTd(item.part, flex: 2),
+                                  _buildTd(item.category, flex: 3, color: AppColors.textSecondary),
+                                  _buildTd(item.description, flex: 2, color: AppColors.textSecondary),
+                                  _buildTd(item.length, flex: 3, color: AppColors.textSecondary),
+                                  _buildTd(item.weight, flex: 2, color: AppColors.textSecondary),
+                                  _buildTd('-', flex: 2, color: AppColors.textSecondary),
+                                  if (item.isMissing)
+                                    Expanded(
+                                      flex: 2,
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                                        child: const Text(
+                                          'Missing',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w600,
+                                            color: Color(0xFFEF4444),
+                                          ),
+                                        ),
+                                      ),
+                                    )
+                                  else
+                                    _buildTd(item.amount, flex: 2, color: AppColors.textPrimary),
+                                ],
+                              ),
+                            ),
+                            const Divider(height: 1, color: AppColors.divider),
+                          ],
+                        );
+                      }),
                     );
                   }),
-                ];
-              }).toList(),
-            );
-          }),
-          const Divider(height: 1, color: AppColors.divider),
-          // Footer Totals Row
-          Obx(
-            () => Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Row(
-                children: [
-                  Expanded(
-                    flex: 1,
-                    child: Text(
-                      'QTY Total\n${controller.qtyTotal.value}',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    flex: 2,
-                    child: Text(
-                      'Total Tons:   ${controller.totalTons.value.toStringAsFixed(2)}',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ),
-                  const Expanded(
-                    flex: 1,
-                    child: Text(
-                      'RO',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    flex: 2,
-                    child: Text(
-                      'Total Weight (lbs)\n${controller.totalWeightLbs.value.toStringAsFixed(1)}',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    flex: 1,
-                    child: Text(
-                      controller.totalCost.value,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
   Widget _buildTh(String title, {int flex = 1, bool sortable = false}) {
     return Expanded(
       flex: flex,
-      child: Row(
-        children: [
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4.0),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Flexible(
+              child: Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
-          ),
-          if (sortable) ...[
-            const SizedBox(width: 3),
-            const Icon(Icons.swap_vert, size: 12, color: AppColors.textHint),
+            if (sortable) ...[
+              const SizedBox(width: 3),
+              const Icon(Icons.swap_vert, size: 12, color: AppColors.textHint),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
@@ -922,12 +614,17 @@ class BomFilesDetailsView extends GetView<BomFilesDetailsController> {
   }) {
     return Expanded(
       flex: flex,
-      child: Text(
-        text,
-        style: TextStyle(
-          fontSize: 12,
-          fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-          color: color,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4.0),
+        child: Text(
+          text,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+            color: color,
+          ),
+          overflow: TextOverflow.ellipsis,
+          maxLines: 3,
         ),
       ),
     );

@@ -4,6 +4,7 @@ class ProjectLoadPlanningSummaryModel {
   final String projectName;
   final String fileReceived;
   final int totalLoadPlanning;
+  final int totalBundles;
   bool isSelected;
 
   ProjectLoadPlanningSummaryModel({
@@ -12,6 +13,7 @@ class ProjectLoadPlanningSummaryModel {
     required this.projectName,
     required this.fileReceived,
     required this.totalLoadPlanning,
+    this.totalBundles = 0,
     this.isSelected = false,
   });
 }

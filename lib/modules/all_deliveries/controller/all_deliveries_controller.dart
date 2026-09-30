@@ -1,3 +1,4 @@
+
 import 'package:get/get.dart';
 import '../../../app/services/file_export_service.dart';
 
@@ -33,7 +34,11 @@ class AllDeliveriesController extends GetxController {
     'Vendor': true,
     'Carrier': true,
     'POC': true,
+    'DeliveryDate': true,
     'Date': true,
+    'Items': true,
+    'Equipment': true,
+    'Site': true,
   }.obs;
 
   // Pagination State
@@ -55,10 +60,22 @@ class AllDeliveriesController extends GetxController {
     'Cancelled',
   ];
 
+  final workers = <Worker>[];
+  int requestVersion = 0;
+
+  @override
+  void onClose() {
+    for (final worker in workers) { worker.dispose(); }
+    super.onClose();
+  }
+
   @override
   void onInit() {
     super.onInit();
     loadData();
+    workers.add(debounce(searchQuery, (_) { currentPage.value = 1; loadData(); }, time: const Duration(milliseconds: 350)));
+    workers.add(everAll([selectedStatus, dateFrom, dateTo, selectedCategory, selectedEquipment], (_) { currentPage.value = 1; loadData(); }));
+    workers.add(everAll([selectedProject, selectedCustomer, selectedVendor, selectedCarrier, selectedOwner], (_) { currentPage.value = 1; }));
   }
 
   void toggleAdvancedFilters() {
@@ -66,7 +83,15 @@ class AllDeliveriesController extends GetxController {
   }
 
   void toggleColumn(String columnKey) {
-    visibleColumns[columnKey] = !(visibleColumns[columnKey] ?? true);
+    final current = visibleColumns[columnKey] ?? true;
+    final nextVal = !current;
+    visibleColumns[columnKey] = nextVal;
+    if (columnKey == 'DeliveryDate') {
+      visibleColumns['Date'] = nextVal;
+    } else if (columnKey == 'Date') {
+      visibleColumns['DeliveryDate'] = nextVal;
+    }
+    visibleColumns.refresh();
   }
 
   void clearAllFilters() {
@@ -85,21 +110,35 @@ class AllDeliveriesController extends GetxController {
   }
 
   Future<void> loadData() async {
+    final version = ++requestVersion;
     isLoading.value = true;
     errorMessage.value = '';
     try {
-      final data = await repository.allDeliveries(limit: 100);
-      final rawStats = _map(data['stats']);
+      Future<Map<String, dynamic>> fetch(int page) => repository.allDeliveries(
+        page: page, limit: 100, search: searchQuery.value.trim(), status: selectedStatus.value,
+        startDate: dateFrom.value, endDate: dateTo.value,
+        materialType: selectedCategory.value, equipment: selectedEquipment.value,
+      );
+      final fetchStatsFuture = repository.allStats().catchError((_) => <String, dynamic>{});
+      final data = await fetch(1);
+      if (version != requestVersion) return;
+      final statsData = await fetchStatsFuture;
+      final rawStats = _map(statsData.isNotEmpty ? statsData : data['stats']);
       stats.assignAll({
-        'Draft': _int(rawStats['draft']), 'Total': _int(rawStats['total'] ?? data['total']),
-        'Scheduled': _int(rawStats['scheduled']), 'Confirmed': _int(rawStats['confirmed']),
-        'In Transit': _int(rawStats['inTransit']), 'Delivered': _int(rawStats['delivered']),
-        'Delayed': _int(rawStats['delayed']), 'Cancelled': _int(rawStats['cancelled']),
+        'Draft': _int(rawStats['draft'] ?? rawStats['draftCount']),
+        'Total': _int(rawStats['total'] ?? rawStats['totalCount'] ?? data['total']),
+        'Scheduled': _int(rawStats['scheduled'] ?? rawStats['scheduledCount']),
+        'Confirmed': _int(rawStats['confirmed'] ?? rawStats['confirmedCount']),
+        'In Transit': _int(rawStats['inTransit'] ?? rawStats['inTransitCount']),
+        'Delivered': _int(rawStats['delivered'] ?? rawStats['deliveredCount']),
+        'Delayed': _int(rawStats['delayed'] ?? rawStats['delayedCount']),
+        'Cancelled': _int(rawStats['cancelled'] ?? rawStats['cancelledCount']),
       });
       final all = <dynamic>[...?data['deliveries'] as List?];
       var page = 1;
       while (all.length < _int(data['total'])) {
-        final next = await repository.allDeliveries(page: ++page, limit: 100);
+        final next = await fetch(++page);
+        if (version != requestVersion) return;
         final rows = next['deliveries'] as List? ?? [];
         if (rows.isEmpty) break;
         all.addAll(rows);
@@ -114,7 +153,7 @@ class AllDeliveriesController extends GetxController {
             final carrier = _map(_map(item['selectedCarrierBidId'])['carrierId'] ?? item['carrier']);
             return AllDeliveryModel(
               id: _text(item['_id']),
-              deliveryNumber: _text(item['deliveryNumber']),
+              deliveryNumber: _resolveDeliveryNumber(item),
               timeWindow: _text(item['timings']),
               internalOwner: _text(item['internalOwnerName']),
               category: _text(item['materialType']),
@@ -146,11 +185,12 @@ class AllDeliveriesController extends GetxController {
         deliveries.clear();
       }
     } catch (error) {
+      if (version != requestVersion) return;
       deliveries.clear();
       stats.clear();
       errorMessage.value = error.toString();
     } finally {
-      isLoading.value = false;
+      if (version == requestVersion) isLoading.value = false;
     }
   }
 
@@ -160,6 +200,8 @@ class AllDeliveriesController extends GetxController {
     return deliveries.where((item) {
       final matchesQuery = query.isEmpty ||
           item.id.toLowerCase().contains(query) ||
+          item.deliveryNumber.toLowerCase().contains(query) ||
+          item.displayId.toLowerCase().contains(query) ||
           item.project.toLowerCase().contains(query) ||
           item.customer.toLowerCase().contains(query) ||
           item.items.toLowerCase().contains(query) ||
@@ -190,7 +232,8 @@ class AllDeliveriesController extends GetxController {
           matchesCustomer &&
           matchesVendor &&
           matchesCarrier &&
-          matchesEquipment;
+          matchesEquipment &&
+          (selectedOwner.value == 'All Internal Owner' || item.internalOwner == selectedOwner.value);
     }).toList();
   }
 
@@ -214,7 +257,7 @@ class AllDeliveriesController extends GetxController {
     try {
       await FileExportService.saveCsv(fileName: 'all_deliveries', rows: [
         ['ID','Priority','Status','Date','Items','Project','Customer','Vendor','Carrier','POC'],
-        ...filteredDeliveries.map((item) => [item.deliveryNumber,item.priority,item.status,item.deliveryDate,item.items,item.project,item.customer,item.vendor,item.carrier,item.pocName]),
+        ...filteredDeliveries.map((item) => [item.displayId,item.priority,item.status,item.deliveryDate,item.items,item.project,item.customer,item.vendor,item.carrier,item.pocName]),
       ]);
       CommonSnackbar.showSuccess(title: 'Export CSV', message: 'Deliveries file saved.');
     } catch (error) {
@@ -223,7 +266,47 @@ class AllDeliveriesController extends GetxController {
   }
 
   List<String> options(String all, String Function(AllDeliveryModel) field) =>
-      [all, ...deliveries.map(field).where((value) => value.isNotEmpty && value != '-').toSet().toList()..sort()];
+      <String>{all, ...deliveries.map(field).where((value) => value.isNotEmpty && value != '-').toSet().toList()..sort()}.toList();
+
+  String _resolveDeliveryNumber(Map<String, dynamic> item) {
+    for (final key in [
+      'deliveryNumber',
+      'deliveryNo',
+      'delivery_number',
+      'requestId',
+      'request_id',
+      'trackingNumber',
+      'tracking_number',
+      'loadNumber',
+      'load_number',
+      'referenceNumber',
+      'orderNumber',
+    ]) {
+      final val = item[key];
+      if (val != null) {
+        final str = val.toString().trim();
+        if (str.isNotEmpty && str != 'null' && str != '-' && str != '—') {
+          return str;
+        }
+      }
+    }
+
+    final bundlePlan = item['bundlePlanId'] ?? item['bundlePlan'];
+    if (bundlePlan != null &&
+        bundlePlan.toString().trim().isNotEmpty &&
+        bundlePlan.toString().trim() != 'null') {
+      return 'DEL-${bundlePlan.toString().trim()}';
+    }
+
+    final rawId = (item['_id'] ?? item['id'] ?? '').toString().trim();
+    if (rawId.isNotEmpty && rawId != 'null') {
+      if (rawId.length == 24 && RegExp(r'^[0-9a-fA-F]{24}$').hasMatch(rawId)) {
+        return 'DEL-${rawId.substring(rawId.length - 4).toUpperCase()}';
+      }
+      return rawId;
+    }
+    return '';
+  }
 
   int _int(dynamic value) =>
       value is num ? value.toInt() : int.tryParse('$value') ?? 0;

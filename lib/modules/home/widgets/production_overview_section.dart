@@ -36,6 +36,7 @@ class ProductionOverviewSection extends StatelessWidget {
               ),
               PopupMenuButton<String>(
                 tooltip: 'Select Filter',
+                initialValue: activeFilterValue,
                 offset: const Offset(0, 42),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),

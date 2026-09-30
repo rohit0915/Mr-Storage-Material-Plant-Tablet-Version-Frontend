@@ -287,7 +287,7 @@ class ProjectDetailsController extends GetxController {
       if (invoicesData != null && invoicesData.isNotEmpty) {
         final mappedInvoices = invoicesData.whereType<Map>().map((inv) {
           return InvoiceItemModel(
-            invoiceNumber: (inv['number'] ?? inv['invoiceNumber'] ?? 'INV001')
+            invoiceNumber: (inv['number'] ?? inv['invoiceNumber'] ?? '—')
                 .toString(),
             dueDate: _formatDate(
               (inv['dueDate'] ?? inv['createdAt'])?.toString(),
@@ -870,7 +870,7 @@ class ProjectDetailsController extends GetxController {
     assignedPlanner.value =
         salesPerson.value.isNotEmpty && salesPerson.value != 'N/A'
         ? salesPerson.value
-        : 'Plant Admin';
+        : '—';
 
     if (index < lifecycleSteps.length - 1) {
       nextStepTitle.value = lifecycleSteps[index + 1].title;
@@ -930,50 +930,10 @@ class ProjectDetailsController extends GetxController {
   }
 
   void _loadDefaultData() {
-    _loadDefaultLifecycleSteps();
-    _loadDefaultInvoices();
-    _loadDefaultActivities();
-    _loadDefaultNotes();
+    lifecycleSteps.clear(); invoices.clear(); activities.clear(); notes.clear();
   }
 
-  void _loadDefaultLifecycleSteps() {
-    _buildLifecycleStepsFromHistory('drawings_received', null);
-  }
-
-  void _loadDefaultInvoices() {
-    invoices.assignAll([
-      InvoiceItemModel(
-        invoiceNumber: 'INV001',
-        dueDate: '24/12/24',
-        amount: '\$500',
-        paid: '\$500',
-        amountDue: '\$500',
-        isPaid: true,
-      ),
-      InvoiceItemModel(
-        invoiceNumber: 'INV002',
-        dueDate: '10/12/24',
-        amount: '\$1500',
-        paid: '\$1500',
-        amountDue: '\$1500',
-        isPaid: true,
-      ),
-    ]);
-  }
-
-  void _loadDefaultActivities() {
-    activities.assignAll([
-      ActivityTimelineItemModel(
-        title: 'Note added for Another Project',
-        subtitle: 'lead.note_added',
-        date: '13/08/26',
-      ),
-    ]);
-  }
-
-  void _loadDefaultNotes() {
-    notes.assignAll(['Reliable for long-distance steel transport.']);
-  }
+  void _loadDefaultActivities() => activities.clear();
 
   void selectStep(int index) {
     currentStepIndex.value = index;

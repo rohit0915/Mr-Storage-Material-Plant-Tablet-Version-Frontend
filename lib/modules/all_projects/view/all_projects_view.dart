@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../../../app/routes/app_routes.dart';
 import '../../../app/utils/app_colors.dart';
 import '../../../app/widgets/common_loader.dart';
+import '../../../app/widgets/common_error_widget.dart';
 import '../../../app/widgets/common_pagination.dart';
 import '../../home/widgets/app_drawer.dart';
 import '../../home/widgets/dashboard_app_bar.dart';
@@ -28,6 +29,7 @@ class AllProjectsView extends GetView<AllProjectsController> {
                   return const CommonLoader();
                 }
 
+                if (controller.errorMessage.isNotEmpty) return CommonErrorWidget(message: controller.errorMessage.value, onRetry: controller.loadData);
                 final prof = controller.userProfile.value;
 
                 return SingleChildScrollView(
@@ -535,7 +537,7 @@ class AllProjectsView extends GetView<AllProjectsController> {
                         SizedBox(
                           width: 80,
                           child: ElevatedButton(
-                            onPressed: () => Get.toNamed(AppRoutes.projectDetails),
+                            onPressed: () => Get.toNamed(AppRoutes.projectDetails, parameters: {'id': item.id}),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF3B82F6),
                               elevation: 0,
@@ -621,8 +623,8 @@ class AllProjectsView extends GetView<AllProjectsController> {
         currentPage: controller.currentPage.value,
         totalPages: controller.totalPages.value,
         rowsPerPage: controller.rowsPerPage.value,
-        onPageChanged: (page) => controller.currentPage.value = page,
-        onRowsPerPageChanged: (rows) => controller.rowsPerPage.value = rows,
+        onPageChanged: (page) { controller.currentPage.value = page; controller.loadData(); },
+        onRowsPerPageChanged: (rows) { controller.rowsPerPage.value = rows; controller.currentPage.value = 1; controller.loadData(); },
       ),
     );
   }

@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../app/routes/app_routes.dart';
 import '../../../app/utils/app_colors.dart';
-import '../../delivery_details/widgets/marked_as_delivered_dialog.dart';
-import '../../delivery_details/widgets/reschedule_delivery_dialog.dart';
 import '../model/delivery_calendar_model.dart';
 
 class DayDeliveriesDialog extends StatelessWidget {
@@ -97,11 +95,18 @@ class DayDeliveriesDialog extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              Text(
-                item.id,
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: AppColors.textSecondary,
+              InkWell(
+                onTap: () {
+                  Get.back();
+                  Get.toNamed(AppRoutes.deliveryDetails, parameters: {'deliveryId': item.rawId});
+                },
+                child: Text(
+                  item.id,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Color(0xFF2563EB),
+                    decoration: TextDecoration.underline,
+                  ),
                 ),
               ),
               const SizedBox(width: 12),
@@ -236,7 +241,7 @@ class DayDeliveriesDialog extends StatelessWidget {
                 child: OutlinedButton.icon(
                   onPressed: () {
                     Get.back();
-                    Get.toNamed(AppRoutes.deliveryDetails);
+                    Get.toNamed(AppRoutes.deliveryDetails, parameters: {'deliveryId': item.rawId});
                   },
                   icon: const Icon(
                     Icons.local_shipping_outlined,
@@ -265,7 +270,7 @@ class DayDeliveriesDialog extends StatelessWidget {
                 child: OutlinedButton.icon(
                   onPressed: () {
                     Get.back();
-                    Get.dialog(const RescheduleDeliveryDialog());
+                    Get.toNamed(AppRoutes.deliveryDetails, parameters: {'deliveryId': item.rawId});
                   },
                   icon: const Icon(
                     Icons.event_repeat,
@@ -294,7 +299,7 @@ class DayDeliveriesDialog extends StatelessWidget {
                 child: OutlinedButton.icon(
                   onPressed: () {
                     Get.back();
-                    Get.dialog(const MarkedAsDeliveredDialog());
+                    Get.toNamed(AppRoutes.deliveryDetails, parameters: {'deliveryId': item.rawId});
                   },
                   icon: const Icon(
                     Icons.check_box_outlined,

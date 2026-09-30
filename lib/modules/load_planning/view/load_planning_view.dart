@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../app/utils/app_colors.dart';
+import '../../../app/widgets/app_back_button.dart';
 import '../../../app/widgets/common_loader.dart';
 import '../../../app/widgets/common_error_widget.dart';
 import '../../../app/widgets/common_pagination.dart';
@@ -65,21 +66,31 @@ class LoadPlanningView extends GetView<LoadPlanningController> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Column(
+        Row(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
-            Text(
-              'Load Planning',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
-              ),
-            ),
-            SizedBox(height: 4),
-            Text(
-              'Plan shipments by uploading shipper data, optimizing bundles, and building truckloads.',
-              style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+          children: [
+            const AppBackButton(),
+            const SizedBox(width: 16),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                Text(
+                  'Load Planning',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  'Plan shipments by uploading shipper data, optimizing bundles, and building truckloads.',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -123,11 +134,13 @@ class LoadPlanningView extends GetView<LoadPlanningController> {
             border: Border.all(color: AppColors.inputBorder),
           ),
           child: Row(
-            children: const [
+            children: [
               Icon(Icons.search, size: 16, color: AppColors.textSecondary),
               SizedBox(width: 8),
               Expanded(
-                child: TextField(
+                child: TextFormField(
+                  initialValue: controller.searchQuery.value,
+                  onChanged: (value) => controller.searchQuery.value = value,
                   decoration: InputDecoration(
                     hintText: 'Search',
                     hintStyle: TextStyle(
@@ -147,12 +160,12 @@ class LoadPlanningView extends GetView<LoadPlanningController> {
         OutlinedButton.icon(
           onPressed: controller.loadProjectsData,
           icon: const Icon(
-            Icons.filter_list,
+            Icons.refresh,
             size: 14,
             color: AppColors.textSecondary,
           ),
           label: const Text(
-            'Filter',
+            'Refresh',
             style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
           ),
           style: OutlinedButton.styleFrom(
@@ -207,7 +220,8 @@ class LoadPlanningView extends GetView<LoadPlanningController> {
                 _buildTh('Project ID', flex: 2),
                 _buildTh('Project Name', flex: 3),
                 _buildTh('File Received', flex: 3),
-                _buildTh('Total load planning', flex: 3),
+                _buildTh('Total loads', flex: 2),
+                _buildTh('Total bundles', flex: 2),
                 _buildTh('Action', width: 64, isLast: true),
               ],
             ),
@@ -288,6 +302,7 @@ class LoadPlanningView extends GetView<LoadPlanningController> {
                           ),
                           flex: 3,
                         ),
+                        _buildTdWidget(Text('${item.totalBundles}'), flex: 2),
                         _buildTdWidget(
                           IconButton(
                             onPressed: () =>
@@ -389,10 +404,15 @@ class LoadPlanningView extends GetView<LoadPlanningController> {
   }
 
   Widget _buildPaginationFooter() {
-    return CommonPaginationFooter(
-      currentPage: 1,
-      totalPages: 15,
-      rowsPerPage: 10,
+    return Obx(
+      () => CommonPaginationFooter(
+        currentPage: controller.currentPage.value,
+        totalPages: controller.totalPages,
+        totalEntries: controller.totalProjects.value,
+        rowsPerPage: controller.rowsPerPage.value,
+        onPageChanged: controller.changePage,
+        onRowsPerPageChanged: controller.changeRowsPerPage,
+      ),
     );
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../app/widgets/app_back_button.dart';
 import '../../../app/widgets/common_loader.dart';
 import '../../../app/widgets/common_pagination.dart';
 import '../../home/widgets/app_drawer.dart';
@@ -64,13 +65,19 @@ class SavingsView extends GetView<SavingsController> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        const Text(
-          'Savings',
-          style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF1E293B),
-          ),
+        Row(
+          children: const [
+            AppBackButton(),
+            SizedBox(width: 16),
+            Text(
+              'Savings',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1E293B),
+              ),
+            ),
+          ],
         ),
         OutlinedButton.icon(
           onPressed: () => controller.exportFile(context),

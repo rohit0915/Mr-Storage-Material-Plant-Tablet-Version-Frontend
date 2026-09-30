@@ -131,7 +131,7 @@ class _DrawingDetailsDialogState extends State<DrawingDetailsDialog> {
                   ),
                 ),
                 const SizedBox(width: 12),
-                _buildMetaCell('Pune,\nMaharashtra'),
+                _buildMetaCell(item.location),
                 const SizedBox(width: 12),
                 Flexible(
                   flex: 3,

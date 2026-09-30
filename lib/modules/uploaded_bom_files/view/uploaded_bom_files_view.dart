@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../app/routes/app_routes.dart';
 import '../../../app/utils/app_colors.dart';
+import '../../../app/widgets/app_back_button.dart';
 import '../../../app/widgets/common_error_widget.dart';
 import '../../../app/widgets/common_loader.dart';
 import '../../../app/widgets/common_pagination.dart';
@@ -67,16 +68,22 @@ class UploadedBomFilesView extends GetView<UploadedBomFilesController> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        const Text(
-          'Uploaded BOM Files',
-          style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
-          ),
+        Row(
+          children: const [
+            AppBackButton(),
+            SizedBox(width: 16),
+            Text(
+              'Uploaded BOM Files',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
+            ),
+          ],
         ),
         ElevatedButton.icon(
-          onPressed: () {},
+          onPressed: () => Get.toNamed(AppRoutes.allProjects),
           icon: const Icon(Icons.upload_file, size: 16, color: Colors.white),
           label: const Text(
             'Upload BOM File',
@@ -207,11 +214,13 @@ class UploadedBomFilesView extends GetView<UploadedBomFilesController> {
             border: Border.all(color: AppColors.inputBorder),
           ),
           child: Row(
-            children: const [
+            children: [
               Icon(Icons.search, size: 16, color: AppColors.textSecondary),
               SizedBox(width: 8),
               Expanded(
-                child: TextField(
+                child: TextFormField(
+                  initialValue: controller.searchQuery.value,
+                  onChanged: (value) => controller.searchQuery.value = value,
                   decoration: InputDecoration(
                     hintText: 'Search',
                     hintStyle: TextStyle(
@@ -235,8 +244,14 @@ class UploadedBomFilesView extends GetView<UploadedBomFilesController> {
             controller.selectedFilterProject.value = val;
           },
           itemBuilder: (context) => const [
-            PopupMenuItem(value: 'Filter All Projects', child: Text('Filter All Projects')),
-            PopupMenuItem(value: 'Another Project', child: Text('Another Project')),
+            PopupMenuItem(
+              value: 'Filter All Projects',
+              child: Text('Filter All Projects'),
+            ),
+            PopupMenuItem(
+              value: 'Another Project',
+              child: Text('Another Project'),
+            ),
             PopupMenuItem(value: 'Wood Workshop', child: Text('Wood Workshop')),
             PopupMenuItem(value: 'Lucas project', child: Text('Lucas project')),
           ],
@@ -297,7 +312,11 @@ class UploadedBomFilesView extends GetView<UploadedBomFilesController> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.sort, size: 14, color: AppColors.textSecondary),
+                const Icon(
+                  Icons.sort,
+                  size: 14,
+                  color: AppColors.textSecondary,
+                ),
                 const SizedBox(width: 6),
                 Obx(
                   () => Text(
@@ -344,7 +363,8 @@ class UploadedBomFilesView extends GetView<UploadedBomFilesController> {
                 SizedBox(
                   width: 32,
                   child: Obx(() {
-                    final allSelected = controller.bomFilesList.isNotEmpty &&
+                    final allSelected =
+                        controller.bomFilesList.isNotEmpty &&
                         controller.bomFilesList.every((e) => e.isSelected);
                     return Checkbox(
                       value: allSelected,

@@ -12,6 +12,7 @@ class ItemCostSummaryModel {
 
 class ItemCostModel {
   final String id;
+  final String category;
   final String partName;
   final String partColor;
   final String costUnit;
@@ -27,6 +28,7 @@ class ItemCostModel {
 
   ItemCostModel({
     required this.id,
+    this.category = '',
     required this.partName,
     required this.partColor,
     required this.costUnit,
@@ -43,6 +45,7 @@ class ItemCostModel {
 
   ItemCostModel copyWith({
     String? id,
+    String? category,
     String? partName,
     String? partColor,
     String? costUnit,
@@ -58,6 +61,7 @@ class ItemCostModel {
   }) {
     return ItemCostModel(
       id: id ?? this.id,
+      category: category ?? this.category,
       partName: partName ?? this.partName,
       partColor: partColor ?? this.partColor,
       costUnit: costUnit ?? this.costUnit,

@@ -37,11 +37,6 @@ class ChatSidebar extends GetView<ChatController> {
                       decoration: const BoxDecoration(
                         shape: BoxShape.circle,
                         color: Color(0xFFE2E8F0),
-                        image: DecorationImage(
-                          image: AssetImage('assets/images/user_placeholder.png'),
-                          fit: BoxFit.cover,
-                          onError: null,
-                        ),
                       ),
                       child: const Icon(Icons.person, color: Color(0xFF64748B), size: 26),
                     ),
@@ -192,12 +187,20 @@ class ChatSidebar extends GetView<ChatController> {
           // Chat List Items
           Expanded(
             child: Obx(() {
-              if (controller.isLoading.value) return const Center(child: CircularProgressIndicator());
-              if (controller.errorMessage.isNotEmpty) return Padding(
-                padding: const EdgeInsets.all(12), child: Column(children: [
-                  Text(controller.errorMessage.value),
-                  TextButton(onPressed: controller.loadConversations, child: const Text('Retry')),
-                ]));
+              if (controller.isLoading.value) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              if (controller.errorMessage.isNotEmpty) {
+                return Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    children: [
+                      Text(controller.errorMessage.value),
+                      TextButton(onPressed: controller.loadConversations, child: const Text('Retry')),
+                    ],
+                  ),
+                );
+              }
               final chats = controller.currentChatList;
 
               if (chats.isEmpty) {

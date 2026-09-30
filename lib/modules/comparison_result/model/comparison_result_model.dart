@@ -27,7 +27,7 @@ class ComparisonResultItemModel {
         return 'Not Match';
       case 'extra_items':
       default:
-        return 'Extra Item';
+        return 'Extra';
     }
   }
 }

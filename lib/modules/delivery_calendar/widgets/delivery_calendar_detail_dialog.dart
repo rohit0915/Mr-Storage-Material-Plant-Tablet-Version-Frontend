@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../app/routes/app_routes.dart';
 import '../../../app/utils/app_colors.dart';
-import '../../delivery_details/widgets/marked_as_delivered_dialog.dart';
-import '../../delivery_details/widgets/reschedule_delivery_dialog.dart';
 import '../model/delivery_calendar_model.dart';
 
 class DeliveryCalendarDetailDialog extends StatelessWidget {
@@ -186,7 +184,7 @@ class DeliveryCalendarDetailDialog extends StatelessWidget {
                   child: OutlinedButton.icon(
                     onPressed: () {
                       Get.back();
-                      Get.toNamed(AppRoutes.deliveryDetails);
+                      Get.toNamed(AppRoutes.deliveryDetails, parameters: {'deliveryId': item.rawId});
                     },
                     icon: const Icon(
                       Icons.local_shipping_outlined,
@@ -215,7 +213,7 @@ class DeliveryCalendarDetailDialog extends StatelessWidget {
                   child: OutlinedButton.icon(
                     onPressed: () {
                       Get.back();
-                      Get.dialog(const RescheduleDeliveryDialog());
+                      Get.toNamed(AppRoutes.deliveryDetails, parameters: {'deliveryId': item.rawId});
                     },
                     icon: const Icon(
                       Icons.event_repeat,
@@ -244,7 +242,7 @@ class DeliveryCalendarDetailDialog extends StatelessWidget {
                   child: OutlinedButton.icon(
                     onPressed: () {
                       Get.back();
-                      Get.dialog(const MarkedAsDeliveredDialog());
+                      Get.toNamed(AppRoutes.deliveryDetails, parameters: {'deliveryId': item.rawId});
                     },
                     icon: const Icon(
                       Icons.check_box_outlined,

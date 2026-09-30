@@ -69,7 +69,7 @@ class LoginView extends GetView<LoginController> {
                           borderRadius: BorderRadius.circular(16),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
+                              color: Colors.black.withValues(alpha: 0.05),
                               blurRadius: 20,
                               offset: const Offset(0, 10),
                             ),
@@ -98,13 +98,13 @@ class LoginView extends GetView<LoginController> {
                           const SizedBox(height: 32),
                           
                           // Email Field
-                          const Text('Email Address', style: AppTextStyles.labelText),
+                          const Text('Email or phone number', style: AppTextStyles.labelText),
                           const SizedBox(height: 8),
                           TextField(
                             controller: controller.emailController,
                             keyboardType: TextInputType.emailAddress,
                             decoration: InputDecoration(
-                              hintText: 'john@gmail.com',
+                              hintText: 'Enter your email or phone',
                               hintStyle: const TextStyle(color: AppColors.textHint),
                               prefixIcon: const Icon(Icons.email_outlined, color: AppColors.textSecondary),
                               filled: true,

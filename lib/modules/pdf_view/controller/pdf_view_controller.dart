@@ -1,93 +1,53 @@
 import 'dart:typed_data';
-
+import 'package:dio/dio.dart';
 import 'package:get/get.dart';
 import '../../../app/services/file_export_service.dart';
 import '../../../app/widgets/common_snackbar.dart';
 
 class PdfViewController extends GetxController {
-  final RxDouble zoomScale = 1.0.obs;
-  final RxInt currentPage = 1.obs;
-  final RxInt totalPages = 1.obs;
-  final String documentTitle = 'BOM-001_ABC_Construction.pdf';
+  final isLoading = false.obs;
+  final errorMessage = ''.obs;
+  final documentBytes = Rxn<Uint8List>();
+  String get documentTitle => Get.parameters['name'] ?? 'Document.pdf';
+  String get documentUrl => Get.parameters['url'] ?? '';
 
-  Future<List<int>> _documentBytes() => FileExportService.tablePdf(
-    title: 'BOM-001 — ABC Construction',
-    subtitle:
-        'Total Items: 125  |  Total Weight: 32,000 lbs  |  Total Panels Area: 3,300 sqm',
-    headers: const ['Item', 'Description', 'Quantity', 'Unit', 'Weight'],
-    rows: const [
-      ['1', 'Primary steel framing', '45', 'PCS', '18,500 lbs'],
-      ['2', 'Roof and wall panels', '62', 'PCS', '9,200 lbs'],
-      ['3', 'Fasteners and accessories', '18', 'SET', '4,300 lbs'],
-    ],
-  );
+  @override
+  void onInit() { super.onInit(); loadDocument(); }
 
-  Future<void> download() async {
+  Future<void> loadDocument() async {
+    if (isLoading.value) return;
+    isLoading.value = true;
+    errorMessage.value = '';
+    documentBytes.value = null;
     try {
-      final bytes = await _documentBytes();
-      await FileExportService.savePdf(
-        fileName: documentTitle.replaceAll(
-          RegExp(r'\.pdf$', caseSensitive: false),
-          '',
-        ),
-        bytes: Uint8List.fromList(bytes),
-      );
-      CommonSnackbar.showSuccess(
-        title: 'PDF Downloaded',
-        message: 'Document saved successfully.',
-      );
-    } catch (error) {
-      CommonSnackbar.showError(
-        title: 'Download failed',
-        message: error.toString(),
-      );
-    }
+      final uri = Uri.tryParse(documentUrl);
+      if (uri == null || !{'https', 'http'}.contains(uri.scheme) || uri.host.isEmpty) {
+        throw StateError('No document URL is available for this file.');
+      }
+      final response = await Dio(BaseOptions(
+        connectTimeout: const Duration(seconds: 30),
+        receiveTimeout: const Duration(seconds: 60),
+      )).get<List<int>>(documentUrl, options: Options(responseType: ResponseType.bytes));
+      final bytes = response.data;
+      if (bytes == null || bytes.length < 5 || String.fromCharCodes(bytes.take(5)) != '%PDF-') {
+        throw StateError('The server did not return a PDF document.');
+      }
+      documentBytes.value = Uint8List.fromList(bytes);
+    } catch (error) { errorMessage.value = error.toString(); }
+    finally { isLoading.value = false; }
   }
 
-  Future<void> printDocument() async {
-    try {
-      final bytes = Uint8List.fromList(await _documentBytes());
-      await FileExportService.printPdf(name: documentTitle, bytes: bytes);
-    } catch (error) {
-      CommonSnackbar.showError(
-        title: 'Print failed',
-        message: error.toString(),
-      );
-    }
+  Future<void> _perform(Future<void> Function(Uint8List) action) async {
+    final bytes = documentBytes.value;
+    if (bytes == null) return;
+    try { await action(bytes); }
+    catch (error) { CommonSnackbar.showError(title: 'Document action failed', message: error.toString()); }
   }
 
-  Future<void> shareDocument() async {
-    try {
-      final bytes = Uint8List.fromList(await _documentBytes());
-      await FileExportService.sharePdf(
-        fileName: documentTitle.replaceAll(
-          RegExp(r'\.pdf$', caseSensitive: false),
-          '',
-        ),
-        bytes: bytes,
-        text: 'BOM document for ABC Construction',
-      );
-    } catch (error) {
-      CommonSnackbar.showError(
-        title: 'Share failed',
-        message: error.toString(),
-      );
-    }
-  }
-
-  void zoomIn() {
-    if (zoomScale.value < 2.0) {
-      zoomScale.value += 0.15;
-    }
-  }
-
-  void zoomOut() {
-    if (zoomScale.value > 0.6) {
-      zoomScale.value -= 0.15;
-    }
-  }
-
-  void resetZoom() {
-    zoomScale.value = 1.0;
-  }
+  Future<void> download() => _perform((bytes) async {
+    await FileExportService.savePdf(fileName: documentTitle.replaceFirst(RegExp(r'\.pdf$', caseSensitive: false), ''), bytes: bytes);
+    CommonSnackbar.showSuccess(title: 'PDF Downloaded', message: 'Document saved successfully.');
+  });
+  Future<void> printDocument() => _perform((bytes) => FileExportService.printPdf(name: documentTitle, bytes: bytes));
+  Future<void> shareDocument() => _perform((bytes) => FileExportService.sharePdf(fileName: documentTitle.replaceFirst(RegExp(r'\.pdf$', caseSensitive: false), ''), bytes: bytes));
 }

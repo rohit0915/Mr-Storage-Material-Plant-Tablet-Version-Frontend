@@ -17,10 +17,21 @@ class FreightCarriersController extends GetxController {
   final Rx<FreightCarrierMasterModel?> selectedCarrier =
       Rx<FreightCarrierMasterModel?>(null);
 
+  Worker? _searchWorker;
+
   @override
   void onInit() {
     super.onInit();
+    _searchWorker = debounce<String>(searchQuery, (_) {
+      loadCarriers();
+    }, time: const Duration(milliseconds: 450));
     loadCarriers();
+  }
+
+  @override
+  void onClose() {
+    _searchWorker?.dispose();
+    super.onClose();
   }
 
   Future<void> loadCarriers() async {
@@ -30,8 +41,9 @@ class FreightCarriersController extends GetxController {
         status: statusFilter.value.isEmpty
             ? null
             : statusFilter.value.toLowerCase(),
+        search: searchQuery.value,
       );
-      final raw = data['carriers'];
+      final raw = data['carriers'] ?? data['data'] ?? data['results'];
       carriers.assignAll(
         raw is List
             ? raw.whereType<Map>().map(_mapCarrier).toList()
@@ -51,9 +63,9 @@ class FreightCarriersController extends GetxController {
     final stats = _map(item['stats']);
     final fleet = _map(item['fleetCapacity']);
     final totalBids = _int(item['totalBids'] ?? stats['totalBids']);
-    final awarded = _int(item['awardedCount'] ?? stats['awardedBids']);
+    final awarded = _int(item['awardedBidCount'] ?? item['awardedCount'] ?? stats['awardedBids']);
     final winRate =
-        item['winRate'] ??
+        item['bidWinRate'] ?? item['winRate'] ??
         stats['winRate'] ??
         (totalBids == 0 ? 0 : (awarded * 100 / totalBids));
     final equipment = item['equipmentTypes'] ?? item['equipmentType'];
@@ -115,44 +127,6 @@ class FreightCarriersController extends GetxController {
                   item.status.toLowerCase().contains(q),
             ),
     );
-  }
-
-  Future<void> saveCarrier({
-    String? id,
-    required String name,
-    required String email,
-    required String phone,
-    required String contactName,
-    required String serviceType,
-    required String serviceArea,
-    required int totalVehicles,
-    required num maximumLoadCapacity,
-    List<String> equipmentTypes = const [],
-  }) async {
-    final payload = <String, dynamic>{
-      'carrierName': name,
-      'email': email,
-      'phone': phone,
-      'contactName': contactName,
-      'serviceType': serviceType,
-      'serviceArea': serviceArea,
-      'equipmentTypes': equipmentTypes,
-      'fleetCapacity': {
-        'totalVehicleCount': totalVehicles,
-        'maximumLoadCapacity': maximumLoadCapacity,
-      },
-    };
-    isLoading.value = true;
-    try {
-      if (id != null && id.isNotEmpty) {
-        await repository.update(id, payload);
-      } else {
-        await repository.create(payload);
-      }
-      await loadCarriers();
-    } finally {
-      isLoading.value = false;
-    }
   }
 
   Future<void> toggleStatus(FreightCarrierMasterModel carrier) async {

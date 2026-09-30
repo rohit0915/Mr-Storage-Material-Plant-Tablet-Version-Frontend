@@ -8,3 +8,4 @@ class AddMemberDialog extends StatelessWidget {
     content: const Text('Group membership is managed by your administrator.'),
     actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Close'))],
   );
+}

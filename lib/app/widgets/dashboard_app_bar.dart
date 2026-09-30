@@ -16,8 +16,8 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    String userName = 'John';
-    String userEmail = 'plant@steelbuilding.depot';
+    String userName = '—';
+    String userEmail = '—';
 
     if (Get.isRegistered<SharedPrefService>()) {
       final userJson = Get.find<SharedPrefService>().getUserData();
@@ -157,45 +157,7 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
                         const Divider(height: 1, color: Color(0xFFE2E4E6)),
                         const SizedBox(height: 8),
                         if (alerts.isEmpty) ...[
-                          _buildNotificationItem(
-                            icon: Icons.description_outlined,
-                            iconBg: const Color(0xFFDFF4FE),
-                            iconFg: const Color(0xFF155DFC),
-                            title: 'Shipper File Comparison Completed SH-001',
-                            action: 'View Result',
-                            onTap: () {
-                              Navigator.pop(context);
-                              Get.toNamed(AppRoutes.comparisonResult);
-                            },
-                          ),
-                          _buildNotificationItem(
-                            icon: Icons.local_shipping_outlined,
-                            iconBg: const Color(0xFFECF6F1),
-                            iconFg: const Color(0xFF3AB449),
-                            title: 'Order ORD-1045 Marked as ready to dispatch',
-                            time: '08:20:13 PM',
-                          ),
-                          _buildNotificationItem(
-                            icon: Icons.square_foot_outlined,
-                            iconBg: const Color(0xFFDDD1F6),
-                            iconFg: const Color(0xFF7539FF),
-                            title: 'Drawing DRG-098 Uploaded',
-                            time: '04:10:12 PM',
-                          ),
-                          _buildNotificationItem(
-                            icon: Icons.show_chart,
-                            iconBg: const Color(0xFFFFF6D0),
-                            iconFg: const Color(0xFFB78B00),
-                            title: 'Production Target for today is 63%',
-                            time: '03:40:14 PM',
-                          ),
-                          _buildNotificationItem(
-                            icon: Icons.description_outlined,
-                            iconBg: const Color(0xFFFFE7E4),
-                            iconFg: const Color(0xFFEF4444),
-                            title: 'Order ORD-1045 Marked as ready to dispatch',
-                            time: '05:00:14 PM',
-                          ),
+                          const Padding(padding: EdgeInsets.all(16), child: Text('No plant alerts available.')),
                         ] else ...[
                           ...alerts
                               .take(5)

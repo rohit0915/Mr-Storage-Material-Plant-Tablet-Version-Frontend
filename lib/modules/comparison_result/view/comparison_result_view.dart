@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../app/utils/app_colors.dart';
 import '../../../app/widgets/common_loader.dart';
+import '../../../app/widgets/common_error_widget.dart';
 import '../../home/widgets/app_drawer.dart';
 import '../../home/widgets/dashboard_app_bar.dart';
 import '../controller/comparison_result_controller.dart';
@@ -23,6 +24,8 @@ class ComparisonResultView extends GetView<ComparisonResultController> {
                 if (controller.isLoading.value) {
                   return const CommonLoader();
                 }
+
+                if (controller.errorMessage.isNotEmpty) return CommonErrorWidget(message: controller.errorMessage.value, onRetry: controller.loadComparisonData);
 
                 return SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
@@ -61,9 +64,10 @@ class ComparisonResultView extends GetView<ComparisonResultController> {
 
   Widget _buildHeaderToolbar() {
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         ElevatedButton.icon(
-          onPressed: () => Get.back(),
+          onPressed: () => controller.handleBack(),
           icon: const Icon(Icons.arrow_back, size: 16, color: Colors.white),
           label: const Text(
             'Back',
@@ -85,6 +89,7 @@ class ComparisonResultView extends GetView<ComparisonResultController> {
         const SizedBox(width: 16),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
             const Text(
               'Comparison Result',
@@ -109,31 +114,65 @@ class ComparisonResultView extends GetView<ComparisonResultController> {
 
         Obx(() {
           if (controller.isApproved.value) {
-            return ElevatedButton(
-              onPressed: () => controller.startLoadPlanning(),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF8B5CF6),
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+            return Wrap(
+              spacing: 12,
+              runSpacing: 10,
+              children: [
+                OutlinedButton(
+                  onPressed: () => controller.navigateToShipperFile(),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFF374151),
+                    backgroundColor: Colors.white,
+                    side: const BorderSide(color: Color(0xFFD1D5DB)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                  ),
+                  child: const Text(
+                    'Back to Shipper File',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-              ),
-              child: const Text(
-                'Start Load Planning',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                const SizedBox(width: 12),
+                ElevatedButton(
+                  onPressed: () => controller.startLoadPlanning(),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF8B5CF6),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 18,
+                      vertical: 12,
+                    ),
+                  ),
+                  child: const Text(
+                    'Start Load Planning',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
                 ),
-              ),
+              ],
             );
           }
-          final isMatched = controller.isFullyMatched;
-          return Row(
+          final isMatched = controller.canApprove;
+          return Wrap(
+            spacing: 12,
+            runSpacing: 10,
             children: [
               if (isMatched) ...[
-                // Approve Shipment Button (Shown ONLY when fully matched)
+                // Approve Shipment Button (Shown when fully matched or approvable)
                 ElevatedButton(
                   onPressed: () => controller.approveShipment(),
                   style: ElevatedButton.styleFrom(
@@ -144,14 +183,23 @@ class ComparisonResultView extends GetView<ComparisonResultController> {
                     ),
                     padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
                   ),
-                  child: const Text(
-                    'Approve Shipment',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
+                  child: Obx(() => controller.isSubmitting.value
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Text(
+                          'Approve Shipment',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        )),
                 ),
               ] else ...[
                 // Request Resubmit Button (Shown ONLY when mismatches exist)
@@ -165,14 +213,23 @@ class ComparisonResultView extends GetView<ComparisonResultController> {
                     ),
                     padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
                   ),
-                  child: const Text(
-                    'Request Resubmit',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
+                  child: Obx(() => controller.isSubmitting.value
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Text(
+                          'Request Resubmit',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        )),
                 ),
               ],
             ],
@@ -624,12 +681,15 @@ class ComparisonResultView extends GetView<ComparisonResultController> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
+          Flexible(
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
           if (label != 'Part Number' && label != 'Status') ...[

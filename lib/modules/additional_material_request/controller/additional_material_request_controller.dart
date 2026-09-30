@@ -21,14 +21,8 @@ class AdditionalMaterialRequestController extends GetxController {
   }
 
   void toggleApprove(int index) {
-    inventoryList[index].isApproved = !inventoryList[index].isApproved;
-    inventoryList.refresh();
-
-    CommonSnackbar.showSuccess(
-      title: inventoryList[index].isApproved ? 'Approved' : 'Status Reset',
-      message:
-          '${inventoryList[index].material.replaceAll('\n', ' ')} ${inventoryList[index].isApproved ? 'has been approved' : 'status changed'}.',
-    );
+    CommonSnackbar.showError(title: 'Approval unavailable',
+      message: 'The reference application does not expose a material-request approval API.');
   }
 
   Future<void> exportPdf() async {

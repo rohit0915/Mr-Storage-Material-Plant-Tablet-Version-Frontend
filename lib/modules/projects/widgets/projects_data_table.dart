@@ -4,6 +4,7 @@ import '../../../app/routes/app_routes.dart';
 import '../../../app/utils/app_colors.dart';
 import '../../../app/widgets/common_pagination.dart';
 import '../model/projects_model.dart';
+import '../controller/projects_controller.dart';
 
 class ProjectsDataTable extends StatelessWidget {
   final List<ProjectItemModel> items;
@@ -325,7 +326,12 @@ class ProjectsDataTable extends StatelessWidget {
                           child: Align(
                             alignment: Alignment.centerLeft,
                             child: GestureDetector(
-                              onTap: () => Get.toNamed(AppRoutes.projectDetails, parameters: {'id': row.id}),
+                              onTap: () async {
+                                await Get.toNamed(AppRoutes.projectDetails, parameters: {'id': row.id});
+                                if (Get.isRegistered<ProjectsController>()) {
+                                  Get.find<ProjectsController>().loadProjectsData();
+                                }
+                              },
                               child: Container(
                                 width: 28,
                                 height: 28,

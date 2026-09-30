@@ -7,8 +7,13 @@ class HomeRepository {
 
   HomeRepository({required this.apiClient});
 
-  Future<Map<String, dynamic>> fetchDashboard() async {
-    final response = await apiClient.get(ApiEndpoints.plantDashboard);
+  Future<Map<String, dynamic>> fetchDashboard({String? filter}) async {
+    final Map<String, dynamic> params = {};
+    if (filter != null && filter.isNotEmpty) params['filter'] = filter;
+    final response = await apiClient.get(
+      ApiEndpoints.plantDashboard,
+      queryParameters: params.isNotEmpty ? params : null,
+    );
     final body = response.data;
     if (body is! Map || body['success'] != true || body['data'] is! Map) {
       throw ServerException(body is Map
@@ -92,5 +97,43 @@ class HomeRepository {
       return response.data['data'] as Map<String, dynamic>?;
     }
     return null;
+  }
+
+  Future<List<Map<String, dynamic>>> fetchShipperProjects() async {
+    final response = await apiClient.get(ApiEndpoints.plantShipperProjects);
+    final body = response.data;
+    if (body is Map && body['data'] is Map) {
+      final list = body['data']['projects'];
+      if (list is List) {
+        return list
+            .whereType<Map>()
+            .map((e) => Map<String, dynamic>.from(e))
+            .toList();
+      }
+    } else if (body is Map && body['data'] is List) {
+      return (body['data'] as List)
+          .whereType<Map>()
+          .map((e) => Map<String, dynamic>.from(e))
+          .toList();
+    }
+    return [];
+  }
+
+  Future<List<Map<String, dynamic>>> fetchProjectShipperRequests(
+    String leadId,
+  ) async {
+    final response =
+        await apiClient.get(ApiEndpoints.plantProjectShipperRequests(leadId));
+    final body = response.data;
+    if (body is Map && body['data'] is Map) {
+      final list = body['data']['shipperRequests'];
+      if (list is List) {
+        return list
+            .whereType<Map>()
+            .map((e) => Map<String, dynamic>.from(e))
+            .toList();
+      }
+    }
+    return [];
   }
 }

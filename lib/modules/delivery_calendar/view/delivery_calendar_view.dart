@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../app/utils/app_colors.dart';
+import '../../../app/widgets/app_back_button.dart';
 import '../../../app/widgets/common_loader.dart';
 import '../../home/widgets/app_drawer.dart';
 import '../../home/widgets/dashboard_app_bar.dart';
@@ -69,6 +70,8 @@ class DeliveryCalendarView extends GetView<DeliveryCalendarController> {
   Widget _buildHeaderToolbar() {
     return Row(
       children: [
+        const AppBackButton(),
+        const SizedBox(width: 16),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: const [
@@ -324,11 +327,15 @@ class DeliveryCalendarView extends GetView<DeliveryCalendarController> {
                 ),
               ),
               const SizedBox(width: 8),
-              Text(
-                item.id,
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: AppColors.textSecondary,
+              InkWell(
+                onTap: () => controller.goToDeliveryDetails(item.rawId),
+                child: Text(
+                  item.id,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Color(0xFF2563EB),
+                    decoration: TextDecoration.underline,
+                  ),
                 ),
               ),
               const SizedBox(width: 12),
@@ -460,7 +467,7 @@ class DeliveryCalendarView extends GetView<DeliveryCalendarController> {
             children: [
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: () => controller.goToDeliveryDetails(),
+                  onPressed: () => controller.goToDeliveryDetails(item.rawId),
                   icon: const Icon(
                     Icons.local_shipping_outlined,
                     size: 14,
@@ -486,7 +493,7 @@ class DeliveryCalendarView extends GetView<DeliveryCalendarController> {
               const SizedBox(width: 10),
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: () => controller.openRescheduleDialog(),
+                  onPressed: () => controller.openRescheduleDialog(item.rawId),
                   icon: const Icon(
                     Icons.event_repeat,
                     size: 14,
@@ -512,7 +519,7 @@ class DeliveryCalendarView extends GetView<DeliveryCalendarController> {
               const SizedBox(width: 10),
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: () => controller.openMarkDeliveredDialog(),
+                  onPressed: () => controller.openMarkDeliveredDialog(item.rawId),
                   icon: const Icon(
                     Icons.check_box_outlined,
                     size: 14,
@@ -538,7 +545,7 @@ class DeliveryCalendarView extends GetView<DeliveryCalendarController> {
               const SizedBox(width: 10),
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: () => controller.sendReminder(),
+                  onPressed: () => controller.sendReminder(item.rawId),
                   icon: const Icon(
                     Icons.notifications_none,
                     size: 14,

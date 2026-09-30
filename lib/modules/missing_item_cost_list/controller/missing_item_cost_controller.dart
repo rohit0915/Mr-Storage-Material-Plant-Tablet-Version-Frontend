@@ -3,8 +3,9 @@ import 'package:get/get.dart';
 import '../../../app/services/file_export_service.dart';
 import '../../../app/widgets/common_snackbar.dart';
 import '../../item_cost_list/model/item_cost_model.dart';
-import '../../item_cost_list/widgets/add_edit_part_cost_dialog.dart';
 import '../../item_cost_list/widgets/success_dialog.dart';
+import '../../item_cost_list/widgets/add_edit_part_cost_dialog.dart';
+import '../../bom_files_details/repository/bom_files_details_repository.dart';
 import '../model/missing_item_cost_model.dart';
 
 class MissingItemCostController extends GetxController {
@@ -13,167 +14,78 @@ class MissingItemCostController extends GetxController {
   final RxString sortBy = 'Latest'.obs;
   final RxBool selectAll = false.obs;
 
-  final RxInt missingQty = 15.obs;
+  final RxInt missingQty = 0.obs;
+  final errorMessage = ''.obs;
+  final repository = BomFilesDetailsRepository(apiClient: Get.find());
 
   final RxList<MissingItemCostModel> missingItems =
       <MissingItemCostModel>[].obs;
   final RxList<MissingItemCostModel> filteredItems =
       <MissingItemCostModel>[].obs;
 
+  Worker? _sortWorker;
+  @override
+  void onClose() {
+    _sortWorker?.dispose();
+    super.onClose();
+  }
+
   @override
   void onInit() {
     super.onInit();
+    _sortWorker = ever(sortBy, (_) => applyFilter());
     loadMissingItems();
   }
 
-  void loadMissingItems() {
+  Future<void> loadMissingItems() async {
     isLoading.value = true;
-    final list = [
-      MissingItemCostModel(
-        id: '1',
-        partName: "'30_VRR48'",
-        partColor: "'-'",
-        costUnit: "'FT'",
-        description: "'VRR+ Insul R10'",
-      ),
-      MissingItemCostModel(
-        id: '2',
-        partName: "'30_VRR72'",
-        partColor: "'-'",
-        costUnit: "'FT'",
-        description: "'VRR+ Insul R10'",
-      ),
-      MissingItemCostModel(
-        id: '3',
-        partName: "'35_VRR48'",
-        partColor: "'-'",
-        costUnit: "'FT'",
-        description: "'VRR+ Insul R11'",
-      ),
-      MissingItemCostModel(
-        id: '4',
-        partName: "'35_VRR72'",
-        partColor: "'-'",
-        costUnit: "'FT'",
-        description: "'VRR+ Insul R11'",
-      ),
-      MissingItemCostModel(
-        id: '5',
-        partName: "'40_VRR48'",
-        partColor: "'-'",
-        costUnit: "'FT'",
-        description: "'VRR+ Insul R13'",
-      ),
-      MissingItemCostModel(
-        id: '6',
-        partName: "'40_VRR72'",
-        partColor: "'-'",
-        costUnit: "'FT'",
-        description: "'VRR+ Insul R13'",
-      ),
-      MissingItemCostModel(
-        id: '7',
-        partName: "'60_VRR48'",
-        partColor: "'-'",
-        costUnit: "'FT'",
-        description: "'VRR+ Insul R19'",
-      ),
-      MissingItemCostModel(
-        id: '8',
-        partName: "'60_VRR72'",
-        partColor: "'-'",
-        costUnit: "'FT'",
-        description: "'VRR+ Insul R19'",
-      ),
-      MissingItemCostModel(
-        id: '9',
-        partName: "'30_UF48 '",
-        partColor: "'-'",
-        costUnit: "'FT'",
-        description: "-",
-      ),
-      MissingItemCostModel(
-        id: '10',
-        partName: "'30_UF72 '",
-        partColor: "'-'",
-        costUnit: "'FT'",
-        description: "'UF Insul R10 '",
-      ),
-      MissingItemCostModel(
-        id: '11',
-        partName: "'35_UF48 '",
-        partColor: "'-'",
-        costUnit: "'FT'",
-        description: "'UF Insul R10 '",
-      ),
-      MissingItemCostModel(
-        id: '12',
-        partName: "'35_UF72 '",
-        partColor: "'-'",
-        costUnit: "'FT'",
-        description: "'UF Insul R11 '",
-      ),
-      MissingItemCostModel(
-        id: '13',
-        partName: "'40_UF48 '",
-        partColor: "'-'",
-        costUnit: "'FT'",
-        description: "'UF Insul R11 '",
-      ),
-      MissingItemCostModel(
-        id: '14',
-        partName: "'40_UF72 ' '",
-        partColor: "'-'",
-        costUnit: "'FT'",
-        description: "'UF Insul R13 '",
-      ),
-      MissingItemCostModel(
-        id: '15',
-        partName: "'60_UF48 '",
-        partColor: "'-'",
-        costUnit: "'FT'",
-        description: "'UF Insul R13 '",
-      ),
-      MissingItemCostModel(
-        id: '16',
-        partName: "'60_UF72 '",
-        partColor: "'-'",
-        costUnit: "'FT'",
-        description: "'UF Insul R19 '",
-      ),
-      MissingItemCostModel(
-        id: '17',
-        partName: "'R30_FG9.5'",
-        partColor: "'-'",
-        costUnit: "'FT'",
-        description: "'UF Insul R19 '",
-      ),
-      MissingItemCostModel(
-        id: '18',
-        partName: "'R30_FG10'",
-        partColor: "'-'",
-        costUnit: "'FT'",
-        description: "'Fiber Glass 9.5'",
-      ),
-      MissingItemCostModel(
-        id: '19',
-        partName: "'R30_MW7.5'",
-        partColor: "'-'",
-        costUnit: "'FT'",
-        description: "'Fiber Glass 10'",
-      ),
-      MissingItemCostModel(
-        id: '20',
-        partName: "'R30_SF'",
-        partColor: "'-'",
-        costUnit: "'FT'",
-        description: "'Mineral Wool7.5'",
-      ),
-    ];
-
-    missingItems.assignAll(list);
-    applyFilter();
-    isLoading.value = false;
+    errorMessage.value = '';
+    try {
+      final jobId = Get.parameters['jobId'] ?? '';
+      if (jobId.isEmpty) {
+        throw StateError(
+          'Open missing costs from a BOM file to select its extraction job.',
+        );
+      }
+      final records = <Map>[];
+      for (var page = 1; ; page++) {
+        final data = await repository.fetchJob(
+          jobId,
+          filter: 'unpriced',
+          page: page,
+          limit: 100,
+        );
+        final groups = data['itemsByCategory'] as Map? ?? {};
+        final rows = groups.values
+            .whereType<List>()
+            .expand((rows) => rows)
+            .whereType<Map>()
+            .toList();
+        records.addAll(rows);
+        if (rows.length < 100) break;
+      }
+      missingItems.assignAll(
+        records.map(
+          (item) => MissingItemCostModel(
+            id: (item['_id'] ?? '').toString(),
+            category: (item['category'] ?? '').toString(),
+            partName: (item['partCode'] ?? '').toString(),
+            partColor: (item['partColor'] ?? '').toString(),
+            costUnit: (item['costUnit'] ?? '').toString(),
+            description: (item['description'] ?? '').toString(),
+          ),
+        ),
+      );
+      missingQty.value = missingItems.length;
+      applyFilter();
+    } catch (e) {
+      missingItems.clear();
+      filteredItems.clear();
+      missingQty.value = 0;
+      errorMessage.value = e.toString();
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   void filterSearchResults(String query) {
@@ -194,6 +106,12 @@ class MissingItemCostController extends GetxController {
               item.partColor.toLowerCase().contains(q),
         ),
       );
+    }
+    if (sortBy.value == 'Name A-Z') {
+      filteredItems.sort((a, b) => a.partName.compareTo(b.partName));
+    }
+    if (sortBy.value == 'Part Colour') {
+      filteredItems.sort((a, b) => a.partColor.compareTo(b.partColor));
     }
   }
 
@@ -218,6 +136,7 @@ class MissingItemCostController extends GetxController {
   ) {
     final draft = ItemCostModel(
       id: item.id,
+      category: item.category,
       partName: item.partName,
       partColor: item.partColor,
       costUnit: item.costUnit,
@@ -228,38 +147,23 @@ class MissingItemCostController extends GetxController {
       context: context,
       builder: (ctx) => AddEditPartCostDialog(
         itemToEdit: draft,
-        onSave: (newItem) {
-          missingItems.removeWhere((e) => e.id == item.id);
-          if (missingQty.value > 0) missingQty.value--;
-          applyFilter();
-
-          showDialog(
-            context: context,
-            builder: (successCtx) => SuccessDialog(
-              title: 'Item/Part Cost Saved Successfully',
-              buttonText: 'Ok',
-              onPressed: () => Navigator.of(successCtx).pop(),
-            ),
-          );
+        onSave: (newItem) async {
+          await repository.updateItemPrice(item.id, newItem.mbsCost!);
+          await loadMissingItems();
         },
       ),
     );
   }
 
   void saveAndContinue(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (ctx) => SuccessDialog(
-        title: 'Cost Mapping Approved',
-        secondaryButtonText: 'Cancel',
-        onSecondaryPressed: () => Navigator.of(ctx).pop(),
-        buttonText: 'Categories Items',
-        onPressed: () {
-          Navigator.of(ctx).pop();
-          Get.back();
-        },
-      ),
-    );
+    if (missingItems.isNotEmpty) {
+      CommonSnackbar.showError(
+        title: 'Missing costs',
+        message: 'Save a price for each missing item first.',
+      );
+      return;
+    }
+    Get.back();
   }
 
   Future<void> exportFile(BuildContext context) async {

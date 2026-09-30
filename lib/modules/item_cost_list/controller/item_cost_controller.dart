@@ -27,22 +27,42 @@ class ItemCostController extends GetxController {
   final itemCosts = <ItemCostModel>[].obs;
   final filteredItemCosts = <ItemCostModel>[].obs;
 
+  final category = ''.obs;
+  final categories = <String>[].obs;
+  final currentPage = 1.obs;
+  final rowsPerPage = 50.obs;
+  final totalItems = 0.obs;
+  final workers = <Worker>[];
+  int generation = 0;
+  int get totalPages => (totalItems.value / rowsPerPage.value).ceil().clamp(1, 1000000);
+  void changePage(int page) { currentPage.value = page; loadItemCosts(); }
+  void changeRows(int rows) { rowsPerPage.value = rows; changePage(1); }
+  @override
+  void onClose() { for (final worker in workers) { worker.dispose(); } super.onClose(); }
+
   @override
   void onInit() {
     super.onInit();
+    workers.add(debounce(searchQuery, (_) => changePage(1), time: const Duration(milliseconds: 350)));
+    workers.add(ever(category, (_) => changePage(1)));
+    workers.add(ever(sortBy, (_) => applyFilter()));
     loadItemCosts();
   }
 
   Future<void> loadItemCosts() async {
+    final request = ++generation;
     isLoading.value = true;
     errorMessage.value = '';
     try {
       final results = await Future.wait([
         repository.stats(),
-        repository.list(search: searchQuery.value),
+        repository.list(search: searchQuery.value, category: category.value, page: currentPage.value, limit: rowsPerPage.value),
       ]);
+      if (request != generation) return;
       final stats = results[0];
       final data = results[1];
+      categories.assignAll((data['categories'] as List? ?? []).map((value) => value.toString()));
+      totalItems.value = _int(data['total']);
       final raw = data['items'] is List ? data['items'] as List : const [];
       itemCosts.assignAll(
         raw.whereType<Map>().map(
@@ -56,19 +76,21 @@ class ItemCostController extends GetxController {
       summary.value = ItemCostSummaryModel(
         totalItemCost: _double(stats['totalItemCost'] ?? totalCost),
         totalItems: _int(stats['totalItems'] ?? data['total']),
-        newAdded: _int(stats['newAdded']),
+        newAdded: _int(stats['newlyAdded'] ?? stats['newAdded']),
       );
       applyFilter();
     } catch (error) {
+      if (request != generation) return;
       errorMessage.value = error.toString();
       itemCosts.clear();
       filteredItemCosts.clear();
     } finally {
-      isLoading.value = false;
+      if (request == generation) isLoading.value = false;
     }
   }
 
   ItemCostModel _model(Map<String, dynamic> item) => ItemCostModel(
+    category: (item['category'] ?? '').toString(),
     id: (item['_id'] ?? item['id'] ?? '').toString(),
     partName: (item['partName'] ?? item['description'] ?? '').toString(),
     partColor: (item['partColor'] ?? item['color'] ?? '').toString(),
@@ -85,19 +107,12 @@ class ItemCostController extends GetxController {
 
   void filterSearchResults(String query) {
     searchQuery.value = query;
-    applyFilter();
   }
 
   void applyFilter() {
-    final query = searchQuery.value.trim().toLowerCase();
-    final result = query.isEmpty
-        ? itemCosts
-        : itemCosts.where(
-            (item) =>
-                item.partName.toLowerCase().contains(query) ||
-                item.description.toLowerCase().contains(query) ||
-                item.partColor.toLowerCase().contains(query),
-          );
+    final result = itemCosts.toList();
+    if (sortBy.value == 'Name A-Z') result.sort((a, b) => a.partName.compareTo(b.partName));
+    if (sortBy.value == 'MBS Cost High-Low') result.sort((a, b) => (b.mbsCost ?? 0).compareTo(a.mbsCost ?? 0));
     filteredItemCosts.assignAll(result);
   }
 
@@ -119,7 +134,7 @@ class ItemCostController extends GetxController {
   void openAddPartCostDialog(BuildContext context) => showDialog(
     context: context,
     builder: (_) => AddEditPartCostDialog(
-      onSave: (item) => _save(item, context, isEdit: false),
+      onSave: (item) => _save(item, isEdit: false),
     ),
   );
   void openEditPartCostDialog(BuildContext context, ItemCostModel item) =>
@@ -127,20 +142,23 @@ class ItemCostController extends GetxController {
         context: context,
         builder: (_) => AddEditPartCostDialog(
           itemToEdit: item,
-          onSave: (updated) => _save(updated, context, isEdit: true),
+          onSave: (updated) => _save(updated, isEdit: true),
         ),
       );
   Future<void> _save(
     ItemCostModel item,
-    BuildContext context, {
+    {
     required bool isEdit,
   }) async {
     try {
       final payload = {
-        'category': 'General',
+        'category': item.category,
         'partName': item.partName,
         'partColor': item.partColor,
         'costUnit': item.costUnit,
+        'laborCost': item.laborCost,
+        'additionalCost': item.additionalCost,
+        'materialCost': item.materialCost,
         'mbsCost': item.mbsCost,
         'currentMarketCost': item.currentMarketCost,
         'description': item.description,
@@ -151,12 +169,9 @@ class ItemCostController extends GetxController {
         await repository.add(payload);
       }
       await loadItemCosts();
-      if (context.mounted) showSaveSuccessDialog(context);
+      CommonSnackbar.showSuccess(title: 'Item saved', message: 'The cost record was saved.');
     } catch (error) {
-      CommonSnackbar.showError(
-        title: 'Unable to save item',
-        message: error.toString(),
-      );
+      rethrow;
     }
   }
 
@@ -176,7 +191,7 @@ class ItemCostController extends GetxController {
   );
   Future<void> exportFile(BuildContext context) async {
     try {
-      final bytes = await repository.export(search: searchQuery.value);
+      final bytes = await repository.export(search: searchQuery.value, category: category.value);
       await FileSaver.instance.saveFile(
         name: 'smdt-cost-list',
         bytes: bytes,

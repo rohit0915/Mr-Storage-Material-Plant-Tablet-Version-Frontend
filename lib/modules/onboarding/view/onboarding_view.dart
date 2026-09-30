@@ -160,7 +160,7 @@ class OnboardingView extends GetView<OnboardingController> {
                                               shape: BoxShape.circle,
                                               color: controller.currentIndex.value == dotIndex
                                                   ? Colors.white
-                                                  : Colors.white.withOpacity(0.4),
+                                                  : Colors.white.withValues(alpha: 0.4),
                                             ),
                                           ),
                                         ),
@@ -283,7 +283,7 @@ class OnboardingView extends GetView<OnboardingController> {
                                               shape: BoxShape.circle,
                                               color: controller.currentIndex.value == dotIndex
                                                   ? Colors.white
-                                                  : Colors.white.withOpacity(0.4),
+                                                  : Colors.white.withValues(alpha: 0.4),
                                             ),
                                           ),
                                         ),

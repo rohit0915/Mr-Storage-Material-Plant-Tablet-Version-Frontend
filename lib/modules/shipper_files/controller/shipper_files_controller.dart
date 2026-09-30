@@ -35,9 +35,26 @@ class ShipperFilesController extends GetxController {
   final RxInt projectRevisionsSent = 0.obs;
   StreamSubscription<PlantSocketEvent>? _socketSubscription;
 
+  final paginationTotal = 0.obs;
+  Worker? _projectSearchWorker;
+  int get projectPages =>
+      (paginationTotal.value / rowsPerPage.value).ceil().clamp(1, 1000000);
+  void changeProjectPage(int page) {
+    currentPage.value = page;
+    loadData();
+  }
+
+  void changeProjectRows(int rows) {
+    rowsPerPage.value = rows;
+    changeProjectPage(1);
+  }
+
   @override
   void onInit() {
     super.onInit();
+    _projectSearchWorker = debounce(searchQuery, (_) {
+      if (selectedProjectId.isEmpty) changeProjectPage(1);
+    }, time: const Duration(milliseconds: 350));
     final routeId = Get.parameters['id'];
     if (routeId != null && routeId.isNotEmpty) {
       selectedProjectId.value = routeId;
@@ -52,31 +69,37 @@ class ShipperFilesController extends GetxController {
         'all_shipper_files_submitted',
         'shipper_comparison_complete',
         'shipper_comparison_failed',
-      }, (_) => loadData());
+      }, (_) => loadData(silent: true));
     }
     loadData();
   }
 
   @override
   void onClose() {
+    _projectSearchWorker?.dispose();
     _socketSubscription?.cancel();
     super.onClose();
   }
 
-  Future<void> loadData() async {
-    isLoading.value = true;
+  Future<void> loadData({bool silent = false}) async {
+    if (!silent) isLoading.value = true;
     errorMessage.value = '';
     try {
       if (selectedProjectId.value.isNotEmpty) {
-        await loadProjectRequests(selectedProjectId.value);
+        await loadProjectRequests(selectedProjectId.value, silent: silent);
         return;
       }
       final results = await Future.wait([
         repository.fetchStats().catchError((_) => <String, dynamic>{}),
-        repository.fetchProjects().catchError((_) => <String, dynamic>{}),
+        repository.fetchProjects(
+          page: currentPage.value,
+          limit: rowsPerPage.value,
+          search: searchQuery.value,
+        ),
       ]);
       final stats = results[0];
       final data = results[1];
+      paginationTotal.value = _int(data['total']);
       totalProjects.value = _int(stats['totalFiles']);
       pendingComparison.value = _int(stats['filesReceived']);
       approved.value = _int(stats['ordersSent']);
@@ -87,10 +110,10 @@ class ShipperFilesController extends GetxController {
 
       projectsList.assignAll(projects.whereType<Map>().map(_projectFromMap));
     } catch (e) {
-      projectsList.clear();
+      if (!silent) projectsList.clear();
       errorMessage.value = e.toString();
     } finally {
-      isLoading.value = false;
+      if (!silent) isLoading.value = false;
     }
   }
 
@@ -175,8 +198,9 @@ class ShipperFilesController extends GetxController {
   }
 
   Future<void> openProjectShipperFiles(ProjectShipperFileModel project) async {
-    final targetId =
-        project.leadId.isNotEmpty ? project.leadId : project.projectId;
+    final targetId = project.leadId.isNotEmpty
+        ? project.leadId
+        : project.projectId;
     selectedProjectId.value = targetId;
     selectedProjectName.value = project.projectName;
     shipperFiles.clear();
@@ -185,7 +209,13 @@ class ShipperFilesController extends GetxController {
     Get.toNamed(
       AppRoutes.projectShipperFiles,
       parameters: {'id': targetId, 'name': project.projectName},
-    );
+    )?.then((_) {
+      if (isClosed) return;
+      selectedProjectId.value = '';
+      selectedProjectName.value = '';
+      searchQuery.value = '';
+      loadData();
+    });
     try {
       await loadProjectRequests(targetId);
     } catch (error) {
@@ -196,78 +226,91 @@ class ShipperFilesController extends GetxController {
     }
   }
 
-  Future<void> loadProjectRequests(String leadId) async {
-    final data = await repository.fetchProjectRequests(leadId);
-    selectedProjectName.value =
-        (data['projectName'] ?? data['name'] ?? selectedProjectName.value)
-            .toString();
-    final rawRequests =
-        data['shipperRequests'] ?? data['requests'] ?? data['files'];
-    final requests = rawRequests is List ? rawRequests : const [];
-    shipperFiles.assignAll(
-      requests.whereType<Map>().map((raw) {
-        final item = Map<String, dynamic>.from(raw);
-        final vendor = _map(item['vendor'] ?? item['shipper']);
-        final comparison = _map(item['amountComparison']);
-        return ShipperFileItemModel(
-          id: (item['requestId'] ?? item['_id'] ?? '').toString(),
-          shipperName:
-              (item['vendorName'] ??
-                      item['shipperName'] ??
-                      vendor['name'] ??
-                      '-')
-                  .toString(),
-          fileName: (item['fileName'] ?? item['file_name'] ?? '-').toString(),
-          uploadDate: _date(
-            item['uploadedDate'] ?? item['uploadedAt'] ?? item['createdAt'] ?? item['uploadDate'],
-          ),
-          items: _int(item['totalItems'] ?? item['itemCount']),
-          rate: _money(
-            item['rates'] ??
-                item['rate'] ??
-                item['totalAmount'] ??
-                item['quotedAmount'] ??
-                comparison['shipperSubmittedAmount'],
-          ),
-          status: _status(
-            item['fileStatus'] ?? item['status'] ?? item['comparisonStatus'],
-          ),
-          avatarUrl: (vendor['photo'] ?? vendor['logo'] ?? '').toString(),
-        );
-      }),
-    );
+  Future<void> loadProjectRequests(String leadId, {bool silent = false}) async {
+    if (!silent) isLoading.value = true;
+    try {
+      final data = await repository.fetchProjectRequests(leadId);
+      selectedProjectName.value =
+          (data['projectName'] ?? data['name'] ?? selectedProjectName.value)
+              .toString();
+      final rawRequests =
+          data['shipperRequests'] ?? data['requests'] ?? data['files'];
+      final requests = rawRequests is List ? rawRequests : const [];
+      shipperFiles.assignAll(
+        requests.whereType<Map>().map((raw) {
+          final item = Map<String, dynamic>.from(raw);
+          final vendor = _map(item['vendor'] ?? item['shipper']);
+          final comparison = _map(item['amountComparison']);
+          return ShipperFileItemModel(
+            id: (item['requestId'] ?? item['_id'] ?? '').toString(),
+            shipperName:
+                (item['vendorName'] ??
+                        item['shipperName'] ??
+                        vendor['name'] ??
+                        '-')
+                    .toString(),
+            fileName: (item['fileName'] ?? item['file_name'] ?? '-').toString(),
+            uploadDate: _date(
+              item['uploadedDate'] ??
+                  item['uploadedAt'] ??
+                  item['createdAt'] ??
+                  item['uploadDate'],
+            ),
+            items: _int(item['totalItems'] ?? item['itemCount']),
+            rate: _money(
+              item['rates'] ??
+                  item['rate'] ??
+                  item['totalAmount'] ??
+                  item['quotedAmount'] ??
+                  comparison['shipperSubmittedAmount'],
+            ),
+            status: _status(
+              item['fileStatus'] ?? item['status'] ?? item['comparisonStatus'],
+            ),
+            avatarUrl: (vendor['photo'] ?? vendor['logo'] ?? '').toString(),
+          );
+        }),
+      );
 
-    // Compute project stats for summary cards
-    final stats = _map(data['stats']);
-    final tFiles = _int(
-      stats['totalFiles'] ?? stats['totalShipperFiles'] ?? data['totalShipperFiles'],
-    );
-    projectTotalFiles.value = tFiles > 0 ? tFiles : shipperFiles.length;
+      // Compute project stats for summary cards
+      final stats = _map(data['stats']);
+      final tFiles = _int(
+        stats['totalFiles'] ??
+            stats['totalShipperFiles'] ??
+            data['totalShipperFiles'],
+      );
+      projectTotalFiles.value = tFiles > 0 ? tFiles : shipperFiles.length;
 
-    final fRec = _int(stats['filesReceived'] ?? stats['fileReceived']);
-    projectFilesReceived.value = fRec > 0
-        ? fRec
-        : shipperFiles.where((f) {
-            final st = f.status.toLowerCase();
-            return st.contains('received') ||
-                st.contains('compared') ||
-                st.contains('pending');
-          }).length;
+      final fRec = _int(stats['filesReceived'] ?? stats['fileReceived']);
+      projectFilesReceived.value = fRec > 0
+          ? fRec
+          : shipperFiles.where((f) {
+              final st = f.status.toLowerCase();
+              return st.contains('received') ||
+                  st.contains('compared') ||
+                  st.contains('pending');
+            }).length;
 
-    final oSent = _int(stats['ordersSent'] ?? stats['orderSent']);
-    projectOrdersSent.value = oSent > 0
-        ? oSent
-        : shipperFiles.where((f) {
-            final st = f.status.toLowerCase();
-            return st.contains('order') || st.contains('approved');
-          }).length;
+      final oSent = _int(stats['ordersSent'] ?? stats['orderSent']);
+      projectOrdersSent.value = oSent > 0
+          ? oSent
+          : shipperFiles.where((f) {
+              final st = f.status.toLowerCase();
+              return st.contains('order') || st.contains('approved');
+            }).length;
 
-    final rSent = _int(stats['revisionsSent'] ?? stats['revisionSent']);
-    projectRevisionsSent.value = rSent > 0
-        ? rSent
-        : shipperFiles
-            .where((f) => f.status.toLowerCase().contains('revision'))
-            .length;
+      final rSent = _int(stats['revisionsSent'] ?? stats['revisionSent']);
+      projectRevisionsSent.value = rSent > 0
+          ? rSent
+          : shipperFiles
+                .where((f) => f.status.toLowerCase().contains('revision'))
+                .length;
+    } catch (error) {
+      if (!silent) shipperFiles.clear();
+      errorMessage.value = error.toString();
+    } finally {
+      if (!silent) isLoading.value = false;
+    }
   }
 
   List<ShipperFileItemModel> get filteredShipperFiles {
@@ -287,8 +330,7 @@ class ShipperFilesController extends GetxController {
       list = list
           .where(
             (item) =>
-                item.status.toLowerCase() ==
-                selectedStatus.value.toLowerCase(),
+                item.status.toLowerCase() == selectedStatus.value.toLowerCase(),
           )
           .toList();
     }
@@ -300,12 +342,16 @@ class ShipperFilesController extends GetxController {
   int _int(dynamic value) =>
       value is num ? value.toInt() : int.tryParse('$value') ?? 0;
   String _money(dynamic value) {
-    if (value == null || value == 0 || value == '0' || value == '0.0') return '-';
+    if (value == null || value == 0 || value == '0' || value == '0.0') {
+      return '-';
+    }
     if (value is num) {
-      final str = value.toStringAsFixed(0).replaceAllMapped(
-        RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-        (Match m) => '${m[1]},',
-      );
+      final str = value
+          .toStringAsFixed(0)
+          .replaceAllMapped(
+            RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+            (Match m) => '${m[1]},',
+          );
       return '\$$str';
     }
     final raw = value.toString().trim();
@@ -313,10 +359,12 @@ class ShipperFilesController extends GetxController {
     if (raw.startsWith('\$')) return raw;
     final parsed = num.tryParse(raw);
     if (parsed != null) {
-      final str = parsed.toStringAsFixed(0).replaceAllMapped(
-        RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-        (Match m) => '${m[1]},',
-      );
+      final str = parsed
+          .toStringAsFixed(0)
+          .replaceAllMapped(
+            RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+            (Match m) => '${m[1]},',
+          );
       return '\$$str';
     }
     return '\$$raw';
@@ -371,9 +419,6 @@ class ShipperFilesController extends GetxController {
   }
 
   void openShipperFileDetails(ShipperFileItemModel item) {
-    Get.toNamed(
-      AppRoutes.shipperFileDetails,
-      parameters: {'id': item.id},
-    );
+    Get.toNamed(AppRoutes.shipperFileDetails, parameters: {'id': item.id});
   }
 }

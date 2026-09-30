@@ -71,6 +71,14 @@ class CarrierBidModel {
   final String bidAmount;
   final bool isBestRate;
   final String deliveryDays;
+  final String status;
+  final bool isAwarded;
+  final String submittedDate;
+  final String carrierNotes;
+  final bool canRequestResubmit;
+  final String? resubmitRequestedAt;
+  final String? resubmitNote;
+  final int resubmitCount;
 
   CarrierBidModel({
     this.id = '',
@@ -78,6 +86,14 @@ class CarrierBidModel {
     required this.rating,
     required this.bidAmount,
     this.isBestRate = false,
-    this.deliveryDays = '2-3 Days',
+    this.deliveryDays = '',
+    this.status = '',
+    this.isAwarded = false,
+    this.submittedDate = '',
+    this.carrierNotes = '',
+    this.canRequestResubmit = true,
+    this.resubmitRequestedAt,
+    this.resubmitNote,
+    this.resubmitCount = 0,
   });
 }

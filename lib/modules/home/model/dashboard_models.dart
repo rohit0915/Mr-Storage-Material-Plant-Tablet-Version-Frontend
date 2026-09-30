@@ -93,6 +93,7 @@ class FreightCarrierModel {
 }
 
 class RecentShipperFileCardModel {
+  final String requestId;
   final String projectCode;
   final String title;
   final String site;
@@ -105,6 +106,7 @@ class RecentShipperFileCardModel {
   final BadgeStatusType statusType;
 
   RecentShipperFileCardModel({
+    this.requestId = '',
     required this.projectCode,
     required this.title,
     required this.site,
@@ -126,6 +128,9 @@ class DrawingApprovalStatusModel {
   final String status;
   final BadgeStatusType statusType;
   final String avatarInitial;
+  final String requestId;
+  final String projectId;
+  final String buildingId;
 
   DrawingApprovalStatusModel({
     required this.clientName,
@@ -135,5 +140,8 @@ class DrawingApprovalStatusModel {
     required this.status,
     required this.statusType,
     required this.avatarInitial,
+    this.requestId = '',
+    this.projectId = '',
+    this.buildingId = '',
   });
 }

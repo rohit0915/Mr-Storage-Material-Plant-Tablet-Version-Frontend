@@ -25,9 +25,36 @@ class PackingListController extends GetxController {
   final RxList<String> projectOptions = <String>[].obs;
   List<String> get availableProjects => projectOptions;
 
+  final searchQuery = ''.obs;
+  final currentPage = 1.obs, rowsPerPage = 10.obs, totalProjects = 0.obs;
+  Worker? _searchWorker;
+  int _generation = 0;
+  int get totalPages =>
+      (totalProjects.value / rowsPerPage.value).ceil().clamp(1, 1000000);
+  void changePage(int value) {
+    currentPage.value = value;
+    loadProjectsData();
+  }
+
+  void changeRows(int value) {
+    rowsPerPage.value = value;
+    changePage(1);
+  }
+
+  @override
+  void onClose() {
+    _searchWorker?.dispose();
+    super.onClose();
+  }
+
   @override
   void onInit() {
     super.onInit();
+    _searchWorker = debounce(
+      searchQuery,
+      (_) => changePage(1),
+      time: const Duration(milliseconds: 350),
+    );
     selectedProjectId.value = Get.parameters['id'] ?? '';
     selectedProjectName.value = Get.parameters['name'] ?? '';
     if (selectedProjectId.value.isEmpty) {
@@ -38,50 +65,46 @@ class PackingListController extends GetxController {
   }
 
   Future<void> loadProjectsData() async {
+    final request = ++_generation;
     isLoading.value = true;
     errorMessage.value = '';
     try {
-      final data = await repository.fetchProjects();
+      final data = await repository.fetchProjects(
+        page: currentPage.value,
+        limit: rowsPerPage.value,
+        search: searchQuery.value,
+      );
+      if (request != _generation) return;
+      totalProjects.value = _int(data['total']);
       final projects = data['projects'] is List
           ? data['projects'] as List
           : const [];
       projectsList.assignAll(
         projects.whereType<Map>().toList().asMap().entries.map((entry) {
-          final index = entry.key;
           final item = Map<String, dynamic>.from(entry.value);
           final lead = _map(item['lead']);
           final pName =
               (item['projectName'] ?? lead['projectName'] ?? 'Project')
                   .toString();
           String rawCode =
-              (item['jobId'] ??
+              (item['projectId'] ??
+                      item['jobId'] ??
                       item['job_id'] ??
                       item['projectCode'] ??
                       item['projectNo'] ??
                       item['projectNumber'] ??
                       '')
                   .toString();
-          if (rawCode.isEmpty || rawCode.length > 20) {
-            if (pName.contains('Wood')) {
-              rawCode = 'PRO-007';
-            } else if (pName.contains('Lucas')) {
-              rawCode = 'PRO-002';
-            } else if (pName.contains('Another')) {
-              rawCode = 'PRO-008';
-            } else if (pName.contains('Dev Wareh')) {
-              rawCode = 'PRO-006';
-            } else {
-              rawCode = 'PRO-${(index + 1).toString().padLeft(3, '0')}';
-            }
-          }
           final rawTotal = _int(
-            item['totalPackingLists'] ??
+            item['totalPackingList'] ??
+                item['totalPackingLists'] ??
                 item['packingListCount'] ??
                 item['totalLists'],
           );
           return ProjectPackingListSummaryModel(
             id:
-                (item['leadId'] ??
+                (item['packingListPlanId'] ??
+                        item['leadId'] ??
                         lead['_id'] ??
                         item['projectId'] ??
                         item['packingListPlanId'] ??
@@ -92,9 +115,12 @@ class PackingListController extends GetxController {
             displayProjectId: rawCode,
             projectName: pName,
             listGeneratedDate: _date(
-              item['generatedAt'] ?? item['updatedAt'] ?? item['createdAt'],
+              item['listGeneratedAt'] ??
+                  item['generatedAt'] ??
+                  item['updatedAt'] ??
+                  item['createdAt'],
             ),
-            totalPackingList: rawTotal > 0 ? rawTotal : 2,
+            totalPackingList: rawTotal,
           );
         }),
       );
@@ -102,10 +128,12 @@ class PackingListController extends GetxController {
         projectsList.map((item) => item.projectName).toSet(),
       );
     } catch (e) {
+      if (request != _generation) return;
       errorMessage.value = e.toString();
       projectsList.clear();
+      totalProjects.value = 0;
     } finally {
-      isLoading.value = false;
+      if (request == _generation) isLoading.value = false;
     }
   }
 
@@ -122,147 +150,101 @@ class PackingListController extends GetxController {
     isLoading.value = true;
     errorMessage.value = '';
     try {
-      final data = await repository.fetchPackingList(id);
-      final pName = (data['projectName'] ?? selectedProjectName.value).toString();
-      if (pName.isNotEmpty) selectedProjectName.value = pName;
-
-      final plan = _map(data['packingListPlan'] ?? data['plan'] ?? data['loadPlan']);
-      final rawTrucks = _firstList([
-        data['packingLists'],
-        data['loads'],
-        data['trucks'],
-        plan['packingLists'],
-        plan['loads'],
-        plan['trucks'],
-      ]);
-
-      final rows = rawTrucks.isNotEmpty
-          ? rawTrucks
-          : (data.isNotEmpty ? <dynamic>[data] : const <dynamic>[]);
-
-      if (rows.isNotEmpty) {
-        packingItemsList.assignAll(
-          rows.whereType<Map>().toList().asMap().entries.map((entry) {
-            final idx = entry.key + 1;
-            final item = Map<String, dynamic>.from(entry.value);
-            final truck = _map(item['truck']);
-            final rawBundles = _firstList([
-              item['bundles'],
-              item['bundleIds'],
-              item['assignedBundles'],
-              item['bundleList'],
-            ]);
-            final rawId = (item['packingId'] ?? item['packingListId'] ?? item['loadPlanId'] ?? item['_id'] ?? '').toString();
-            final pId = rawId.isNotEmpty && !rawId.startsWith('6') ? rawId : 'PL-00$idx';
-            final lId = (item['loadId'] ?? item['bundlePlanCode'] ?? item['loadPlanId'] ?? 'BP-0007').toString();
-            final truckStr = (item['truck'] ?? item['truckType'] ?? truck['name'] ?? truck['type'] ?? (idx == 1 ? '53 ft Semi' : '40 ft Hot Shot')).toString();
-            final bCount = _int(item['bundles'] ?? item['bundleCount'] ?? (rawBundles.isNotEmpty ? rawBundles.length : (idx == 1 ? 18 : 4)));
-            final weightVal = item['weight'] ?? item['totalWeight'] ?? item['loadWeight'];
-            final weightStr = weightVal != null ? _weight(weightVal) : (idx == 1 ? '44,651.8 LBS' : '11,137.4 LBS');
-            final statusStr = (item['status'] ?? 'confirmed').toString();
-            final tItems = _int(item['totalItems'] ?? item['itemsCount'] ?? (idx == 1 ? 36 : 12));
-
-            final mappedBundles = rawBundles.whereType<Map>().toList().asMap().entries.map((bEntry) {
-              final bIdx = bEntry.key + 1;
-              final b = Map<String, dynamic>.from(bEntry.value);
-              return BundleListItemModel(
-                id: bIdx,
-                bundleId: (b['bundleId'] ?? b['code'] ?? 'B-0${bIdx.toString().padLeft(2, '0')}').toString(),
-                profile: (b['profile'] ?? b['category'] ?? 'framing').toString(),
-                partNumber: (b['partNumber'] ?? b['partMark'] ?? b['profile'] ?? 'framing').toString(),
-                items: (b['items'] ?? b['itemsCount'] ?? '72').toString(),
-                quantity: _int(b['quantity'] ?? b['qty'] ?? b['itemsCount'] ?? 72),
-                length: (b['length'] ?? b['maxLength'] ?? '26.29ft').toString(),
-                unitWeight: _weight(b['weight'] ?? b['unitWeight'] ?? 4940.7),
-                status: (b['status'] ?? 'Assigned_to_truck').toString(),
-              );
-            }).toList();
-
-            return PackingListItemModel(
-              packingId: pId,
-              loadId: lId,
-              truck: truckStr,
-              bundles: bCount,
-              weight: weightStr,
-              destination: (item['destination'] ?? item['deliveryAddress'] ?? 'Garage').toString(),
-              date: _date(item['generatedAt'] ?? item['createdAt']),
-              status: statusStr,
-              totalItems: tItems,
-              bundleList: mappedBundles,
-              rawData: item,
-            );
-          }),
+      final data = await repository.fetchPackingListPlan(id);
+      final plan = _map(data['packingListPlan']);
+      final project = _map(data['project']);
+      selectedProjectName.value =
+          project['projectName']?.toString() ?? selectedProjectName.value;
+      final rows = data['packingLists'] as List? ?? [];
+      packingItemsList.assignAll(
+        rows.whereType<Map>().map((item) {
+          final rawBundles = item['bundles'] as List? ?? [];
+          final bundles = rawBundles
+              .whereType<Map>()
+              .toList()
+              .asMap()
+              .entries
+              .map((entry) {
+                final row = entry.value;
+                return BundleListItemModel(
+                  id: entry.key,
+                  bundleId: (row['bundleNo'] ?? row['_id'] ?? '').toString(),
+                  profile: (row['bundleType'] ?? '').toString(),
+                  partNumber: (row['title'] ?? '').toString(),
+                  items:
+                      (row['items'] is List ? (row['items'] as List).length : 0)
+                          .toString(),
+                  quantity: _int(row['totalQty']),
+                  length: (row['maxLengthFeet'] ?? '—').toString(),
+                  unitWeight: _weight(row['totalWeight']),
+                  status: (row['status'] ?? '—').toString(),
+                );
+              })
+              .toList();
+          final projectCode = (item['projectId'] ??
+                  item['jobId'] ??
+                  item['job_id'] ??
+                  item['projectCode'] ??
+                  item['projectNo'] ??
+                  item['projectNumber'] ??
+                  project['projectId'] ??
+                  project['jobId'] ??
+                  project['job_id'] ??
+                  project['projectCode'] ??
+                  project['projectNo'] ??
+                  project['projectNumber'] ??
+                  '')
+              .toString();
+          return PackingListItemModel(
+            packingId: projectCode.isNotEmpty
+                ? projectCode
+                : (item['_id'] ?? '').toString(),
+            loadId: (item['packingListNo'] ?? '').toString(),
+            truck: (item['truckLabel'] ?? item['truckType'] ?? '—').toString(),
+            bundles: _int(item['totalBundles']),
+            weight: _weight(item['totalWeight']),
+            destination: (project['location'] ?? '—').toString(),
+            date: _date(plan['createdAt']),
+            status: (item['status'] ?? '—').toString(),
+            totalItems: _int(item['totalItems']),
+            bundleList: bundles,
+            rawData: Map<String, dynamic>.from(item),
+          );
+        }),
+      );
+      final selectedPackingId = Get.parameters['packingId'];
+      if (selectedPackingId != null) {
+        final selected = packingItemsList.where(
+          (item) => item.packingId == selectedPackingId,
         );
-      } else {
-        _applyDynamicSampleData(id);
+        bundleListItems.assignAll(
+          selected.isEmpty
+              ? <BundleListItemModel>[]
+              : selected.first.bundleList,
+        );
       }
+      packingListTableItems.assignAll(
+        packingItemsList.asMap().entries.map(
+          (entry) => PackingListTableItemModel(
+            id: entry.key,
+            loadId: entry.value.loadId,
+            truck: entry.value.truck,
+            bundles: entry.value.bundles,
+            weight: entry.value.weight,
+            destination: entry.value.destination,
+            status: entry.value.status,
+          ),
+        ),
+      );
     } catch (e) {
-      _applyDynamicSampleData(id);
+      packingItemsList.clear();
+      packingListTableItems.clear();
+      bundleListItems.clear();
+      errorMessage.value = e.toString();
     } finally {
       isLoading.value = false;
     }
   }
-
-  void _applyDynamicSampleData(String id) {
-    errorMessage.value = '';
-    if (selectedProjectName.value.isEmpty) {
-      selectedProjectName.value = 'Garage';
-    }
-
-    final sampleBundles1 = [
-      BundleListItemModel(id: 1, bundleId: 'B-012', profile: 'framing', partNumber: 'framing', items: '72', quantity: 72, length: '26.29ft', unitWeight: '4,940.70 LBS', status: 'Assigned_to_truck'),
-      BundleListItemModel(id: 2, bundleId: 'B-004', profile: 'framing', partNumber: 'framing', items: '9', quantity: 9, length: '28.06ft', unitWeight: '4,848.30 LBS', status: 'Assigned_to_truck'),
-      BundleListItemModel(id: 3, bundleId: 'B-009', profile: 'framing', partNumber: 'framing', items: '2', quantity: 2, length: '51.67ft', unitWeight: '2,747.40 LBS', status: 'Assigned_to_truck'),
-      BundleListItemModel(id: 4, bundleId: 'B-010', profile: 'framing', partNumber: 'framing', items: '30', quantity: 30, length: '25.13ft', unitWeight: '2,403.20 LBS', status: 'Assigned_to_truck'),
-      BundleListItemModel(id: 5, bundleId: 'B-013', profile: 'framing', partNumber: 'framing', items: '26', quantity: 26, length: '26.29ft', unitWeight: '1,772.90 LBS', status: 'Assigned_to_truck'),
-      BundleListItemModel(id: 6, bundleId: 'B-011', profile: 'framing', partNumber: 'framing', items: '24', quantity: 24, length: '27.29ft', unitWeight: '1,709.60 LBS', status: 'Assigned_to_truck'),
-      BundleListItemModel(id: 7, bundleId: 'B-016', profile: 'panels', partNumber: 'panels', items: '74', quantity: 74, length: '27.00ft', unitWeight: '5,280.70 LBS', status: 'Assigned_to_truck'),
-    ];
-
-    packingItemsList.assignAll([
-      PackingListItemModel(
-        packingId: 'PL-001',
-        loadId: 'BP-0007',
-        truck: '53 ft Semi',
-        bundles: 18,
-        weight: '44,651.8 LBS',
-        destination: selectedProjectName.value,
-        date: '24 Aug 2026',
-        status: 'confirmed',
-        totalItems: 36,
-        bundleList: sampleBundles1,
-      ),
-      PackingListItemModel(
-        packingId: 'PL-002',
-        loadId: 'BP-0007',
-        truck: '40 ft Hot Shot',
-        bundles: 4,
-        weight: '11,137.4 LBS',
-        destination: selectedProjectName.value,
-        date: '24 Aug 2026',
-        status: 'confirmed',
-        totalItems: 12,
-        bundleList: sampleBundles1.sublist(0, 3),
-      ),
-    ]);
-
-    packingListTableItems.assignAll(
-      packingItemsList.asMap().entries.map((entry) {
-        final item = entry.value;
-        return PackingListTableItemModel(
-          id: entry.key + 1,
-          loadId: item.loadId,
-          truck: item.truck,
-          bundles: item.bundles,
-          weight: item.weight,
-          destination: item.destination,
-          status: item.status,
-        );
-      }),
-    );
-  }
-
-
 
   Future<void> openProjectPackingList(
     ProjectPackingListSummaryModel item,
@@ -282,14 +264,16 @@ class PackingListController extends GetxController {
   }
 
   Future<void> openPackingListDetails(PackingListItemModel item) async {
-    bundleListItems.clear();
+    bundleListItems.assignAll(item.bundleList);
     errorMessage.value = '';
-    isLoading.value = true;
     Get.toNamed(
       AppRoutes.packingListDetails,
-      parameters: {'id': item.packingId, 'name': selectedProjectName.value},
+      parameters: {
+        'id': selectedProjectId.value,
+        'packingId': item.packingId,
+        'name': selectedProjectName.value,
+      },
     );
-    await loadPackingDetailsData(item.packingId);
   }
 
   Future<void> exportProjects() async {
@@ -422,18 +406,10 @@ class PackingListController extends GetxController {
 
   Map<String, dynamic> _map(dynamic value) =>
       value is Map ? Map<String, dynamic>.from(value) : {};
-  List<dynamic> _firstList(List<dynamic> candidates) {
-    for (final candidate in candidates) {
-      if (candidate is List) return candidate;
-    }
-    return const [];
-  }
-
   int _int(dynamic value) =>
       value is num ? value.toInt() : int.tryParse('$value') ?? 0;
   String _weight(dynamic value) =>
-      value == null ? '0 lbs' : '${value.toString()} lbs';
-
+      value == null ? '—' : '${value.toString()} lbs';
 
   String _date(dynamic value) {
     final date = DateTime.tryParse((value ?? '').toString())?.toLocal();

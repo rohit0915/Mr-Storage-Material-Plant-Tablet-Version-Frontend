@@ -67,6 +67,256 @@ class OrderVerificationView extends GetView<OrderVerificationController> {
     );
   }
 
+  Future<void> _compareFiles() async {
+    if (controller.isLoading.value ||
+        controller.isComparing.value ||
+        !controller.canCompare) {
+      return;
+    }
+    final comparison = controller.compareFiles();
+    final showResults = await Get.dialog<bool>(
+      Obx(() {
+        final processing = controller.isComparing.value;
+        final done = controller.comparisonComplete.value;
+        return PopScope(
+          canPop: !processing,
+          child: Dialog(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 480),
+              child: Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      blurRadius: 24,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header Row with Icon Badge, Title and Subtitle
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color: processing
+                                ? const Color(0xFFEFF6FF)
+                                : done
+                                ? const Color(0xFFE0EFFF)
+                                : const Color(0xFFFEE2E2),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Center(
+                            child: processing
+                                ? const SizedBox(
+                                    width: 22,
+                                    height: 22,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2.5,
+                                      color: Color(0xFF2563EB),
+                                    ),
+                                  )
+                                : Icon(
+                                    done ? Icons.balance : Icons.error_outline,
+                                    color: done
+                                        ? const Color(0xFF2563EB)
+                                        : const Color(0xFFDC2626),
+                                    size: 24,
+                                  ),
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                processing
+                                    ? 'Processing Files...'
+                                    : done
+                                    ? 'Shipper Comparison Done'
+                                    : 'Comparison Failed',
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF111827),
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                processing
+                                    ? 'Please wait while we compare your BOM and shipper file.'
+                                    : done
+                                    ? 'Quotations comparison report is now ready'
+                                    : (controller.errorMessage.value.isNotEmpty
+                                        ? controller.errorMessage.value
+                                        : 'Comparison could not be completed.'),
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  color: Color(0xFF6B7280),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Comparison Status Box matching Image 2
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
+                      ),
+                      decoration: BoxDecoration(
+                        color: processing
+                            ? const Color(0xFFF8FAFC)
+                            : done
+                            ? const Color(0xFFEFF6FF)
+                            : const Color(0xFFFEF2F2),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: processing
+                              ? const Color(0xFFE2E8F0)
+                              : done
+                              ? const Color(0xFFDBEAFE)
+                              : const Color(0xFFFECACA),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'COMPARISON STATUS',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.8,
+                              color: processing
+                                  ? const Color(0xFF64748B)
+                                  : done
+                                  ? const Color(0xFF2563EB)
+                                  : const Color(0xFFDC2626),
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            processing
+                                ? 'Comparison In Progress...'
+                                : done
+                                ? 'Completed Successfully'
+                                : 'Failed',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: processing
+                                  ? const Color(0xFF334155)
+                                  : done
+                                  ? const Color(0xFF111827)
+                                  : const Color(0xFF991B1B),
+                            ),
+                          ),
+                          if (processing) ...[
+                            const SizedBox(height: 10),
+                            const ClipRRect(
+                              borderRadius: BorderRadius.all(Radius.circular(4)),
+                              child: LinearProgressIndicator(
+                                backgroundColor: Color(0xFFE2E8F0),
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Color(0xFF2563EB),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Action Buttons Row (Dismiss and View Comparison)
+                    if (!processing)
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          OutlinedButton(
+                            onPressed: () => Get.back(result: false),
+                            style: OutlinedButton.styleFrom(
+                              backgroundColor: Colors.white,
+                              side: const BorderSide(
+                                color: Color(0xFFE5E7EB),
+                                width: 1.2,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 24,
+                                vertical: 12,
+                              ),
+                            ),
+                            child: const Text(
+                              'Dismiss',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF374151),
+                              ),
+                            ),
+                          ),
+                          if (done) ...[
+                            const SizedBox(width: 12),
+                            ElevatedButton(
+                              onPressed: () => Get.back(result: true),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF2563EB),
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 24,
+                                  vertical: 12,
+                                ),
+                              ),
+                              child: const Text(
+                                'View Comparison',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      }),
+      barrierDismissible: false,
+    );
+    await comparison;
+    if (showResults == true) controller.openComparisonResults();
+  }
+
   Widget _buildHeaderToolbar() {
     return Row(
       children: [
@@ -154,7 +404,9 @@ class OrderVerificationView extends GetView<OrderVerificationController> {
 
           // Compare Files Button
           ElevatedButton.icon(
-            onPressed: () => controller.compareFiles(),
+            onPressed: controller.canCompare && !controller.isComparing.value
+                ? _compareFiles
+                : null,
             icon: const Icon(Icons.balance, size: 18, color: Colors.white),
             label: const Text(
               'Compare Files',
@@ -185,7 +437,9 @@ class OrderVerificationView extends GetView<OrderVerificationController> {
     required String fileType,
     required Color badgeColor,
   }) {
-    final displayFile = fileName.isNotEmpty ? fileName : (title == 'BOM File' ? 'BOM_Consolidated.xlsx' : 'Shipper_Quote.pdf');
+    final displayFile = fileName.isNotEmpty
+        ? fileName
+        : (title == 'BOM File' ? 'BOM_Consolidated.xlsx' : 'Shipper_Quote.pdf');
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),

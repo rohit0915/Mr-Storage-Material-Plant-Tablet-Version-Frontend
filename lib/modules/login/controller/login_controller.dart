@@ -62,8 +62,8 @@ class LoginController extends GetxController {
         final data = responseData['data'];
         if (data is! Map) throw ServerException('Invalid login response.');
         final accessToken = data['accessToken'] ?? '';
-        final refreshToken = data?['refreshToken'] ?? '';
-        final userObj = data?['user'];
+        final refreshToken = data['refreshToken'] ?? '';
+        final userObj = data['user'];
 
         final role = (data['role'] ?? (userObj is Map ? userObj['role'] : null))?.toString().toLowerCase();
         if (role != 'plant') {
@@ -80,9 +80,7 @@ class LoginController extends GetxController {
             await prefService.setRefreshToken(refreshToken.toString());
           }
           await prefService.setIsLoggedIn(true);
-          if (userObj != null) {
-            await prefService.setUserData(jsonEncode(userObj));
-          }
+          await prefService.setUserData(jsonEncode(userObj));
         }
 
         CommonSnackbar.showSuccess(

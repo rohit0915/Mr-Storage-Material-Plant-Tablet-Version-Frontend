@@ -94,7 +94,7 @@ class ProjectPackingListView extends GetView<PackingListController> {
               children: [
                 Obx(
                   () => Text(
-                    'Packing List: ${controller.selectedProjectName.value.isEmpty ? 'Garage' : controller.selectedProjectName.value}',
+                    'Packing List: ${controller.selectedProjectName.value.isEmpty ? '—' : controller.selectedProjectName.value}',
                     style: const TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
@@ -120,7 +120,10 @@ class ProjectPackingListView extends GetView<PackingListController> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 10,
+                ),
               ),
               child: const Text(
                 'View Full Detail',
@@ -231,7 +234,9 @@ class ProjectPackingListView extends GetView<PackingListController> {
                 return IntrinsicHeight(
                   child: Container(
                     decoration: const BoxDecoration(
-                      border: Border(bottom: BorderSide(color: Color(0xFFF1F5F9))),
+                      border: Border(
+                        bottom: BorderSide(color: Color(0xFFF1F5F9)),
+                      ),
                     ),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -241,8 +246,8 @@ class ProjectPackingListView extends GetView<PackingListController> {
                             width: 28,
                             child: Checkbox(
                               value: item.isSelected,
-                              onChanged: (val) =>
-                                  controller.toggleSelectPackingItem(index, val),
+                              onChanged: (val) => controller
+                                  .toggleSelectPackingItem(index, val),
                               activeColor: const Color(0xFF6366F1),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(4),
@@ -312,7 +317,8 @@ class ProjectPackingListView extends GetView<PackingListController> {
                         ),
                         _buildTdWidget(
                           ElevatedButton(
-                            onPressed: () => _showPackingDetailModal(context, item),
+                            onPressed: () =>
+                                _showPackingDetailModal(context, item),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF2563EB),
                               elevation: 0,
@@ -348,18 +354,95 @@ class ProjectPackingListView extends GetView<PackingListController> {
     );
   }
 
-  void _showPackingDetailModal(BuildContext context, [PackingListItemModel? selectedItem]) {
-    final item = selectedItem ?? (controller.packingItemsList.isNotEmpty ? controller.packingItemsList.first : null);
+  void _showPackingDetailModal(
+    BuildContext context, [
+    PackingListItemModel? selectedItem,
+  ]) {
+    final item =
+        selectedItem ??
+        (controller.packingItemsList.isNotEmpty
+            ? controller.packingItemsList.first
+            : null);
     final bundles = (item != null && item.bundleList.isNotEmpty)
         ? item.bundleList
         : [
-            BundleListItemModel(id: 1, bundleId: 'B-012', profile: 'framing', partNumber: 'framing', items: '72', quantity: 72, length: '26.29ft', unitWeight: '4,940.70 LBS', status: 'Assigned_to_truck'),
-            BundleListItemModel(id: 2, bundleId: 'B-004', profile: 'framing', partNumber: 'framing', items: '9', quantity: 9, length: '28.06ft', unitWeight: '4,848.30 LBS', status: 'Assigned_to_truck'),
-            BundleListItemModel(id: 3, bundleId: 'B-009', profile: 'framing', partNumber: 'framing', items: '2', quantity: 2, length: '51.67ft', unitWeight: '2,747.40 LBS', status: 'Assigned_to_truck'),
-            BundleListItemModel(id: 4, bundleId: 'B-010', profile: 'framing', partNumber: 'framing', items: '30', quantity: 30, length: '25.13ft', unitWeight: '2,403.20 LBS', status: 'Assigned_to_truck'),
-            BundleListItemModel(id: 5, bundleId: 'B-013', profile: 'framing', partNumber: 'framing', items: '26', quantity: 26, length: '26.29ft', unitWeight: '1,772.90 LBS', status: 'Assigned_to_truck'),
-            BundleListItemModel(id: 6, bundleId: 'B-011', profile: 'framing', partNumber: 'framing', items: '24', quantity: 24, length: '27.29ft', unitWeight: '1,709.60 LBS', status: 'Assigned_to_truck'),
-            BundleListItemModel(id: 7, bundleId: 'B-016', profile: 'panels', partNumber: 'panels', items: '74', quantity: 74, length: '27.00ft', unitWeight: '5,280.70 LBS', status: 'Assigned_to_truck'),
+            BundleListItemModel(
+              id: 1,
+              bundleId: 'B-012',
+              profile: 'framing',
+              partNumber: 'framing',
+              items: '72',
+              quantity: 72,
+              length: '26.29ft',
+              unitWeight: '4,940.70 LBS',
+              status: 'Assigned_to_truck',
+            ),
+            BundleListItemModel(
+              id: 2,
+              bundleId: 'B-004',
+              profile: 'framing',
+              partNumber: 'framing',
+              items: '9',
+              quantity: 9,
+              length: '28.06ft',
+              unitWeight: '4,848.30 LBS',
+              status: 'Assigned_to_truck',
+            ),
+            BundleListItemModel(
+              id: 3,
+              bundleId: 'B-009',
+              profile: 'framing',
+              partNumber: 'framing',
+              items: '2',
+              quantity: 2,
+              length: '51.67ft',
+              unitWeight: '2,747.40 LBS',
+              status: 'Assigned_to_truck',
+            ),
+            BundleListItemModel(
+              id: 4,
+              bundleId: 'B-010',
+              profile: 'framing',
+              partNumber: 'framing',
+              items: '30',
+              quantity: 30,
+              length: '25.13ft',
+              unitWeight: '2,403.20 LBS',
+              status: 'Assigned_to_truck',
+            ),
+            BundleListItemModel(
+              id: 5,
+              bundleId: 'B-013',
+              profile: 'framing',
+              partNumber: 'framing',
+              items: '26',
+              quantity: 26,
+              length: '26.29ft',
+              unitWeight: '1,772.90 LBS',
+              status: 'Assigned_to_truck',
+            ),
+            BundleListItemModel(
+              id: 6,
+              bundleId: 'B-011',
+              profile: 'framing',
+              partNumber: 'framing',
+              items: '24',
+              quantity: 24,
+              length: '27.29ft',
+              unitWeight: '1,709.60 LBS',
+              status: 'Assigned_to_truck',
+            ),
+            BundleListItemModel(
+              id: 7,
+              bundleId: 'B-016',
+              profile: 'panels',
+              partNumber: 'panels',
+              items: '74',
+              quantity: 74,
+              length: '27.00ft',
+              unitWeight: '5,280.70 LBS',
+              status: 'Assigned_to_truck',
+            ),
           ];
 
     Get.dialog(
@@ -386,7 +469,11 @@ class ProjectPackingListView extends GetView<PackingListController> {
                 children: [
                   OutlinedButton.icon(
                     onPressed: () => Get.back(),
-                    icon: const Icon(Icons.arrow_back, size: 14, color: AppColors.textPrimary),
+                    icon: const Icon(
+                      Icons.arrow_back,
+                      size: 14,
+                      color: AppColors.textPrimary,
+                    ),
                     label: const Text(
                       'Back',
                       style: TextStyle(
@@ -401,7 +488,10 @@ class ProjectPackingListView extends GetView<PackingListController> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 10,
+                      ),
                     ),
                   ),
                   Row(
@@ -414,7 +504,10 @@ class ProjectPackingListView extends GetView<PackingListController> {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 10,
+                          ),
                         ),
                         child: const Text(
                           'Download PDF',
@@ -434,7 +527,10 @@ class ProjectPackingListView extends GetView<PackingListController> {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 10,
+                          ),
                         ),
                         child: const Text(
                           'Export Excel',
@@ -468,10 +564,18 @@ class ProjectPackingListView extends GetView<PackingListController> {
                           ),
                         ),
                         const SizedBox(height: 12),
-                        _modalMetaRow('Packing List ID', item?.packingId ?? 'PL-001'),
-                        _modalMetaRow('Load ID', item?.loadId != null && item!.loadId.isNotEmpty ? (item.loadId.startsWith('BP-') ? 'PLP-0006' : item.loadId) : 'PLP-0006'),
-                        _modalMetaRow('Project', controller.selectedProjectName.value.isEmpty ? 'Garage' : controller.selectedProjectName.value),
-                        _modalMetaRow('Truck', item?.truck ?? '53 ft Semi'),
+                        _modalMetaRow(
+                          'Packing List ID',
+                          item?.packingId ?? '—',
+                        ),
+                        _modalMetaRow('Load ID', item?.loadId ?? '—'),
+                        _modalMetaRow(
+                          'Project',
+                          controller.selectedProjectName.value.isEmpty
+                              ? '—'
+                              : controller.selectedProjectName.value,
+                        ),
+                        _modalMetaRow('Truck', item?.truck ?? '—'),
                       ],
                     ),
                   ),
@@ -489,9 +593,22 @@ class ProjectPackingListView extends GetView<PackingListController> {
                           ),
                         ),
                         const SizedBox(height: 12),
-                        _modalMetaRow('Total Bundles', '${item?.bundles ?? 18}'),
-                        _modalMetaRow('Total Items', '${item?.totalItems ?? 36}'),
-                        _modalMetaRow('Total weight', item?.weight != null ? (item!.weight.toLowerCase().contains('lbs') ? item.weight.replaceAll('LBS', 'lbs') : '${item.weight} lbs') : '44,651.80 lbs'),
+                        _modalMetaRow(
+                          'Total Bundles',
+                          '${item?.bundles ?? '—'}',
+                        ),
+                        _modalMetaRow(
+                          'Total Items',
+                          '${item?.totalItems ?? '—'}',
+                        ),
+                        _modalMetaRow(
+                          'Total weight',
+                          item?.weight != null
+                              ? (item!.weight.toLowerCase().contains('lbs')
+                                    ? item.weight.replaceAll('LBS', 'lbs')
+                                    : '${item.weight} lbs')
+                              : '—',
+                        ),
                       ],
                     ),
                   ),
@@ -522,34 +639,176 @@ class ProjectPackingListView extends GetView<PackingListController> {
                       children: [
                         Container(
                           color: const Color(0xFF1E293B),
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 12,
+                          ),
                           child: Row(
                             children: const [
-                              SizedBox(width: 36, child: Text('#', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
-                              Expanded(flex: 2, child: Text('Bundle ID', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
-                              Expanded(flex: 2, child: Text('Part Number', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
-                              Expanded(flex: 2, child: Text('Quantity', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
-                              Expanded(flex: 2, child: Text('Length', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
-                              Expanded(flex: 2, child: Text('Weight', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
-                              Expanded(flex: 3, child: Text('Status', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
+                              SizedBox(
+                                width: 36,
+                                child: Text(
+                                  '#',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 2,
+                                child: Text(
+                                  'Bundle ID',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 2,
+                                child: Text(
+                                  'Part Number',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 2,
+                                child: Text(
+                                  'Quantity',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 2,
+                                child: Text(
+                                  'Length',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 2,
+                                child: Text(
+                                  'Weight',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 3,
+                                child: Text(
+                                  'Status',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
                         ),
                         ...bundles.map(
                           (b) => Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 12,
+                            ),
                             decoration: const BoxDecoration(
-                              border: Border(bottom: BorderSide(color: Color(0xFFF1F5F9))),
+                              border: Border(
+                                bottom: BorderSide(color: Color(0xFFF1F5F9)),
+                              ),
                             ),
                             child: Row(
                               children: [
-                                SizedBox(width: 36, child: Text('${b.id}', style: const TextStyle(fontSize: 12, color: AppColors.textPrimary))),
-                                Expanded(flex: 2, child: Text(b.bundleId, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary))),
-                                Expanded(flex: 2, child: Text(b.partNumber, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary))),
-                                Expanded(flex: 2, child: Text('${b.quantity}', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary))),
-                                Expanded(flex: 2, child: Text(b.length, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary))),
-                                Expanded(flex: 2, child: Text(b.unitWeight, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary))),
-                                Expanded(flex: 3, child: Text(b.status, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary))),
+                                SizedBox(
+                                  width: 36,
+                                  child: Text(
+                                    '${b.id}',
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: AppColors.textPrimary,
+                                    ),
+                                  ),
+                                ),
+                                Expanded(
+                                  flex: 2,
+                                  child: Text(
+                                    b.bundleId,
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.textPrimary,
+                                    ),
+                                  ),
+                                ),
+                                Expanded(
+                                  flex: 2,
+                                  child: Text(
+                                    b.partNumber,
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: AppColors.textSecondary,
+                                    ),
+                                  ),
+                                ),
+                                Expanded(
+                                  flex: 2,
+                                  child: Text(
+                                    '${b.quantity}',
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: AppColors.textSecondary,
+                                    ),
+                                  ),
+                                ),
+                                Expanded(
+                                  flex: 2,
+                                  child: Text(
+                                    b.length,
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: AppColors.textSecondary,
+                                    ),
+                                  ),
+                                ),
+                                Expanded(
+                                  flex: 2,
+                                  child: Text(
+                                    b.unitWeight,
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: AppColors.textSecondary,
+                                    ),
+                                  ),
+                                ),
+                                Expanded(
+                                  flex: 3,
+                                  child: Text(
+                                    b.status,
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: AppColors.textSecondary,
+                                    ),
+                                  ),
+                                ),
                               ],
                             ),
                           ),
@@ -593,7 +852,13 @@ class ProjectPackingListView extends GetView<PackingListController> {
     );
   }
 
-  Widget _buildTh(String label, {int flex = 2, double? width, bool isLast = false, bool hasSortIcon = false}) {
+  Widget _buildTh(
+    String label, {
+    int flex = 2,
+    double? width,
+    bool isLast = false,
+    bool hasSortIcon = false,
+  }) {
     return _buildThWidget(
       Row(
         mainAxisSize: MainAxisSize.min,
@@ -622,13 +887,20 @@ class ProjectPackingListView extends GetView<PackingListController> {
     );
   }
 
-  Widget _buildThWidget(Widget child, {int flex = 2, double? width, bool isLast = false}) {
+  Widget _buildThWidget(
+    Widget child, {
+    int flex = 2,
+    double? width,
+    bool isLast = false,
+  }) {
     final container = Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
       decoration: BoxDecoration(
         color: const Color(0xFFF8FAFC),
         border: Border(
-          right: isLast ? BorderSide.none : const BorderSide(color: Color(0xFFE2E8F0)),
+          right: isLast
+              ? BorderSide.none
+              : const BorderSide(color: Color(0xFFE2E8F0)),
         ),
       ),
       alignment: Alignment.centerLeft,
@@ -638,12 +910,19 @@ class ProjectPackingListView extends GetView<PackingListController> {
     return Expanded(flex: flex, child: container);
   }
 
-  Widget _buildTdWidget(Widget child, {int flex = 2, double? width, bool isLast = false}) {
+  Widget _buildTdWidget(
+    Widget child, {
+    int flex = 2,
+    double? width,
+    bool isLast = false,
+  }) {
     final container = Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
       decoration: BoxDecoration(
         border: Border(
-          right: isLast ? BorderSide.none : const BorderSide(color: Color(0xFFF1F5F9)),
+          right: isLast
+              ? BorderSide.none
+              : const BorderSide(color: Color(0xFFF1F5F9)),
         ),
       ),
       alignment: Alignment.centerLeft,

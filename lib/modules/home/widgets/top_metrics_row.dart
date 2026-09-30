@@ -28,9 +28,9 @@ class TopMetricsRow extends StatelessWidget {
                 } else if (index == 2) {
                   Get.toNamed(AppRoutes.packingList);
                 } else if (index == 3) {
-                  Get.toNamed(AppRoutes.deliveryDetails);
+                  Get.toNamed(AppRoutes.allDeliveries);
                 } else if (index == 4) {
-                  Get.toNamed(AppRoutes.projectDrawings);
+                  Get.toNamed(AppRoutes.projects);
                 }
               },
               borderRadius: BorderRadius.circular(12),

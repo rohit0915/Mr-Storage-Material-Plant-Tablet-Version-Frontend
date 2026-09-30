@@ -81,9 +81,19 @@ class DeliveryRepository {
     required double targetAmount,
     required String message,
   }) async {
+    final cleanNote = message.trim();
+    final payload = <String, dynamic>{
+      'note': cleanNote,
+    };
+    if (targetAmount > 0) {
+      payload['bidAmount'] = targetAmount == targetAmount.roundToDouble()
+          ? targetAmount.toInt()
+          : targetAmount;
+    }
+
     final response = await apiClient.post(
       ApiEndpoints.plantFreightBidResubmit(bidId),
-      data: {'targetAmount': targetAmount, 'message': message},
+      data: payload,
     );
     if (response.data?['success'] != true) {
       throw Exception(
@@ -93,20 +103,17 @@ class DeliveryRepository {
   }
 
   Future<Map<String, dynamic>> allDeliveries({
-    int page = 1,
-    int limit = 20,
-    String? search,
-    String? status,
-  }) => _getMap(
-    ApiEndpoints.plantAllDeliveries,
-    query: {
-      'page': page,
-      'limit': limit,
-      if (search != null && search.isNotEmpty) 'search': search,
-      if (status != null && status.isNotEmpty && status != 'All Status')
-        'status': _apiStatus(status),
-    },
-  );
+    int page = 1, int limit = 20, String? search, String? status,
+    DateTime? startDate, DateTime? endDate, String? materialType, String? equipment,
+  }) => _getMap(ApiEndpoints.plantAllDeliveries, query: {
+    'page': page, 'limit': limit,
+    if (search != null && search.isNotEmpty) 'search': search,
+    if (status != null && status != 'All Status') 'deliveryStatus': _apiStatus(status),
+    if (startDate != null) 'startDate': _date(startDate),
+    if (endDate != null) 'endDate': _date(endDate),
+    if (materialType != null && materialType != 'All Categories') 'materialType': materialType,
+    if (equipment != null && equipment != 'All Equipment') 'equipment': equipment,
+  });
 
   Future<Map<String, dynamic>> _getMap(
     String endpoint, {

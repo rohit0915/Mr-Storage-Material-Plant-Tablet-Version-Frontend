@@ -208,10 +208,12 @@ class GenerateShipperOrderController extends GetxController {
   }
 
   Future<bool> sendOrder() async {
+    if (isSending.value || projectId.value.trim().isEmpty) return false;
     final vendorIds = shippers
         .where((item) => item.isSelected && !item.isSent)
         .map((item) => item.id)
         .where((id) => id.isNotEmpty)
+        .toSet()
         .toList();
     if (vendorIds.isEmpty) return false;
     isSending.value = true;

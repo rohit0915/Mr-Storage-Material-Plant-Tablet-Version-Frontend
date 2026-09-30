@@ -1,254 +1,81 @@
 import 'package:flutter/material.dart';
-
 import '../model/item_cost_model.dart';
+
+// Category and unit enums match the reference application's cost schema.
+const costCategories = <String>['Insulation', 'Joist', 'Panels', 'TRIM', 'Mastic', 'Screws', 'ABolts', 'CLIPS', 'Cable', 'Flange_Brace', 'Jambs', 'DCOL', 'ZGIRT', 'OPEN CHANNEL', 'EaveStruts', 'ACCESSORIES', 'SKTLIGHT', 'ANGL1', 'TS_PANEL', 'frames'];
 
 class AddEditPartCostDialog extends StatefulWidget {
   final ItemCostModel? itemToEdit;
-  final Function(ItemCostModel item) onSave;
-
-  const AddEditPartCostDialog({
-    super.key,
-    this.itemToEdit,
-    required this.onSave,
-  });
-
+  final Future<void> Function(ItemCostModel item) onSave;
+  const AddEditPartCostDialog({super.key, this.itemToEdit, required this.onSave});
   @override
   State<AddEditPartCostDialog> createState() => _AddEditPartCostDialogState();
 }
-
 class _AddEditPartCostDialogState extends State<AddEditPartCostDialog> {
-  final _formKey = GlobalKey<FormState>();
-
-  late TextEditingController _partNameController;
-  late TextEditingController _partColorController;
-  late TextEditingController _costUnitController;
-  late TextEditingController _mbsCostController;
-  late TextEditingController _marketCostController;
-  late TextEditingController _descriptionController;
-
+  final form = GlobalKey<FormState>();
+  late String category = widget.itemToEdit?.category ?? '';
+  late String unit = widget.itemToEdit?.costUnit ?? '';
+  late final fields = <String, TextEditingController>{
+    'Part name': TextEditingController(text: widget.itemToEdit?.partName ?? ''),
+    'Part color': TextEditingController(text: widget.itemToEdit?.partColor ?? ''),
+    'MBS cost': TextEditingController(text: widget.itemToEdit?.mbsCost?.toString() ?? ''),
+    'Current market cost': TextEditingController(text: widget.itemToEdit?.currentMarketCost?.toString() ?? ''),
+    'Labor cost': TextEditingController(text: widget.itemToEdit?.laborCost.toString() ?? ''),
+    'Additional cost': TextEditingController(text: widget.itemToEdit?.additionalCost.toString() ?? ''),
+    'Material cost': TextEditingController(text: widget.itemToEdit?.materialCost.toString() ?? ''),
+    'Description': TextEditingController(text: widget.itemToEdit?.description ?? ''),
+  };
+  bool saving = false;
+  String error = '';
   @override
-  void initState() {
-    super.initState();
-    final item = widget.itemToEdit;
-    _partNameController = TextEditingController(
-      text: item?.partName ?? "'30_VRR48'",
-    );
-    _partColorController = TextEditingController(
-      text: item?.partColor ?? "'-'",
-    );
-    _costUnitController = TextEditingController(text: item?.costUnit ?? "'FT'");
-    _mbsCostController = TextEditingController(
-      text: item?.mbsCost != null ? item!.mbsCost.toString() : '2.9',
-    );
-    _marketCostController = TextEditingController(
-      text: item?.currentMarketCost != null
-          ? item!.currentMarketCost.toString()
-          : '-',
-    );
-    _descriptionController = TextEditingController(
-      text: item?.description ?? "'VRR+ Insul R10'",
-    );
+  void dispose() { for (final field in fields.values) { field.dispose(); } super.dispose(); }
+  Future<void> save() async {
+    if (saving || !form.currentState!.validate()) return;
+    setState(() { saving = true; error = ''; });
+    String text(String name) => fields[name]!.text.trim();
+    double number(String name) => double.parse(text(name));
+    try {
+      await widget.onSave(ItemCostModel(
+        id: widget.itemToEdit?.id ?? '', category: category,
+        partName: text('Part name'), partColor: category == 'frames' ? '' : text('Part color').isEmpty ? '--' : text('Part color'),
+        costUnit: unit, mbsCost: number('MBS cost'), currentMarketCost: number('Current market cost'),
+        laborCost: number('Labor cost'), additionalCost: number('Additional cost'), materialCost: number('Material cost'),
+        description: text('Description'),
+      ));
+      if (mounted) Navigator.of(context).pop();
+    } catch (e) { if (mounted) setState(() { error = e.toString(); }); }
+    finally { if (mounted) setState(() { saving = false; }); }
   }
-
   @override
-  void dispose() {
-    _partNameController.dispose();
-    _partColorController.dispose();
-    _costUnitController.dispose();
-    _mbsCostController.dispose();
-    _marketCostController.dispose();
-    _descriptionController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final isEdit = widget.itemToEdit != null;
-
-    return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      backgroundColor: Colors.white,
-      child: Container(
-        width: 480,
-        padding: const EdgeInsets.all(24),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                isEdit ? 'Edit Part Cost' : 'Add New Part Cost',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF1E293B),
-                ),
-              ),
-              const SizedBox(height: 16),
-              _buildFieldLabel('Part Name'),
-              const SizedBox(height: 6),
-              _buildTextField(_partNameController),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildFieldLabel('Part Color'),
-                        const SizedBox(height: 6),
-                        _buildTextField(_partColorController),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildFieldLabel('Cost Unit'),
-                        const SizedBox(height: 6),
-                        _buildTextField(_costUnitController),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildFieldLabel('MBS Cost'),
-                        const SizedBox(height: 6),
-                        _buildTextField(_mbsCostController),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildFieldLabel('Current Market Cost'),
-                        const SizedBox(height: 6),
-                        _buildTextField(_marketCostController),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              _buildFieldLabel('Description'),
-              const SizedBox(height: 6),
-              _buildTextField(_descriptionController),
-              const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  OutlinedButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 12,
-                      ),
-                      side: const BorderSide(color: Color(0xFFCBD5E1)),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                    ),
-                    child: const Text(
-                      'Cancel',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF475569),
-                      ),
-                    ),
-                  ),
-                  ElevatedButton(
-                    onPressed: _handleSave,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF6366F1),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 28,
-                        vertical: 12,
-                      ),
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                    ),
-                    child: const Text(
-                      'Save',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFieldLabel(String label) {
-    return Text(
-      label,
-      style: const TextStyle(
-        fontSize: 11,
-        fontWeight: FontWeight.bold,
-        color: Color(0xFF475569),
-      ),
-    );
-  }
-
-  Widget _buildTextField(TextEditingController controller) {
-    return Container(
-      height: 38,
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
-      child: TextField(
-        controller: controller,
-        style: const TextStyle(fontSize: 12, color: Color(0xFF1E293B)),
-        decoration: const InputDecoration(
-          isDense: true,
-          contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-          border: InputBorder.none,
-        ),
-      ),
-    );
-  }
-
-  void _handleSave() {
-    double? mbs = double.tryParse(_mbsCostController.text);
-    double? market = double.tryParse(_marketCostController.text);
-
-    final item = ItemCostModel(
-      id:
-          widget.itemToEdit?.id ??
-          DateTime.now().millisecondsSinceEpoch.toString(),
-      partName: _partNameController.text.trim(),
-      partColor: _partColorController.text.trim(),
-      costUnit: _costUnitController.text.trim(),
-      mbsCost: mbs,
-      currentMarketCost: market,
-      description: _descriptionController.text.trim(),
-    );
-
-    widget.onSave(item);
-    Navigator.of(context).pop();
-  }
+  Widget build(BuildContext context) => AlertDialog(
+    title: Text(widget.itemToEdit == null ? 'Add new part cost' : 'Edit part cost'),
+    content: SizedBox(width: 520, child: SingleChildScrollView(child: Form(key: form, child: Column(mainAxisSize: MainAxisSize.min, children: [
+      if (error.isNotEmpty) Text(error, style: const TextStyle(color: Colors.red)),
+      DropdownButtonFormField<String>(initialValue: category.isEmpty ? null : category,
+        decoration: const InputDecoration(labelText: 'Category'),
+        items: <String>{...costCategories, if (category.isNotEmpty) category}.map((value) => DropdownMenuItem(value: value, child: Text(value))).toList(),
+        validator: (value) => value == null || value.isEmpty ? 'Select a category.' : null,
+        onChanged: saving ? null : (value) => setState(() { category = value ?? ''; })),
+      DropdownButtonFormField<String>(initialValue: unit.isEmpty ? null : unit,
+        decoration: const InputDecoration(labelText: 'Cost unit'),
+        items: <String>{'FT', 'LB', 'EA', if (unit.isNotEmpty) unit}.map((value) => DropdownMenuItem(value: value, child: Text(value))).toList(),
+        validator: (value) => value == null || value.isEmpty ? 'Select a unit.' : null,
+        onChanged: saving ? null : (value) => unit = value ?? ''),
+      for (final entry in fields.entries)
+        if (entry.key != 'Part color' || category != 'frames')
+          TextFormField(controller: entry.value, enabled: !saving,
+            decoration: InputDecoration(labelText: entry.key),
+            keyboardType: entry.key.endsWith('cost') ? const TextInputType.numberWithOptions(decimal: true) : TextInputType.text,
+            validator: (value) {
+              if (entry.key == 'Part color') return null;
+              if (entry.key.endsWith('cost')) {
+                final parsed = double.tryParse(value ?? '');
+                return parsed == null || !parsed.isFinite || parsed <= 0 ? 'Enter a cost greater than zero.' : null;
+              }
+              return value == null || value.trim().isEmpty ? '${entry.key} is required.' : null;
+            }),
+    ])))),
+    actions: [TextButton(onPressed: saving ? null : () => Navigator.of(context).pop(), child: const Text('Cancel')),
+      ElevatedButton(onPressed: saving ? null : save, child: Text(saving ? 'Saving…' : 'Save'))],
+  );
 }

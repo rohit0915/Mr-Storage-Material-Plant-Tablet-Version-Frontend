@@ -1,5 +1,6 @@
 class MissingItemCostModel {
   final String id;
+  final String category;
   final String partName;
   final String partColor;
   final String costUnit;
@@ -10,6 +11,7 @@ class MissingItemCostModel {
 
   MissingItemCostModel({
     required this.id,
+    this.category = '',
     required this.partName,
     required this.partColor,
     required this.costUnit,

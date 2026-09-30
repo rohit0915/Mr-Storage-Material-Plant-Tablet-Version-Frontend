@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../app/widgets/app_back_button.dart';
 import '../../../app/widgets/common_loader.dart';
 import '../../home/widgets/app_drawer.dart';
 import '../../home/widgets/dashboard_app_bar.dart';
@@ -33,28 +34,20 @@ class LoadPlanDetailsView extends GetView<LoadPlanningController> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Navigation Header: Arrow Icon + "Load Plan"
-                      InkWell(
-                        onTap: Get.back,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: const [
-                            Icon(
-                              Icons.arrow_back,
-                              size: 20,
+                      // Navigation Header: AppBackButton + "Load Plan"
+                      Row(
+                        children: const [
+                          AppBackButton(),
+                          SizedBox(width: 16),
+                          Text(
+                            'Load Plan',
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
                               color: Color(0xFF0F172A),
                             ),
-                            SizedBox(width: 8),
-                            Text(
-                              'Load Plan',
-                              style: TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF0F172A),
-                              ),
-                            ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 20),
 

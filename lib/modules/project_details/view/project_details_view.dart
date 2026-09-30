@@ -33,126 +33,8 @@ class ProjectDetailsView extends GetView<ProjectDetailsController> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Header bar with Back button, Title & Upload button
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20.0,
-                          vertical: 12.0,
-                        ),
-                        child: Row(
-                          children: [
-                            ElevatedButton.icon(
-                              onPressed: () => Get.back(),
-                              icon: const Icon(
-                                Icons.arrow_back,
-                                size: 16,
-                                color: Colors.white,
-                              ),
-                              label: const Text(
-                                'Back',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.primary,
-                                elevation: 0,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 10,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Obx(
-                              () => Text(
-                                controller.projectName.value.isNotEmpty
-                                    ? 'Project Details - ${controller.projectName.value}'
-                                    : (controller.jobId.value.isNotEmpty
-                                          ? 'Project Details - ${controller.jobId.value}'
-                                          : 'Project Details'),
-                                style: const TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.textPrimary,
-                                ),
-                              ),
-                            ),
-                            const Spacer(),
-                            ElevatedButton.icon(
-                              onPressed: () {
-                                controller.resetUpload();
-                                Get.dialog(
-                                  UploadBomDialog(
-                                    onUploaded: controller.loadProjectDetails,
-                                  ),
-                                );
-                              },
-                              icon: const Icon(
-                                Icons.upload_outlined,
-                                size: 18,
-                                color: Colors.white,
-                              ),
-                              label: const Text(
-                                'Upload BOM File',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF2563EB),
-                                elevation: 0,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 18,
-                                  vertical: 12,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            ElevatedButton.icon(
-                              onPressed: () => Get.dialog(
-                                UploadDrawingsDialog(
-                                  onUploaded: controller.loadProjectDetails,
-                                ),
-                              ),
-                              icon: const Icon(
-                                Icons.upload_outlined,
-                                size: 18,
-                                color: Colors.white,
-                              ),
-                              label: const Text(
-                                'Upload Drawing File',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF2563EB),
-                                elevation: 0,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 18,
-                                  vertical: 12,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                      // Header bar with Back button, Title & Upload buttons
+                      _buildHeaderToolbar(),
 
                       // Row of 5 Quick Action Pill Buttons
                       _buildActionButtonsRow(),
@@ -190,6 +72,143 @@ class ProjectDetailsView extends GetView<ProjectDetailsController> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildHeaderToolbar() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 20.0,
+        vertical: 12.0,
+      ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final backButton = ElevatedButton.icon(
+            onPressed: () => Get.back(),
+            icon: const Icon(
+              Icons.arrow_back,
+              size: 16,
+              color: Colors.white,
+            ),
+            label: const Text(
+              'Back',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 10,
+              ),
+            ),
+          );
+
+          final titleWidget = Obx(
+            () => Text(
+              controller.projectName.value.isNotEmpty
+                  ? 'Project Details - ${controller.projectName.value}'
+                  : (controller.jobId.value.isNotEmpty
+                        ? 'Project Details - ${controller.jobId.value}'
+                        : 'Project Details'),
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          );
+
+          final uploadBomButton = ElevatedButton.icon(
+            onPressed: () {
+              controller.resetUpload();
+              Get.dialog(
+                UploadBomDialog(
+                  onUploaded: controller.loadProjectDetails,
+                ),
+              );
+            },
+            icon: const Icon(
+              Icons.upload_outlined,
+              size: 18,
+              color: Colors.white,
+            ),
+            label: const Text(
+              'Upload BOM File',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF2563EB),
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 10,
+              ),
+            ),
+          );
+
+          final uploadDrawingButton = ElevatedButton.icon(
+            onPressed: () => Get.dialog(
+              UploadDrawingsDialog(
+                onUploaded: controller.loadProjectDetails,
+              ),
+            ),
+            icon: const Icon(
+              Icons.upload_outlined,
+              size: 18,
+              color: Colors.white,
+            ),
+            label: const Text(
+              'Upload Drawing File',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF2563EB),
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 10,
+              ),
+            ),
+          );
+
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              backButton,
+              const SizedBox(width: 14),
+              Expanded(child: titleWidget),
+              const SizedBox(width: 16),
+              uploadBomButton,
+              const SizedBox(width: 10),
+              uploadDrawingButton,
+            ],
+          );
+        },
       ),
     );
   }
@@ -234,6 +253,8 @@ class ProjectDetailsView extends GetView<ProjectDetailsController> {
                   parameters: {
                     'id': controller.projectId,
                     'name': controller.projectName.value,
+                    'customer': controller.customerName.value,
+                    'projectJobId': controller.jobId.value,
                   },
                 );
               }
@@ -1336,6 +1357,7 @@ class ProjectDetailsView extends GetView<ProjectDetailsController> {
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
                         color: AppColors.textPrimary,
+
                       ),
                     ),
                   ],
@@ -1381,11 +1403,16 @@ class ProjectDetailsView extends GetView<ProjectDetailsController> {
                               physics: const BouncingScrollPhysics(),
                               itemCount: controller.activities.length,
                               separatorBuilder: (context, index) =>
-                                  const Divider(height: 12, color: AppColors.divider),
+                                  const Divider(
+                                    height: 12,
+                                    color: AppColors.divider,
+                                  ),
                               itemBuilder: (context, index) {
                                 final act = controller.activities[index];
                                 return Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 4.0),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 4.0,
+                                  ),
                                   child: Row(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
@@ -1475,10 +1502,15 @@ class ProjectDetailsView extends GetView<ProjectDetailsController> {
                               physics: const BouncingScrollPhysics(),
                               itemCount: controller.notes.length,
                               separatorBuilder: (context, index) =>
-                                  const Divider(height: 10, color: AppColors.divider),
+                                  const Divider(
+                                    height: 10,
+                                    color: AppColors.divider,
+                                  ),
                               itemBuilder: (context, index) {
                                 return Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 4.0),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 4.0,
+                                  ),
                                   child: Text(
                                     controller.notes[index],
                                     style: const TextStyle(
@@ -1501,71 +1533,8 @@ class ProjectDetailsView extends GetView<ProjectDetailsController> {
     });
   }
 
-  Widget _buildProjectPhotosSection() {
-    final photoAssets = [
-      'assets/images/building_sample_1.png',
-      'assets/images/building_sample_2.png',
-      'assets/images/building_sample_3.png',
-      'assets/images/building_sample_4.png',
-      'assets/images/building_sample_5.png',
-    ];
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20.0),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.inputBorder),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Project Photos (Latest)',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
-              ),
-            ),
-            const SizedBox(height: 12),
-            SizedBox(
-              height: 110,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                physics: const BouncingScrollPhysics(),
-                itemCount: photoAssets.length,
-                separatorBuilder: (context, index) => const SizedBox(width: 12),
-                itemBuilder: (context, index) {
-                  return ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: SizedBox(
-                      width: 170,
-                      height: 110,
-                      child: Image.asset(
-                        photoAssets[index],
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Container(
-                            color: const Color(0xFFE2E8F0),
-                            child: const Icon(
-                              Icons.image_outlined,
-                              color: AppColors.textSecondary,
-                              size: 32,
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  Widget _buildProjectPhotosSection() => const Padding(
+    padding: EdgeInsets.all(20),
+    child: Text('Project photos are not available in the project response.'),
+  );
 }

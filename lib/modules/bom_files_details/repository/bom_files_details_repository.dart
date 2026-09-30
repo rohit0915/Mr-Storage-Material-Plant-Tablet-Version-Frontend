@@ -20,6 +20,13 @@ class BomFilesDetailsRepository {
     return data;
   }
 
+  Future<void> updateItemPrice(String itemId, double cost) async {
+    final response = await apiClient.put('plant/bom/items/$itemId/price', data: {'manualUnitCost': cost, 'saveToSMDT': false});
+    if (response.data is! Map || response.data['success'] != true) {
+      throw Exception(response.data is Map ? response.data['message'] ?? 'Unable to save item price.' : 'Invalid price response.');
+    }
+  }
+
   Future<void> confirmBuilding(String buildingId) async {
     final response = await apiClient.post(
       ApiEndpoints.plantConfirmBuildingBom(buildingId),

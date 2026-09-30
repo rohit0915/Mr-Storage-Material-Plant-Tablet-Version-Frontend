@@ -83,6 +83,7 @@ class DeliveryCalendarController extends GetxController {
               )?.toLocal() ??
               selectedDate.value;
           return DeliveryCalendarItemModel(
+            rawId: item['_id']?.toString() ?? delivery['_id']?.toString() ?? item['id']?.toString() ?? '',
             id: _text(item['_id'] ?? delivery['_id'] ?? item['requestId']),
             title: _text(
               project['projectName'] ??
@@ -248,13 +249,13 @@ class DeliveryCalendarController extends GetxController {
     'Nov',
     'Dec',
   ][month - 1];
-  void openRescheduleDialog() => Get.dialog(const RescheduleDeliveryDialog());
-  void openMarkDeliveredDialog() => Get.dialog(const InTransitSuccessDialog());
-  void sendReminder() => Get.snackbar(
+  void openRescheduleDialog(String id) => Get.dialog(const RescheduleDeliveryDialog());
+  void openMarkDeliveredDialog(String id) => Get.dialog(const InTransitSuccessDialog());
+  void sendReminder(String id) => Get.snackbar(
     'Reminder unavailable',
     'The delivery-reminder endpoint is not present in the current API collection.',
   );
-  void goToDeliveryDetails() => Get.toNamed(AppRoutes.deliveryDetails);
+  void goToDeliveryDetails(String id) => Get.toNamed(AppRoutes.deliveryDetails, parameters: {'deliveryId': id});
   Map<String, dynamic> _map(dynamic value) =>
       value is Map ? Map<String, dynamic>.from(value) : {};
   String _text(dynamic value) => (value ?? '-').toString();

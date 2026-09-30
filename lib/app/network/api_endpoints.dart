@@ -157,4 +157,6 @@ class ApiEndpoints {
       'plant/bundle-plans/$bundlePlanId/packing-list-plan/generate';
   static String plantDeliverySendBids(String deliveryId) =>
       'plant/deliveries/$deliveryId/send-bids';
+  static String plantProjectFreightSendBids(String leadId) =>
+      'plant/projects/$leadId/freight/send-bids';
 }

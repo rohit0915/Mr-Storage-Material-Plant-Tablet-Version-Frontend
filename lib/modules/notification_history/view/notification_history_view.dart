@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../app/utils/app_colors.dart';
+import '../../../app/widgets/app_back_button.dart';
 import '../../../app/widgets/common_loader.dart';
+import '../../../app/widgets/common_pagination.dart';
 import '../../home/widgets/app_drawer.dart';
 import '../../home/widgets/dashboard_app_bar.dart';
 import '../controller/notification_history_controller.dart';
@@ -25,6 +27,20 @@ class NotificationHistoryView extends GetView<NotificationHistoryController> {
                   return const CommonLoader();
                 }
 
+                if (controller.errorMessage.value.isNotEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(controller.errorMessage.value),
+                        TextButton(
+                          onPressed: controller.loadNotificationsData,
+                          child: const Text('Retry'),
+                        ),
+                      ],
+                    ),
+                  );
+                }
                 return SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
                   padding: const EdgeInsets.symmetric(
@@ -35,21 +51,34 @@ class NotificationHistoryView extends GetView<NotificationHistoryController> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Header Section
-                      const Text(
-                        'Notifications',
-                        style: TextStyle(
-                          fontSize: 26,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      const Text(
-                        'Stay updated with project changes, approvals, drawings, dispatches, billings, and communication.',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: AppColors.textSecondary,
-                        ),
+                      Row(
+                        children: [
+                          const AppBackButton(),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: const [
+                                Text(
+                                  'Notifications',
+                                  style: TextStyle(
+                                    fontSize: 26,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.textPrimary,
+                                  ),
+                                ),
+                                SizedBox(height: 6),
+                                Text(
+                                  'Stay updated with project changes, approvals, drawings, dispatches, billings, and communication.',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 24),
 
@@ -58,11 +87,28 @@ class NotificationHistoryView extends GetView<NotificationHistoryController> {
                       const SizedBox(height: 24),
 
                       // Filter Chips Bar Card
+                      Obx(
+                        () => TextButton(
+                          onPressed: controller.actionLoading.value
+                              ? null
+                              : controller.markAllRead,
+                          child: const Text('Mark all as read'),
+                        ),
+                      ),
                       _buildFilterChipsCard(),
                       const SizedBox(height: 20),
 
                       // Notifications List Card
                       _buildNotificationsCard(),
+                      Obx(
+                        () => CommonPaginationFooter(
+                          currentPage: controller.currentPage.value,
+                          totalPages: controller.totalPages,
+                          rowsPerPage: 20,
+                          totalEntries: controller.total.value,
+                          onPageChanged: controller.changePage,
+                        ),
+                      ),
                       const SizedBox(height: 32),
                     ],
                   ),
@@ -250,54 +296,72 @@ class NotificationHistoryView extends GetView<NotificationHistoryController> {
   }
 
   Widget _buildNotificationItemRow(NotificationItemModel item) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: item.iconBgColor,
-              borderRadius: BorderRadius.circular(10),
+    return InkWell(
+      onTap: () => controller.openNotification(item),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (item.isUnread)
+              IconButton(
+                tooltip: 'Mark as read',
+                onPressed: controller.actionLoading.value
+                    ? null
+                    : () => controller.markRead(item.id),
+                icon: const Icon(Icons.done_all),
+              ),
+            IconButton(
+              tooltip: 'Delete notification',
+              onPressed: controller.actionLoading.value
+                  ? null
+                  : () => controller.deleteNotification(item.id),
+              icon: const Icon(Icons.delete_outline),
             ),
-            child: Icon(item.icon, color: item.iconFgColor, size: 20),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  item.title,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  item.description,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppColors.textSecondary,
-                    height: 1.4,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  item.time,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: AppColors.textHint,
-                  ),
-                ),
-              ],
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: item.iconBgColor,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(item.icon, color: item.iconFgColor, size: 20),
             ),
-          ),
-        ],
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item.title,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    item.description,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                      height: 1.4,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    item.time,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppColors.textHint,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

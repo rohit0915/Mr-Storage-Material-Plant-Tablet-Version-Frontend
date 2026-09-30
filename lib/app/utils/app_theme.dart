@@ -15,11 +15,10 @@ class AppTheme {
         primary: AppColors.primary,
         secondary: AppColors.accent,
         error: AppColors.error,
-        background: AppColors.background,
         surface: AppColors.card,
       ),
       appBarTheme: const AppBarTheme(
-        color: AppColors.background,
+        backgroundColor: AppColors.background,
         elevation: 0,
         centerTitle: true,
         iconTheme: IconThemeData(color: AppColors.textPrimary),

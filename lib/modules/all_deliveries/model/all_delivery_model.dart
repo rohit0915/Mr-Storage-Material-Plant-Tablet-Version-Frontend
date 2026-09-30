@@ -39,7 +39,18 @@ class AllDeliveryModel {
     this.category = '—',
   });
 
+  // Display ID: prefers human-readable deliveryNumber from API, never shows raw 24-char hex mongo ObjectId
+  String get displayId {
+    final num = deliveryNumber.trim();
+    if (num.isNotEmpty && num != '-' && num != '—' && num != 'null') {
+      return num;
+    }
+    if (id.length == 24 && RegExp(r'^[0-9a-fA-F]{24}$').hasMatch(id)) {
+      return 'DEL-${id.substring(id.length - 4).toUpperCase()}';
+    }
+    return id.isNotEmpty && id != '-' && id != '—' && id != 'null' ? id : 'DEL-0001';
+  }
+
   // Backward compatibility getter for legacy `poc` string
   String get poc => pocName;
 }
-

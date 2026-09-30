@@ -1,3 +1,6 @@
+import '../../modules/notification_history/view/delivery_notification_history_view.dart';
+import '../../modules/notification_history/controller/delivery_notification_history_controller.dart';
+import '../../modules/notification_history/repository/notification_repository.dart';
 import 'package:get/get.dart';
 import '../../modules/all_projects/binding/all_projects_binding.dart';
 import '../../modules/all_projects/view/all_projects_view.dart';
@@ -6,6 +9,9 @@ import '../../modules/bom_files_details/view/bom_files_details_view.dart';
 import '../../modules/customer_info/binding/customer_info_binding.dart';
 import '../../modules/customer_info/view/customer_info_view.dart';
 import '../../modules/delivery_details/binding/delivery_details_binding.dart';
+import '../../modules/freight_carriers/view/carrier_details_view.dart';
+import '../../modules/freight_carriers/binding/carrier_details_binding.dart';
+
 import '../../modules/delivery_details/view/delivery_details_view.dart';
 import '../../modules/generate_shipper_order/binding/generate_shipper_order_binding.dart';
 import '../../modules/generate_shipper_order/view/generate_shipper_order_view.dart';
@@ -251,6 +257,13 @@ class AppPages {
       binding: AllDeliveriesBinding(),
     ),
     GetPage(
+      name: AppRoutes.deliveryNotificationHistory,
+      page: () => const DeliveryNotificationHistoryView(),
+      binding: BindingsBuilder(() {
+        Get.lazyPut(() => DeliveryNotificationHistoryController(repository: NotificationRepository(apiClient: Get.find())));
+      }),
+    ),
+    GetPage(
       name: AppRoutes.notificationHistory,
       page: () => const NotificationHistoryView(),
       binding: NotificationHistoryBinding(),
@@ -304,6 +317,11 @@ class AppPages {
       name: AppRoutes.editFreightCarrier,
       page: () => const AddFreightCarrierView(isEdit: true),
       binding: FreightCarriersBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.carrierDetails,
+      page: () => const CarrierDetailsView(),
+      binding: CarrierDetailsBinding(),
     ),
     GetPage(
       name: AppRoutes.chat,

@@ -35,6 +35,7 @@ class BundleItemDetailModel {
 }
 
 class BundleQrLabelItemModel {
+  final String recordId;
   final String bundleId;
   final String loadId;
   final String parts;
@@ -47,13 +48,14 @@ class BundleQrLabelItemModel {
   bool isSelected;
 
   BundleQrLabelItemModel({
+    this.recordId = '',
     required this.bundleId,
     required this.loadId,
     required this.parts,
     required this.weight,
     required this.length,
     required this.status,
-    this.shipper = 'SHP-1044',
+    this.shipper = '',
     this.totalQty = 0,
     this.items = const [],
     this.isSelected = false,
@@ -81,9 +83,10 @@ class PackingListQrItemModel {
     this.totalItemsCount = 0,
     required this.weight,
     required this.status,
-    this.shipper = 'PLP-0006',
+    this.shipper = '',
     this.qrUrl = '',
     this.bundles = const [],
     this.isSelected = false,
   });
 }
+

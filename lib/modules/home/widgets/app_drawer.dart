@@ -290,10 +290,9 @@ class AppDrawer extends StatelessWidget {
           } else if (title == 'Awarded Loads' &&
               Get.currentRoute != AppRoutes.awardedLoads) {
             Get.toNamed(AppRoutes.awardedLoads);
-          } else if ((title == 'Notification History' ||
-                  title == 'Notifications' ||
-                  title == 'Notification Details') &&
-              Get.currentRoute != AppRoutes.notificationHistory) {
+          } else if (title == 'Notification Details' || title == 'Notification History') {
+            if (Get.currentRoute != AppRoutes.deliveryNotificationHistory) Get.toNamed(AppRoutes.deliveryNotificationHistory);
+          } else if (title == 'Notifications' && Get.currentRoute != AppRoutes.notificationHistory) {
             Get.toNamed(AppRoutes.notificationHistory);
           } else if (title == 'Costings' &&
               Get.currentRoute != AppRoutes.itemCostList) {

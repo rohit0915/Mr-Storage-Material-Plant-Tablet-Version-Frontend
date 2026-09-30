@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../app/routes/app_routes.dart';
+import '../../../app/widgets/app_back_button.dart';
 import '../../../app/widgets/common_loader.dart';
 import '../../home/widgets/app_drawer.dart';
 import '../../home/widgets/dashboard_app_bar.dart';
 import '../controller/freight_carriers_controller.dart';
 import '../model/freight_carrier_master_model.dart';
-import 'add_freight_carrier_view.dart';
 
 class FreightCarriersView extends GetView<FreightCarriersController> {
   const FreightCarriersView({super.key});
@@ -36,21 +36,32 @@ class FreightCarriersView extends GetView<FreightCarriersController> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Header Title & Subtitle
-                      const Text(
-                        'Carrier Master',
-                        style: TextStyle(
-                          fontSize: 26,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF0F172A),
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      const Text(
-                        'Manage freight haulers and carriers for bidding',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Color(0xFF64748B),
-                        ),
+                      Row(
+                        children: [
+                          const AppBackButton(),
+                          const SizedBox(width: 16),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: const [
+                              Text(
+                                'Carrier Master',
+                                style: TextStyle(
+                                  fontSize: 26,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF0F172A),
+                                ),
+                              ),
+                              SizedBox(height: 6),
+                              Text(
+                                'Manage freight haulers and carriers for bidding',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Color(0xFF64748B),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
 
                       const SizedBox(height: 24),
@@ -705,7 +716,9 @@ class FreightCarriersView extends GetView<FreightCarriersController> {
             child: Row(
               children: [
                 InkWell(
-                  onTap: () => _showCarrierDetailDialog(context, carrier),
+                  onTap: () {
+                    Get.toNamed(AppRoutes.carrierDetails, parameters: {'id': carrier.id});
+                  },
                   child: const Icon(
                     Icons.remove_red_eye_outlined,
                     size: 18,
@@ -908,7 +921,7 @@ class FreightCarriersView extends GetView<FreightCarriersController> {
                       child: _buildStatCard(
                         title: 'Average Bid',
                         value: carrier.avgBid,
-                        subtitle: carrier.respondsTime.isNotEmpty ? carrier.respondsTime : 'Fast Response',
+                        subtitle: carrier.respondsTime.isNotEmpty ? carrier.respondsTime : '—',
                         color: const Color(0xFF7C3AED),
                       ),
                     ),
@@ -917,116 +930,7 @@ class FreightCarriersView extends GetView<FreightCarriersController> {
 
                 const SizedBox(height: 24),
 
-                // Interactive Service Area Map Section
-                const Text(
-                  'Service Area & Geographical Coverage',
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF0F172A),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Container(
-                  height: 220,
-                  width: double.infinity,
-                  clipBehavior: Clip.antiAlias,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1E293B),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFFCBD5E1)),
-                  ),
-                  child: Stack(
-                    children: [
-                      // Map View Canvas
-                      Positioned.fill(
-                        child: CustomPaint(
-                          painter: MapPatternPainter(),
-                        ),
-                      ),
-
-                      // Location Pin Overlay
-                      Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF2563EB).withValues(alpha: 0.25),
-                                shape: BoxShape.circle,
-                              ),
-                              child: Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: const BoxDecoration(
-                                  color: Color(0xFF2563EB),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(
-                                  Icons.location_on,
-                                  size: 22,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(8),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.15),
-                                    blurRadius: 6,
-                                  ),
-                                ],
-                              ),
-                              child: Text(
-                                carrier.serviceArea.isNotEmpty
-                                    ? carrier.serviceArea
-                                    : 'Service Area Coverage Map',
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF0F172A),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      // Top Map Badge
-                      Positioned(
-                        top: 12,
-                        left: 12,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.95),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Row(
-                            children: const [
-                              Icon(Icons.map, size: 14, color: Color(0xFF2563EB)),
-                              SizedBox(width: 6),
-                              Text(
-                                'Active Coverage Map',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF0F172A),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
+                Text(carrier.serviceArea.isEmpty ? 'No service area provided.' : 'Service area: ${carrier.serviceArea}'),
                 const SizedBox(height: 24),
 
                 // Modal Bottom Action Bar

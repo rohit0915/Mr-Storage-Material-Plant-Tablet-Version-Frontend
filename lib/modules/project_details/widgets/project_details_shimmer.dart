@@ -30,16 +30,22 @@ class ProjectDetailsShimmer extends StatelessWidget {
             // 2. Row of 5 Quick Action Pill Buttons Skeleton
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: Row(
-                children: const [
-                  ShimmerBox(width: 120, height: 32, borderRadius: 8),
-                  SizedBox(width: 10),
-                  ShimmerBox(width: 150, height: 32, borderRadius: 8),
-                  SizedBox(width: 10),
-                  ShimmerBox(width: 130, height: 32, borderRadius: 8),
-                  SizedBox(width: 10),
-                  ShimmerBox(width: 140, height: 32, borderRadius: 8),
-                ],
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                physics: const NeverScrollableScrollPhysics(),
+                child: Row(
+                  children: const [
+                    ShimmerBox(width: 120, height: 32, borderRadius: 8),
+                    SizedBox(width: 10),
+                    ShimmerBox(width: 150, height: 32, borderRadius: 8),
+                    SizedBox(width: 10),
+                    ShimmerBox(width: 130, height: 32, borderRadius: 8),
+                    SizedBox(width: 10),
+                    ShimmerBox(width: 140, height: 32, borderRadius: 8),
+                    SizedBox(width: 10),
+                    ShimmerBox(width: 160, height: 32, borderRadius: 8),
+                  ],
+                ),
               ),
             ),
 

@@ -5,6 +5,11 @@ class BundlePlanRepository {
   final ApiClient apiClient;
   BundlePlanRepository({required this.apiClient});
 
+  Future<Map<String, dynamic>> updateBundle(
+    String id,
+    Map<String, dynamic> payload,
+  ) => _put('plant/bundles/$id', payload);
+
   Future<Map<String, dynamic>> detail(String id) =>
       _get(ApiEndpoints.plantBundlePlan(id));
   Future<Map<String, dynamic>> update(

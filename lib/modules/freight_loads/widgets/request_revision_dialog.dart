@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../app/widgets/common_snackbar.dart';
 
 class RequestRevisionDialog extends StatefulWidget {
   final String carrierName;
@@ -8,8 +9,8 @@ class RequestRevisionDialog extends StatefulWidget {
 
   const RequestRevisionDialog({
     super.key,
-    this.carrierName = 'QuickFreight Solutions',
-    this.currentBidAmount = r'$2,850',
+    required this.carrierName,
+    required this.currentBidAmount,
     this.onConfirm,
   });
 
@@ -19,14 +20,15 @@ class RequestRevisionDialog extends StatefulWidget {
 
 class _RequestRevisionDialogState extends State<RequestRevisionDialog> {
   final TextEditingController targetAmountController = TextEditingController(
-    text: r'$ 2,500',
+    text: '',
   );
   final TextEditingController messageController = TextEditingController(
     text:
-        "We appreciate your bid. Can you match the lowest bid of \$2,850? We're looking to award this load quickly.",
+        '',
   );
   bool allowCounterOffer = false;
   bool isSuccess = false;
+  bool isSubmitting = false;
 
   @override
   Widget build(BuildContext context) {
@@ -207,7 +209,7 @@ class _RequestRevisionDialogState extends State<RequestRevisionDialog> {
               borderRadius: BorderRadius.circular(8),
               borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
             ),
-            hintText: r'$ 2,500',
+            hintText: 'Target amount',
           ),
         ),
         const SizedBox(height: 4),
@@ -279,28 +281,56 @@ class _RequestRevisionDialogState extends State<RequestRevisionDialog> {
               child: SizedBox(
                 height: 44,
                 child: ElevatedButton.icon(
-                  onPressed: () async {
-                    final amount =
-                        double.tryParse(
-                          targetAmountController.text.replaceAll(
-                            RegExp(r'[^0-9.]'),
-                            '',
+                  onPressed: isSubmitting
+                      ? null
+                      : () async {
+                          final msg = messageController.text.trim();
+                          if (msg.isEmpty) {
+                            CommonSnackbar.showError(
+                              title: 'Message required',
+                              message:
+                                  "Please explain what changes you'd like the carrier to consider.",
+                            );
+                            return;
+                          }
+                          final amount =
+                              double.tryParse(
+                                targetAmountController.text.replaceAll(
+                                  RegExp(r'[^0-9.]'),
+                                  '',
+                                ),
+                              ) ??
+                              0;
+                          setState(() => isSubmitting = true);
+                          try {
+                            final success =
+                                await widget.onConfirm?.call(
+                                  amount,
+                                  msg,
+                                ) ??
+                                true;
+                            if (success && mounted) {
+                              setState(() => isSuccess = true);
+                            }
+                          } finally {
+                            if (mounted) setState(() => isSubmitting = false);
+                          }
+                        },
+                  icon: isSubmitting
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(Colors.white),
                           ),
-                        ) ??
-                        0;
-                    final success =
-                        await widget.onConfirm?.call(
-                          amount,
-                          messageController.text.trim(),
-                        ) ??
-                        true;
-                    if (success && mounted) setState(() => isSuccess = true);
-                  },
-                  icon: const Icon(
-                    Icons.autorenew,
-                    size: 16,
-                    color: Colors.white,
-                  ),
+                        )
+                      : const Icon(
+                          Icons.autorenew,
+                          size: 16,
+                          color: Colors.white,
+                        ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFB45309),
                     elevation: 0,
@@ -308,9 +338,9 @@ class _RequestRevisionDialogState extends State<RequestRevisionDialog> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  label: const Text(
-                    'Send Revision Request',
-                    style: TextStyle(
+                  label: Text(
+                    isSubmitting ? 'Sending...' : 'Send Revision Request',
+                    style: const TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,

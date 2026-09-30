@@ -34,9 +34,22 @@ class LoadPlanningController extends GetxController {
   final Rxn<LoadPlanItemModel> selectedLoadPlan = Rxn<LoadPlanItemModel>();
   List<String> get availableProjects => projectOptions;
 
+  final searchQuery = ''.obs;
+  final currentPage = 1.obs;
+  final rowsPerPage = 10.obs;
+  final totalProjects = 0.obs;
+  Worker? searchWorker;
+  int requestVersion = 0;
+  int get totalPages => (totalProjects.value / rowsPerPage.value).ceil().clamp(1, 1000000);
+  void changePage(int page) { currentPage.value = page; loadProjectsData(); }
+  void changeRowsPerPage(int rows) { rowsPerPage.value = rows; changePage(1); }
+  @override
+  void onClose() { searchWorker?.dispose(); super.onClose(); }
+
   @override
   void onInit() {
     super.onInit();
+    searchWorker = debounce(searchQuery, (_) => changePage(1), time: const Duration(milliseconds: 350));
     selectedProjectId.value = Get.parameters['id'] ?? '';
     selectedProjectName.value = Get.parameters['name'] ?? '';
     if (selectedProjectId.value.isEmpty) {
@@ -47,50 +60,39 @@ class LoadPlanningController extends GetxController {
   }
 
   Future<void> loadProjectsData() async {
+    final version = ++requestVersion;
     isLoading.value = true;
     errorMessage.value = '';
     try {
-      final data = await repository.fetchProjects();
+      final data = await repository.fetchProjects(page: currentPage.value, limit: rowsPerPage.value, search: searchQuery.value);
+      if (version != requestVersion) return;
+      totalProjects.value = _int(data['total']);
       final projects = data['projects'] is List
           ? data['projects'] as List
           : const [];
       projectsList.assignAll(
         projects.whereType<Map>().toList().asMap().entries.map((entry) {
-          final index = entry.key;
           final item = Map<String, dynamic>.from(entry.value);
           final lead = _map(item['lead']);
           final pName =
               (item['projectName'] ?? lead['projectName'] ?? 'Project')
                   .toString();
           String rawCode =
-              (item['jobId'] ??
+              (item['projectId'] ?? item['jobId'] ??
                       item['job_id'] ??
                       item['projectCode'] ??
                       item['projectNo'] ??
                       item['projectNumber'] ??
                       '')
                   .toString();
-          if (rawCode.isEmpty || rawCode.length > 20) {
-            if (pName.contains('Wood')) {
-              rawCode = 'PRO-007';
-            } else if (pName.contains('Lucas')) {
-              rawCode = 'PRO-002';
-            } else if (pName.contains('Another')) {
-              rawCode = 'PRO-008';
-            } else if (pName.contains('Dev Wareh')) {
-              rawCode = 'PRO-006';
-            } else {
-              rawCode = 'PRO-${(index + 1).toString().padLeft(3, '0')}';
-            }
-          }
           final rawTotal = _int(
-            item['totalLoadPlanning'] ??
+            item['totalLoads'] ?? item['totalLoadPlanning'] ??
                 item['planCount'] ??
                 item['loadPlanCount'] ??
                 item['truckPlanCount'] ??
                 item['numberOfBuildings'],
           );
-          final finalTotal = rawTotal > 0 ? rawTotal : (index % 3 == 0 ? 2 : (index % 3 == 1 ? 1 : 3));
+          final finalTotal = rawTotal;
 
           return ProjectLoadPlanningSummaryModel(
             id:
@@ -106,6 +108,7 @@ class LoadPlanningController extends GetxController {
               item['fileReceivedAt'] ?? item['updatedAt'] ?? item['createdAt'],
             ),
             totalLoadPlanning: finalTotal,
+            totalBundles: _int(item['totalBundles']),
           );
         }),
       );
@@ -113,10 +116,12 @@ class LoadPlanningController extends GetxController {
         projectsList.map((item) => item.projectName).toSet(),
       );
     } catch (e) {
+      if (version != requestVersion) return;
+      totalProjects.value = 0;
       errorMessage.value = e.toString();
       projectsList.clear();
     } finally {
-      isLoading.value = false;
+      if (version == requestVersion) isLoading.value = false;
     }
   }
 
@@ -197,7 +202,8 @@ class LoadPlanningController extends GetxController {
           ]);
           return LoadPlanItemModel(
             loadPlanId:
-                (item['loadPlanId'] ??
+                (item['planNumber'] ??
+                        item['loadPlanId'] ??
                         item['bundlePlanId'] ??
                         item['planId'] ??
                         item['reference'] ??

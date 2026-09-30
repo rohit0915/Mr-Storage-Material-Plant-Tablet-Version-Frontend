@@ -16,10 +16,10 @@ class DrawingItemModel {
     required this.size,
     required this.status,
     required this.type,
-    this.uploadedBy = 'Rahul Sharma',
-    this.location = 'Pune, Maharashtra',
-    this.date = '25-April-2025',
-    this.pebCode = 'PEB-1021',
+    this.uploadedBy = '—',
+    this.location = '—',
+    this.date = '—',
+    this.pebCode = '—',
     this.fileUrl = '',
   });
 }

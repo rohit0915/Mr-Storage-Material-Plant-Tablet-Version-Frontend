@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../app/utils/app_colors.dart';
+import '../../../app/widgets/app_back_button.dart';
 import '../../../app/widgets/common_loader.dart';
 import '../../home/widgets/app_drawer.dart';
 import '../../home/widgets/dashboard_app_bar.dart';
@@ -49,23 +50,8 @@ class FreightRequestDetailsView extends GetView<FreightLoadsController> {
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          InkWell(
-                            onTap: () => Get.back(),
-                            borderRadius: BorderRadius.circular(20),
-                            child: Container(
-                              padding: const EdgeInsets.all(6),
-                              decoration: const BoxDecoration(
-                                color: Colors.black,
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.arrow_back,
-                                color: Colors.white,
-                                size: 16,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
+                          const AppBackButton(),
+                          const SizedBox(width: 16),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -133,12 +119,26 @@ class FreightRequestDetailsView extends GetView<FreightLoadsController> {
   Widget _buildMetricHeaderCards() {
     return Obx(() {
       final bids = controller.carrierBidsList;
-      final bidsCount = '${bids.length}';
-      final bestBid = bids.firstWhereOrNull((b) => b.isBestRate) ?? bids.firstOrNull;
-      final awardedAmount = bestBid?.bidAmount ?? '-';
+      final stats = controller.bidsStats.value;
 
-      String avgBidStr = '-';
-      if (bids.isNotEmpty) {
+      final bidsCount = stats['totalBids'] != null
+          ? '${stats['totalBids']}'
+          : '${bids.length}';
+
+      String awardedAmount = 'N/A';
+      if (stats['awardedBid'] != null && stats['awardedBid'] != 0) {
+        awardedAmount = controller.formatCurrency(stats['awardedBid']);
+      } else {
+        final awardedBid = bids.firstWhereOrNull((b) => b.isAwarded);
+        if (awardedBid != null) {
+          awardedAmount = awardedBid.bidAmount;
+        }
+      }
+
+      String avgBidStr = 'N/A';
+      if (stats['averageBid'] != null && stats['averageBid'] != 0) {
+        avgBidStr = controller.formatCurrency(stats['averageBid']);
+      } else if (bids.isNotEmpty) {
         double totalAmt = 0;
         int count = 0;
         for (var b in bids) {
@@ -155,7 +155,9 @@ class FreightRequestDetailsView extends GetView<FreightLoadsController> {
       }
 
       String savingsStr = r'$0';
-      if (bids.length > 1) {
+      if (stats['potentialSavings'] != null) {
+        savingsStr = controller.formatCurrency(stats['potentialSavings']);
+      } else if (bids.length > 1) {
         double maxAmt = 0;
         double minAmt = double.infinity;
         for (var b in bids) {
@@ -707,134 +709,189 @@ class FreightRequestDetailsView extends GetView<FreightLoadsController> {
                   ),
                   const SizedBox(height: 24),
 
-                  IntrinsicHeight(
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        // Left Timeline Axis Track (Node 1 -> Line -> Node 2)
-                        Column(
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Pickup Location Block
+                      IntrinsicHeight(
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            Container(
-                              width: 16,
-                              height: 16,
-                              margin: const EdgeInsets.only(top: 2),
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(color: const Color(0xFF16A34A), width: 3),
-                              ),
+                            // Timeline Axis Track (Node 1 -> Line)
+                            Column(
+                              children: [
+                                Container(
+                                  width: 18,
+                                  height: 18,
+                                  margin: const EdgeInsets.only(top: 1),
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Colors.white,
+                                    border: Border.all(
+                                      color: const Color(0xFF16A34A),
+                                      width: 3.5,
+                                    ),
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Container(
+                                    width: 2,
+                                    margin: const EdgeInsets.symmetric(vertical: 4),
+                                    color: const Color(0xFFCBD5E1),
+                                  ),
+                                ),
+                              ],
                             ),
+                            const SizedBox(width: 14),
+
+                            // Pickup Details
                             Expanded(
-                              child: Container(
-                                width: 2,
-                                margin: const EdgeInsets.symmetric(vertical: 4),
-                                color: const Color(0xFFCBD5E1),
-                              ),
-                            ),
-                            Container(
-                              width: 16,
-                              height: 16,
-                              margin: const EdgeInsets.only(bottom: 2),
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(color: const Color(0xFFEF4444), width: 3),
+                              child: Padding(
+                                padding: const EdgeInsets.only(bottom: 24),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'PICKUP LOCATION',
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.textSecondary,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Row(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        const Icon(
+                                          Icons.location_on,
+                                          size: 16,
+                                          color: Color(0xFF16A34A),
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Expanded(
+                                          child: Text(
+                                            routeFrom,
+                                            style: const TextStyle(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.bold,
+                                              color: AppColors.textPrimary,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Row(
+                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                      children: [
+                                        const Icon(
+                                          Icons.access_time,
+                                          size: 13,
+                                          color: AppColors.textSecondary,
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Expanded(
+                                          child: Text(
+                                            pickupDateStr,
+                                            style: const TextStyle(
+                                              fontSize: 11,
+                                              color: AppColors.textSecondary,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(width: 12),
+                      ),
 
-                        // Right Content Column (Pickup + Delivery)
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Pickup Section
-                              const Text(
-                                'PICKUP LOCATION',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.textSecondary,
-                                ),
+                      // Delivery Location Block
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Timeline Axis Track (Node 2)
+                          Container(
+                            width: 18,
+                            height: 18,
+                            margin: const EdgeInsets.only(top: 1),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.white,
+                              border: Border.all(
+                                color: const Color(0xFFEF4444),
+                                width: 3.5,
                               ),
-                              const SizedBox(height: 4),
-                              Row(
-                                children: [
-                                  const Icon(Icons.location_on, size: 16, color: Color(0xFF16A34A)),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    routeFrom,
-                                    style: const TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.textPrimary,
-                                    ),
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+
+                          // Delivery Details
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'DELIVERY LOCATION',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.textSecondary,
                                   ),
-                                ],
-                              ),
-                              const SizedBox(height: 4),
-                              Row(
-                                children: [
-                                  const Icon(Icons.access_time, size: 13, color: AppColors.textSecondary),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    pickupDateStr,
-                                    style: const TextStyle(
-                                      fontSize: 11,
-                                      color: AppColors.textSecondary,
-                                    ),
-                                  ),
-                                ],
-                              ),
-
-                              const SizedBox(height: 28), // Gap between Pickup and Delivery
-
-                              // Delivery Section
-                              const Text(
-                                'DELIVERY LOCATION',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.textSecondary,
                                 ),
-                              ),
-                              const SizedBox(height: 4),
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Icon(Icons.location_on, size: 16, color: Color(0xFFEF4444)),
-                                  const SizedBox(width: 4),
-                                  Expanded(
-                                    child: Text(
-                                      routeTo,
-                                      style: const TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.textPrimary,
+                                const SizedBox(height: 4),
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Icon(
+                                      Icons.location_on,
+                                      size: 16,
+                                      color: Color(0xFFEF4444),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Expanded(
+                                      child: Text(
+                                        routeTo,
+                                        style: const TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.bold,
+                                          color: AppColors.textPrimary,
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 4),
-                              Row(
-                                children: [
-                                  const Icon(Icons.access_time, size: 13, color: AppColors.textSecondary),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    deliveryDateStr,
-                                    style: const TextStyle(
-                                      fontSize: 11,
+                                  ],
+                                ),
+                                const SizedBox(height: 6),
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    const Icon(
+                                      Icons.access_time,
+                                      size: 13,
                                       color: AppColors.textSecondary,
                                     ),
-                                  ),
-                                ],
-                              ),
-                            ],
+                                    const SizedBox(width: 6),
+                                    Expanded(
+                                      child: Text(
+                                        deliveryDateStr,
+                                        style: const TextStyle(
+                                          fontSize: 11,
+                                          color: AppColors.textSecondary,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
+                        ],
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -908,16 +965,40 @@ class FreightRequestDetailsView extends GetView<FreightLoadsController> {
                   ),
                 ],
               ),
-              RichText(
-                text: const TextSpan(
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-                  children: [
-                    TextSpan(text: r'$40,000', style: TextStyle(color: Color(0xFF16A34A))),
-                    TextSpan(text: r'  -  ', style: TextStyle(color: AppColors.textSecondary)),
-                    TextSpan(text: r'$40,000', style: TextStyle(color: Color(0xFFEF4444))),
-                  ],
-                ),
-              ),
+
+              Obx(() {
+                final range = controller.bidRange.value;
+                String lowestStr = '—';
+                String highestStr = '—';
+                if (range['lowestBid'] is Map && range['lowestBid']['amount'] != null) {
+                  lowestStr = controller.formatCurrency(range['lowestBid']['amount']);
+                } else if (controller.carrierBidsList.isNotEmpty) {
+                  final nums = controller.carrierBidsList
+                      .map((b) => double.tryParse(b.bidAmount.replaceAll(RegExp(r'[^0-9.]'), '')) ?? 0)
+                      .where((n) => n > 0)
+                      .toList();
+                  if (nums.isNotEmpty) {
+                    lowestStr = '\$${nums.reduce((a, b) => a < b ? a : b).toStringAsFixed(0)}';
+                    highestStr = '\$${nums.reduce((a, b) => a > b ? a : b).toStringAsFixed(0)}';
+                  }
+                }
+                if (range['highestBid'] is Map && range['highestBid']['amount'] != null) {
+                  highestStr = controller.formatCurrency(range['highestBid']['amount']);
+                }
+                if (lowestStr == '—' && highestStr == '—') {
+                  return const SizedBox.shrink();
+                }
+                return RichText(
+                  text: TextSpan(
+                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                    children: [
+                      TextSpan(text: lowestStr, style: const TextStyle(color: Color(0xFF16A34A))),
+                      const TextSpan(text: '  -  ', style: TextStyle(color: AppColors.textSecondary)),
+                      TextSpan(text: highestStr, style: const TextStyle(color: Color(0xFFEF4444))),
+                    ],
+                  ),
+                );
+              }),
             ],
           ),
           const SizedBox(height: 16),
@@ -934,30 +1015,27 @@ class FreightRequestDetailsView extends GetView<FreightLoadsController> {
                     carrierName: bid.carrierName,
                     rating: bid.rating > 0 ? '${bid.rating}' : '',
                     onTimeDelivery: '',
-                    submittedDate: 'Submitted On: 19/08/2026',
+                    submittedDate: bid.submittedDate.isNotEmpty
+                        ? 'Submitted On: ${bid.submittedDate}'
+                        : '',
                     transitTime: bid.deliveryDays,
                     bidAmount: bid.bidAmount,
-                    bidSubtitle: index == 0 ? 'LOWEST BID' : '',
-                    notes: '—',
-                    isAwarded: true,
+                    bidSubtitle: bid.isBestRate || index == 0 ? 'LOWEST BID' : '',
+                    notes: bid.carrierNotes.isNotEmpty ? bid.carrierNotes : '—',
+                    isAwarded: bid.isAwarded,
+                    status: bid.status,
+                    resubmitRequestedAt: bid.resubmitRequestedAt,
+                    resubmitNote: bid.resubmitNote,
+                    resubmitCount: bid.resubmitCount,
+                    canRequestResubmit: bid.canRequestResubmit,
+                    onAward: () => controller.showAwardLoadDialog(bid),
+                    onRevision: () => controller.showRequestRevisionDialog(bid),
                   ),
                 );
               }),
             )
           else
-            _buildBidCard(
-              rank: '#1',
-              isRankOne: true,
-              carrierName: 'Ayesha LLC',
-              rating: '',
-              onTimeDelivery: '',
-              submittedDate: 'Submitted On: 19/08/2026',
-              transitTime: '',
-              bidAmount: r'$40,000',
-              bidSubtitle: 'LOWEST BID',
-              notes: '—',
-              isAwarded: true,
-            ),
+            const Text('No carrier bids available.'),
         ],
       );
     });
@@ -975,7 +1053,18 @@ class FreightRequestDetailsView extends GetView<FreightLoadsController> {
     required String bidSubtitle,
     required String notes,
     bool isAwarded = false,
+    String status = '',
+    String? resubmitRequestedAt,
+    String? resubmitNote,
+    int resubmitCount = 0,
+    bool canRequestResubmit = true,
+    VoidCallback? onAward,
+    VoidCallback? onRevision,
   }) {
+    final isRevisionRequested =
+        status.toLowerCase() == 'resubmit_requested' ||
+        status.toLowerCase() == 'revision_requested';
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(18),
@@ -1160,36 +1249,102 @@ class FreightRequestDetailsView extends GetView<FreightLoadsController> {
             ),
           ),
 
-          const SizedBox(height: 12),
+          // Revision Requested Banner (if applicable)
+          if (isRevisionRequested)
+            Container(
+              margin: const EdgeInsets.only(top: 10),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFF9EC),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFFFFE2A3)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Revision Requested',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFFB76E00),
+                        ),
+                      ),
+                      if (resubmitRequestedAt != null &&
+                          resubmitRequestedAt.isNotEmpty)
+                        Text(
+                          resubmitRequestedAt,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: Color(0xFFB76E00),
+                          ),
+                        ),
+                    ],
+                  ),
+                  if (resubmitNote != null && resubmitNote.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      'Note: $resubmitNote',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFFB76E00),
+                      ),
+                    ),
+                  ],
+                  if (resubmitCount > 0) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      'Revision request count: $resubmitCount',
+                      style: const TextStyle(
+                        fontSize: 10,
+                        color: Color(0xFFB76E00),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+
+          if (isAwarded || !isRevisionRequested)
+            const SizedBox(height: 12),
           if (isAwarded)
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               decoration: BoxDecoration(
-                color:   AppColors. white,
+                color: const Color(0xFFF4FBF7),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFF86EFAC)),
+                border: Border.all(
+                  color: const Color(0xFF27AE60).withValues(alpha: 0.3),
+                ),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: const [
-                  Icon(Icons.label_outlined, size: 14, color: Color(0xFF16A34A)),
+                  Icon(
+                    Icons.workspace_premium,
+                    size: 16,
+                    color: Color(0xFF27AE60),
+                  ),
                   SizedBox(width: 6),
                   Text(
                     'Awarded Load',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF16A34A),
+                      color: Color(0xFF27AE60),
                     ),
                   ),
                 ],
               ),
             )
-          else
+          else if (!isRevisionRequested)
             Row(
               children: [
                 ElevatedButton.icon(
-                  onPressed: () => controller.showAwardLoadDialog(),
+                  onPressed: onAward,
                   icon: const Icon(
                     Icons.workspace_premium,
                     size: 14,
@@ -1204,7 +1359,7 @@ class FreightRequestDetailsView extends GetView<FreightLoadsController> {
                     ),
                   ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF16A34A),
+                    backgroundColor: const Color(0xFF00A76F),
                     elevation: 0,
                     padding: const EdgeInsets.symmetric(
                       horizontal: 14,
@@ -1216,67 +1371,34 @@ class FreightRequestDetailsView extends GetView<FreightLoadsController> {
                   ),
                 ),
                 const SizedBox(width: 8),
-                ElevatedButton.icon(
-                  onPressed: () => controller.showRequestRevisionDialog(),
-                  icon: const Icon(
-                    Icons.autorenew,
-                    size: 14,
-                    color: Colors.white,
-                  ),
-                  label: const Text(
-                    'Request Revision',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
+                if (canRequestResubmit)
+                  ElevatedButton.icon(
+                    onPressed: onRevision,
+                    icon: const Icon(
+                      Icons.autorenew,
+                      size: 14,
                       color: Colors.white,
                     ),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFEA580C),
-                    elevation: 0,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 8,
+                    label: const Text(
+                      'Request Revision',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
                     ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                OutlinedButton.icon(
-                  onPressed: () {
-                    Get.snackbar(
-                      'Decline',
-                      'Bid declined',
-                      snackPosition: SnackPosition.BOTTOM,
-                    );
-                  },
-                  icon: const Icon(
-                    Icons.cancel_outlined,
-                    size: 14,
-                    color: Color(0xFFEF4444),
-                  ),
-                  label: const Text(
-                    'Decline',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFFEF4444),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFFF6900),
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 8,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
                   ),
-                  style: OutlinedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    side: const BorderSide(color: Color(0xFFFCA5A5)),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 8,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                ),
               ],
             ),
         ],

@@ -1,4 +1,5 @@
 class DeliveryCalendarItemModel {
+  final String rawId;
   final String id;
   final String title;
   final String project;
@@ -17,6 +18,7 @@ class DeliveryCalendarItemModel {
   final DateTime date;
 
   DeliveryCalendarItemModel({
+    required this.rawId,
     required this.id,
     required this.title,
     required this.project,

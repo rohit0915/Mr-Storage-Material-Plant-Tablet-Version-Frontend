@@ -1,5 +1,9 @@
+import 'dart:async';
 import 'package:get/get.dart';
 import '../model/all_projects_model.dart';
+import '../../../app/network/api_client.dart';
+import '../../../app/services/plant_socket_service.dart';
+import '../../projects/repository/projects_repository.dart';
 
 class AllProjectsController extends GetxController {
   final RxBool isLoading = false.obs;
@@ -13,72 +17,49 @@ class AllProjectsController extends GetxController {
   final List<String> sortOptions = ['Latest', 'Oldest', 'Name A-Z', 'Name Z-A'];
 
   final RxInt rowsPerPage = 10.obs;
-  final RxInt currentPage = 4.obs;
-  final RxInt totalPages = 15.obs;
+  final RxInt currentPage = 1.obs;
+  final RxInt totalPages = 1.obs;
+  StreamSubscription<PlantSocketEvent>? _socketSubscription;
 
   @override
   void onInit() {
     super.onInit();
+    if (Get.isRegistered<PlantSocketService>()) {
+      _socketSubscription = Get.find<PlantSocketService>().listenFor({
+        'project_assigned',
+        'new_project_assigned',
+        'project_created',
+      }, (_) => loadData());
+    }
     loadData();
   }
 
-  void loadData() {
+  @override
+  void onClose() {
+    _socketSubscription?.cancel();
+    super.onClose();
+  }
+
+  final errorMessage = ''.obs;
+  final repository = ProjectsRepository(apiClient: Get.find<ApiClient>());
+  Future<void> loadData() async {
     isLoading.value = true;
-
-    userProfile.value = UserProfileHeaderModel(
-      name: 'John Doe',
-      id: 'ID-2025-1047',
-      status: 'Active',
-      joinedDate: 'Joined January 15, 2023',
-      phone: '(163) 2459 315',
-      email: 'darlee@example.com',
-      address: '1861 Bayonne Ave, Manchester, NJ, 08759',
-    );
-
-    projects.assignAll([
-      AllProjectRowModel(
-        id: '1',
-        projectName: 'ABC Warehouse',
-        buildingCount: '2',
-        startDate: '22 Feb 2025',
-        stage: 'Shipment',
-        progress: '75%',
-        status: 'Work in Progress',
-        statusType: AllProjectStatusType.workInProgress,
-      ),
-      AllProjectRowModel(
-        id: '2',
-        projectName: 'Tech Park Dev',
-        buildingCount: '1',
-        startDate: '07 Feb 2025',
-        stage: 'Engineering',
-        progress: '30%',
-        status: 'Active',
-        statusType: AllProjectStatusType.active,
-      ),
-      AllProjectRowModel(
-        id: '3',
-        projectName: 'Downtown Plaza',
-        buildingCount: '3',
-        startDate: '30 Jan 2025',
-        stage: 'Completed',
-        progress: '100%',
-        status: 'Completed',
-        statusType: AllProjectStatusType.completed,
-      ),
-      AllProjectRowModel(
-        id: '4',
-        projectName: 'Riverside Complex',
-        buildingCount: '1',
-        startDate: '17 Jan 2025',
-        stage: 'Canceled',
-        progress: '0%',
-        status: 'Canceled',
-        statusType: AllProjectStatusType.canceled,
-      ),
-    ]);
-
-    isLoading.value = false;
+    errorMessage.value = '';
+    try {
+      final data = await repository.fetchProjects(page: currentPage.value, limit: rowsPerPage.value, search: searchQuery.value);
+      if (data == null || data['projects'] is! List) throw StateError('Invalid projects response.');
+      final raw = data['projects'] as List;
+      totalPages.value = (((data['total'] as num?)?.toInt() ?? raw.length) / rowsPerPage.value).ceil().clamp(1, 1000000);
+      projects.assignAll(raw.whereType<Map>().map((row) {
+        final status = row['status']?.toString() ?? '—';
+        return AllProjectRowModel(id: (row['leadId'] ?? row['_id'] ?? '').toString(),
+          projectName: row['projectName']?.toString() ?? '—', buildingCount: row['numberOfBuildings']?.toString() ?? '—',
+          startDate: row['createdAt']?.toString() ?? '—', stage: row['stage']?.toString() ?? '—',
+          progress: row['progress']?.toString() ?? '—', status: status,
+          statusType: status == 'completed' ? AllProjectStatusType.completed : status == 'cancelled' ? AllProjectStatusType.canceled : AllProjectStatusType.active);
+      }));
+    } catch (error) { projects.clear(); errorMessage.value = error.toString(); }
+    finally { isLoading.value = false; }
   }
 
   void toggleSelectAll(bool? val) {

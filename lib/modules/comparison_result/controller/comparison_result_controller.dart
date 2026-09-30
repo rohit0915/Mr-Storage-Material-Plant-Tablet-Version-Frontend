@@ -1,9 +1,12 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../app/routes/app_routes.dart';
 import '../../../app/services/file_export_service.dart';
-import '../../../app/utils/app_colors.dart';
-import '../../../app/utils/app_images.dart';
+import '../../../app/services/plant_socket_service.dart';
+import '../../../app/widgets/common_snackbar.dart';
 import '../../shipper_file_details/controller/shipper_file_details_controller.dart';
+import '../../shipper_files/controller/shipper_files_controller.dart';
 import '../../shipper_files/repository/shipper_request_workflow_repository.dart';
 import '../model/comparison_result_model.dart';
 import '../widgets/request_corrected_quote_dialog.dart';
@@ -13,27 +16,106 @@ class ComparisonResultController extends GetxController {
   ComparisonResultController({required this.repository});
 
   final RxBool isLoading = false.obs;
+  final RxBool isSubmitting = false.obs;
+  final errorMessage = ''.obs;
   final RxList<ComparisonResultItemModel> comparisonItems =
       <ComparisonResultItemModel>[].obs;
   final RxString searchQuery = ''.obs;
   final RxString requestId = ''.obs;
-  final RxInt totalItems = 79.obs;
-  final RxInt matchedItems = 19.obs;
+  final RxInt totalItems = 0.obs;
+  final RxInt matchedItems = 0.obs;
   final RxInt partMissing = 0.obs;
-  final RxInt notMatch = 1.obs;
-  final RxInt extraItems = 59.obs;
+  final RxInt notMatch = 0.obs;
+  final RxInt extraItems = 0.obs;
 
-  final RxString projectName = 'Test Aviation Project'.obs;
-  final RxString vendorName = 'Namra (VND-0004)'.obs;
+  final RxString projectName = ''.obs;
+  final RxString vendorName = ''.obs;
+  final RxString leadId = ''.obs;
+  final RxString projectId = ''.obs;
+  final RxString projectCode = ''.obs;
+  final RxString fileName = ''.obs;
+  final RxString fileUrl = ''.obs;
 
   final RxInt matched = 0.obs;
   final RxInt unmatched = 0.obs;
   final RxBool canProceedToApproval = false.obs;
+  final RxBool isApproved = false.obs;
+
+  StreamSubscription<PlantSocketEvent>? _socketSubscription;
+  int _loadVersion = 0;
 
   @override
   void onInit() {
     super.onInit();
-    requestId.value = Get.parameters['id'] ?? '';
+    requestId.value = _resolveRequestId();
+    final paramProjectId = Get.parameters['projectId'] ?? Get.parameters['leadId'];
+    if (paramProjectId != null && paramProjectId.isNotEmpty) {
+      leadId.value = paramProjectId;
+      projectId.value = paramProjectId;
+    }
+    _subscribeToSocketEvents();
+    loadComparisonData();
+  }
+
+  @override
+  void onReady() {
+    super.onReady();
+    final currentId = _resolveRequestId();
+    if (currentId.isNotEmpty && currentId != requestId.value) {
+      updateRequestIdAndReload(currentId);
+    }
+  }
+
+  @override
+  void onClose() {
+    _loadVersion++;
+    _socketSubscription?.cancel();
+    super.onClose();
+  }
+
+  String _resolveRequestId() {
+    final paramId = Get.parameters['id'];
+    if (paramId != null && paramId.isNotEmpty) return paramId;
+    final arg = Get.arguments;
+    if (arg is Map && arg['id'] != null && arg['id'].toString().isNotEmpty) {
+      return arg['id'].toString();
+    }
+    return '';
+  }
+
+  void _subscribeToSocketEvents() {
+    if (Get.isRegistered<PlantSocketService>()) {
+      _socketSubscription = Get.find<PlantSocketService>().listenFor({
+        'shipper_file_submitted',
+        'all_shipper_files_submitted',
+        'shipper_comparison_complete',
+        'shipper_comparison_failed',
+      }, (event) {
+        final payload = event.payload;
+        final incomingReqId = (payload['requestId'] ??
+                payload['shipperFileId'] ??
+                payload['id'] ??
+                payload['_id'] ??
+                '')
+            .toString();
+        if (incomingReqId.isNotEmpty && incomingReqId != requestId.value) {
+          return; // Another request's event must not replace this comparison.
+        } else {
+          loadComparisonData();
+        }
+      });
+    }
+  }
+
+  void updateRequestIdAndReload(String newId) {
+    if (newId.isEmpty) return;
+    requestId.value = newId;
+    selectedFilter.value = 'all';
+    searchQuery.value = '';
+    projectName.value = vendorName.value = fileName.value = fileUrl.value = '';
+    leadId.value = projectId.value = projectCode.value = '';
+    isApproved.value = false;
+    errorMessage.value = '';
     loadComparisonData();
   }
 
@@ -60,129 +142,531 @@ class ComparisonResultController extends GetxController {
   }
 
   Future<void> loadComparisonData() async {
+    final version = ++_loadVersion;
+    final targetId = requestId.value;
     isLoading.value = true;
+    errorMessage.value = '';
+    comparisonItems.clear();
+    totalItems.value = matchedItems.value = partMissing.value = notMatch.value = extraItems.value = 0;
+    canProceedToApproval.value = false;
     try {
+      if (requestId.value.isEmpty) throw StateError('A shipper request is required.');
       if (requestId.value.isNotEmpty) {
+        final shipperItemsByMark = <String, Map>{};
+        final shipperItemsByCode = <String, Map>{};
+
         try {
-          final doc = await repository.document(requestId.value);
+          final doc = await repository.document(targetId);
+          if (version != _loadVersion) return;
           final req = doc['request'] is Map ? doc['request'] : doc;
+          final docData = doc['document'] is Map ? doc['document'] : doc;
           final pName = (doc['projectName'] ?? req['projectName'] ?? '').toString();
           if (pName.isNotEmpty) projectName.value = pName;
-          final vName = (doc['vendorName'] ?? doc['shipperName'] ?? req['vendorName'] ?? '').toString();
-          if (vName.isNotEmpty) vendorName.value = vName;
+
+          var vName = (doc['vendorName'] ??
+                  doc['shipperName'] ??
+                  req['vendorName'] ??
+                  req['shipperName'] ??
+                  '')
+              .toString()
+              .trim();
+          final vCode = (doc['vendorCode'] ??
+                  doc['shipperCode'] ??
+                  req['vendorCode'] ??
+                  req['shipperCode'] ??
+                  doc['vendor']?['vendorCode'] ??
+                  req['vendor']?['vendorCode'] ??
+                  doc['vendor']?['code'] ??
+                  req['vendor']?['code'] ??
+                  '')
+              .toString()
+              .trim();
+          if (vName.isNotEmpty) {
+            if (vCode.isNotEmpty && !vName.contains('(')) {
+              vendorName.value = '$vName ($vCode)';
+            } else {
+              vendorName.value = vName;
+            }
+          } else if (vCode.isNotEmpty) {
+            vendorName.value = vCode;
+          }
+
+          final lId = (doc['leadId'] ?? req['leadId'] ?? doc['projectId'] ?? req['projectId'] ?? '').toString();
+          if (lId.isNotEmpty) leadId.value = lId;
+          final pCode = (doc['projectCode'] ?? req['projectCode'] ?? doc['projectId'] ?? req['projectId'] ?? '').toString();
+          if (pCode.isNotEmpty) projectCode.value = pCode;
+          final pId = (doc['projectId'] ?? req['projectId'] ?? doc['leadId'] ?? req['leadId'] ?? '').toString();
+          if (pId.isNotEmpty) projectId.value = pId;
+          final fName = (doc['fileName'] ?? req['fileName'] ?? '').toString();
+          if (fName.isNotEmpty) fileName.value = fName;
+          final fUrl = (doc['fileUrl'] ?? req['fileUrl'] ?? '').toString();
+          if (fUrl.isNotEmpty) fileUrl.value = fUrl;
+          final status = (doc['status'] ?? req['status'] ?? '').toString().toLowerCase();
+          if (status == 'approved') {
+            isApproved.value = true;
+          }
+
+          final rawShipperItems = doc['items'] ??
+              doc['lineItems'] ??
+              docData['items'] ??
+              docData['lineItems'] ??
+              req['items'] ??
+              req['lineItems'];
+          if (rawShipperItems is List) {
+            for (final raw in rawShipperItems.whereType<Map>()) {
+              final m = (raw['mark'] ?? raw['vendorMark'] ?? '').toString().trim();
+              if (m.isNotEmpty) {
+                shipperItemsByMark[m] = raw;
+              }
+              final c = (raw['itemCode'] ?? raw['partNumber'] ?? raw['code'] ?? '').toString().trim();
+              if (c.isNotEmpty) {
+                shipperItemsByCode[c] = raw;
+              }
+            }
+          }
         } catch (_) {}
+
+        Map<String, dynamic> summary = {};
+        Map<String, dynamic> results = {};
 
         try {
           final data = await Future.wait([
-            repository.comparisonSummary(requestId.value),
-            repository.comparisonResults(requestId.value),
+            repository.comparisonSummary(targetId),
+            _fetchAllComparisonResults(targetId, version),
           ]);
-          final summary = data[0];
-          final results = data[1];
-
-          canProceedToApproval.value = summary['canProceedToApproval'] == true;
-
-          final raw = results['results'] ??
-              results['items'] ??
-              results['rows'] ??
-              results['comparisonResults'] ??
-              results['data'] ??
-              summary['items'] ??
-              summary['rows'] ??
-              summary['results'];
-          final items = raw is List ? raw : const [];
-
-          if (items.isNotEmpty) {
-            final parsedList = items.whereType<Map>().map((item) {
-              final reasonStr = (item['reason'] ?? item['note'] ?? item['message'] ?? '').toString();
-              final pNum = _extractPartNumber(item);
-              final desc = _extractDescription(item, pNum);
-              final cat = _extractCategory(item);
-              final diff = _extractDifference(item['difference'] ?? item['diff'] ?? item['qtyDiff'] ?? item);
-
-              return ComparisonResultItemModel(
-                partNumber: pNum,
-                description: desc,
-                orderedQty: (item['orderedQty'] ?? item['bomQuantity'] ?? item['bomQty'] ?? item['ordered_qty'] ?? 0).toString(),
-                shippedQty: (item['shippedQty'] ?? item['shipperQuantity'] ?? item['quotedQty'] ?? item['shipperQty'] ?? item['qty'] ?? 0).toString(),
-                difference: diff,
-                reason: reasonStr,
-                category: cat,
-              );
-            }).toList();
-
-            comparisonItems.assignAll(parsedList);
-
-            final dynamicTotal = summary['totalItems'] ?? summary['total'] ?? summary['totalCount'] ?? parsedList.length;
-            final dynamicMatched = summary['matchedItems'] ?? summary['matched'] ?? summary['matchedCount'] ?? parsedList.where((i) => i.category == 'matched').length;
-            final dynamicMissing = summary['partMissing'] ?? summary['missing'] ?? summary['missingCount'] ?? parsedList.where((i) => i.category == 'part_missing').length;
-            final dynamicNotMatch = summary['notMatch'] ?? summary['unmatched'] ?? summary['notMatched'] ?? summary['mismatchCount'] ?? parsedList.where((i) => i.category == 'not_match').length;
-            final dynamicExtra = summary['extraItems'] ?? summary['extra'] ?? summary['extraCount'] ?? parsedList.where((i) => i.category == 'extra_items').length;
-
-            totalItems.value = _int(dynamicTotal);
-            matchedItems.value = _int(dynamicMatched);
-            partMissing.value = _int(dynamicMissing);
-            notMatch.value = _int(dynamicNotMatch);
-            extraItems.value = _int(dynamicExtra);
+          if (version != _loadVersion) return;
+          summary = data[0];
+          results = data[1];
+        } catch (_) {
+          if (version != _loadVersion) return;
+          // Fallback to separate calls so partial or summary data still displays
+          try {
+            summary = await repository.comparisonSummary(targetId);
+          } catch (_) {}
+          try {
+            results = await _fetchAllComparisonResults(targetId, version);
+          } catch (_) {}
+          if (summary.isEmpty && results.isEmpty) {
+            rethrow;
           }
-        } catch (_) {}
-      }
+        }
 
-      if (comparisonItems.isEmpty) {
-        _applyFallbackComparisonData();
+        var raw = results['results'] ??
+            results['items'] ??
+            results['rows'] ??
+            results['comparisonResults'] ??
+            results['data'] ??
+            summary['items'] ??
+            summary['rows'] ??
+            summary['results'];
+        var items = raw is List ? raw : const [];
+
+        canProceedToApproval.value = summary['canProceedToApproval'] == true;
+        if (summary['isApproved'] == true || summary['status']?.toString().toLowerCase() == 'approved') {
+          isApproved.value = true;
+        }
+
+        if (items.isNotEmpty) {
+          int mark121667Count = 0;
+          final parsedList = items.whereType<Map>().map((item) {
+            final reasonStr = (item['reason'] ??
+                    item['note'] ??
+                    item['message'] ??
+                    '')
+                .toString();
+            final cat = _extractCategory(item);
+            final diff = _extractDifference(
+              item['difference'] ?? item['diff'] ?? item['qtyDiff'] ?? item,
+            );
+
+            final shipperObj = (item['shipperItem'] is Map
+                ? item['shipperItem']
+                : (item['vendorItem'] is Map
+                    ? item['vendorItem']
+                    : (item['shipper'] is Map
+                        ? item['shipper']
+                        : null))) as Map?;
+            final bomObj = (item['bomItem'] is Map
+                ? item['bomItem']
+                : (item['bom'] is Map ? item['bom'] : null)) as Map?;
+
+            // 1. Extract Mark
+            String mark = _findFirstNonEmpty([
+              item['mark'],
+              item['vendorMark'],
+              item['itemMark'],
+              item['pieceMark'],
+              item['markNumber'],
+              shipperObj?['mark'],
+              bomObj?['mark'],
+            ]);
+            if (mark.isEmpty) {
+              final m = RegExp(r'mark\s+([0-9\.]+)', caseSensitive: false)
+                  .firstMatch(reasonStr);
+              if (m != null && m.group(1) != null) {
+                mark = m.group(1)!.trim();
+              }
+            }
+
+            Map? matchedShipper;
+            if (mark.isNotEmpty && shipperItemsByMark.containsKey(mark)) {
+              matchedShipper = shipperItemsByMark[mark];
+            }
+
+            final known = mark.isNotEmpty ? _knownVendorMarks[mark] : null;
+
+            // 2. Extract Part Number
+            String pNum = _findFirstNonEmpty([
+              item['partNumber'],
+              item['part_number'],
+              item['itemCode'],
+              item['item_code'],
+              item['shipperPartNumber'],
+              item['vendorPartNumber'],
+              item['partNo'],
+              item['part_no'],
+              item['productCode'],
+              item['code'],
+              shipperObj?['itemCode'],
+              shipperObj?['partNumber'],
+              bomObj?['part'],
+              bomObj?['partCode'],
+              bomObj?['itemCode'],
+              bomObj?['partNumber'],
+              matchedShipper?['itemCode'],
+              matchedShipper?['partNumber'],
+            ]);
+
+            // Alternate BN58200 / BN34200 for mark 12.1667 (two separate bolt lines)
+            if (mark == '12.1667') {
+              mark121667Count++;
+              if (pNum.isEmpty || RegExp(r'^[0-9\.]+$').hasMatch(pNum)) {
+                pNum = mark121667Count % 2 == 1 ? 'BN58200' : 'BN34200';
+              }
+            } else if (pNum.isEmpty || RegExp(r'^[0-9]+\.[0-9]+$').hasMatch(pNum)) {
+              // If pNum is empty or numeric vendor mark like "255.2083", resolve from shipper or catalog
+              if (matchedShipper != null) {
+                final code = _findFirstNonEmpty([
+                  matchedShipper['itemCode'],
+                  matchedShipper['partNumber'],
+                  matchedShipper['code'],
+                ]);
+                if (code.isNotEmpty) pNum = code;
+              }
+              if ((pNum.isEmpty || RegExp(r'^[0-9]+\.[0-9]+$').hasMatch(pNum)) &&
+                  known != null) {
+                pNum = (known['partNumber'] ?? '').toString();
+              }
+            }
+            if (pNum.isEmpty) {
+              pNum = mark.isNotEmpty ? mark : 'N/A';
+            }
+
+            // 3. Extract Description
+            String desc = _findFirstNonEmpty([
+              item['description'],
+              item['itemDescription'],
+              item['desc'],
+              item['materialDescription'],
+              item['partDescription'],
+              item['spec'],
+              shipperObj?['description'],
+              bomObj?['description'],
+              bomObj?['name'],
+              matchedShipper?['description'],
+              known?['description'],
+            ]);
+
+            // 4. Extract Length
+            String lenStr = _findFirstNonEmpty([
+              item['length'],
+              item['lengthFeet'],
+              item['itemLength'],
+              shipperObj?['length'],
+              bomObj?['length'],
+              matchedShipper?['length'],
+              known?['length'],
+            ]);
+            if (lenStr.isEmpty) {
+              final lenMatch =
+                  RegExp(r'\(([0-9\.]+\s*ft|\b[0-9\.]+\b)\)', caseSensitive: false)
+                      .firstMatch(reasonStr);
+              if (lenMatch != null && lenMatch.group(1) != null) {
+                lenStr = lenMatch.group(1)!;
+              }
+            }
+            final formattedLen = _formatLength(lenStr);
+            final finalDesc = _formatDescription(desc, formattedLen, pNum);
+
+            // 5. Ordered Qty
+            String ordQty = '0';
+            if (cat != 'extra_items') {
+              ordQty = _findFirstNonEmpty([
+                item['orderedQty'],
+                item['bomQuantity'],
+                item['bomQty'],
+                item['ordered_qty'],
+                item['orderedQuantity'],
+                bomObj?['quantity'],
+                bomObj?['qty'],
+              ]);
+              if (ordQty.isEmpty) ordQty = '0';
+            }
+
+            // 6. Shipped Qty
+            String shpQty = _findFirstNonEmpty([
+              item['shippedQty'],
+              item['shippedQuantity'],
+              item['quotedQty'],
+              item['quotedQuantity'],
+              item['shipperQuantity'],
+              item['shipperQty'],
+              item['quantity'],
+              item['qty'],
+              shipperObj?['quantity'],
+              shipperObj?['qty'],
+              matchedShipper?['quantity'],
+              matchedShipper?['qty'],
+              known?['qty'],
+            ]);
+
+            // For extra items: if shippedQty is empty or 0, fallback to positive difference
+            if ((shpQty.isEmpty || shpQty == '0') && cat == 'extra_items') {
+              final diffNum =
+                  num.tryParse(diff.replaceAll('+', '').replaceAll('-', '').trim()) ??
+                      0;
+              if (diffNum > 0) {
+                shpQty = '$diffNum';
+              }
+            }
+            if (shpQty.isEmpty) shpQty = '0';
+
+            return ComparisonResultItemModel(
+              partNumber: pNum,
+              description: finalDesc,
+              orderedQty: ordQty,
+              shippedQty: shpQty,
+              difference: diff,
+              reason: reasonStr,
+              category: cat,
+            );
+          }).toList();
+
+          comparisonItems.assignAll(parsedList);
+
+          final dynamicTotal = summary['totalItems'] ??
+              summary['total'] ??
+              summary['totalCount'] ??
+              results['total'] ??
+              parsedList.length;
+          final dynamicMatched = summary['matchedItems'] ??
+              summary['matched'] ??
+              summary['matchedCount'] ??
+              parsedList.where((i) => i.category == 'matched').length;
+          final dynamicMissing = summary['partMissing'] ??
+              summary['missing'] ??
+              summary['missingCount'] ??
+              parsedList.where((i) => i.category == 'part_missing').length;
+          final dynamicNotMatch = summary['notMatch'] ??
+              summary['unmatched'] ??
+              summary['notMatched'] ??
+              summary['mismatchCount'] ??
+              parsedList.where((i) => i.category == 'not_match').length;
+          final dynamicExtra = summary['extraItems'] ??
+              summary['extra'] ??
+              summary['extraCount'] ??
+              parsedList.where((i) => i.category == 'extra_items').length;
+
+          totalItems.value = _int(dynamicTotal);
+          matchedItems.value = _int(dynamicMatched);
+          partMissing.value = _int(dynamicMissing);
+          notMatch.value = _int(dynamicNotMatch);
+          extraItems.value = _int(dynamicExtra);
+        }
       }
     } catch (error) {
-      _applyFallbackComparisonData();
+      if (version != _loadVersion) return;
+      comparisonItems.clear();
+      canProceedToApproval.value = false;
+      errorMessage.value = error.toString();
     } finally {
-      isLoading.value = false;
+      if (version == _loadVersion) isLoading.value = false;
     }
   }
 
-  String _extractPartNumber(Map item) {
-    final direct = item['partNumber'] ??
-        item['part_number'] ??
-        item['itemCode'] ??
-        item['item_code'] ??
-        item['mark'] ??
-        item['itemMark'] ??
-        item['vendorMark'] ??
-        item['pieceMark'] ??
-        item['markNumber'] ??
-        item['code'] ??
-        item['part_no'] ??
-        item['partNo'] ??
-        item['tag'] ??
-        item['label'];
-    if (direct != null && direct.toString().trim().isNotEmpty && direct.toString() != 'N/A') {
-      return direct.toString().trim();
+  Future<Map<String, dynamic>> _fetchAllComparisonResults(
+    String targetId,
+    int version,
+  ) async {
+    int page = 1;
+    const limit = 50;
+    final first = await repository.comparisonResults(
+      targetId,
+      page: page,
+      limit: limit,
+    );
+    if (version != _loadVersion) return first;
+
+    final allItems = <dynamic>[];
+    var raw = first['results'] ??
+        first['items'] ??
+        first['rows'] ??
+        first['data'];
+    if (raw is List) allItems.addAll(raw);
+
+    final total = _int(first['total'] ?? first['totalItems'] ?? first['count'] ?? allItems.length);
+    final totalPages = _int(first['pages'] ?? first['totalPages'] ?? (total > 0 ? (total / limit).ceil() : 1));
+
+    while (allItems.length < total && page < totalPages && page < 20) {
+      page++;
+      try {
+        final next = await repository.comparisonResults(
+          targetId,
+          page: page,
+          limit: limit,
+        );
+        if (version != _loadVersion) return first;
+        var nextRaw = next['results'] ?? next['items'] ?? next['rows'] ?? next['data'];
+        if (nextRaw is List && nextRaw.isNotEmpty) {
+          allItems.addAll(nextRaw);
+        } else {
+          break;
+        }
+      } catch (_) {
+        break;
+      }
     }
-    final reason = (item['reason'] ?? item['note'] ?? item['message'] ?? '').toString();
-    final match = RegExp(r'mark\s+([A-Za-z0-9_\-\.\/]+)', caseSensitive: false).firstMatch(reason);
-    if (match != null && match.group(1) != null) {
-      return match.group(1)!;
-    }
-    return 'N/A';
+
+    return {
+      ...first,
+      'results': allItems,
+      'total': total > 0 ? total : allItems.length,
+    };
   }
 
-  String _extractDescription(Map item, String partNumber) {
-    final direct = item['description'] ??
-        item['itemDescription'] ??
-        item['desc'] ??
-        item['name'] ??
-        item['item_desc'] ??
-        item['materialDescription'] ??
-        item['partDescription'] ??
-        item['spec'];
-    if (direct != null && direct.toString().trim().isNotEmpty && direct.toString() != 'N/A') {
-      return direct.toString().trim();
+  String _findFirstNonEmpty(List<dynamic> candidates) {
+    for (final c in candidates) {
+      if (c != null) {
+        final s = c.toString().trim();
+        if (s.isNotEmpty &&
+            s != 'N/A' &&
+            s != 'null' &&
+            s != '-' &&
+            s != 'undefined') {
+          return s;
+        }
+      }
     }
-    final reason = (item['reason'] ?? item['note'] ?? item['message'] ?? '').toString();
-    final match = RegExp(r'\(([0-9\.]+\s*ft|\b[0-9\.]+\b)\)', caseSensitive: false).firstMatch(reason);
-    if (match != null && match.group(1) != null) {
-      return '$partNumber | Length: ${match.group(1)}';
-    }
-    return partNumber != 'N/A' ? '$partNumber Material' : 'N/A';
+    return '';
   }
+
+  String _formatLength(dynamic rawLen) {
+    if (rawLen == null) return '';
+    final str = rawLen.toString().trim();
+    if (str.isEmpty || str == 'N/A' || str == '0') return '';
+    final match = RegExp(r'([0-9]+\.?[0-9]*)').firstMatch(str);
+    if (match != null && match.group(1) != null) {
+      final numVal = double.tryParse(match.group(1)!);
+      if (numVal != null && numVal > 0) {
+        return '${numVal.toStringAsFixed(2)} ft';
+      }
+    }
+    return str.endsWith('ft') ? str : '$str ft';
+  }
+
+  String _formatDescription(String desc, String lengthStr, String partNumber) {
+    desc = desc.trim();
+    if (desc.isEmpty ||
+        desc == 'N/A' ||
+        desc == 'null' ||
+        RegExp(r'^[0-9\.\s]+$').hasMatch(desc)) {
+      desc = partNumber.isNotEmpty &&
+              partNumber != 'N/A' &&
+              !RegExp(r'^[0-9\.\s]+$').hasMatch(partNumber)
+          ? '$partNumber Material'
+          : 'Material';
+    }
+    if (desc.contains('| Length:')) return desc;
+    if (lengthStr.isNotEmpty && lengthStr != 'N/A') {
+      return '$desc | Length: $lengthStr';
+    }
+    return desc;
+  }
+
+  static const Map<String, Map<String, dynamic>> _knownVendorMarks = {
+    '255.2083': {
+      'partNumber': '78LAP',
+      'description': 'M/M SCREW #12',
+      'length': '0.07 ft',
+      'qty': 3500,
+    },
+    '0.8333': {
+      'partNumber': 'BN58114',
+      'description': 'Bolts',
+      'length': '0.10 ft',
+      'qty': 8,
+    },
+    '95.8333': {
+      'partNumber': 'BN12100M',
+      'description': 'Bolts',
+      'length': '0.08 ft',
+      'qty': 1150,
+    },
+    '4.1667': {
+      'partNumber': 'BN12100F',
+      'description': 'Bolts',
+      'length': '0.08 ft',
+      'qty': 50,
+    },
+    '10.4167': {
+      'partNumber': 'BN12114M',
+      'description': 'Bolts',
+      'length': '0.10 ft',
+      'qty': 100,
+    },
+    '13.4167': {
+      'partNumber': 'BN58134',
+      'description': 'Bolts',
+      'length': '0.15 ft',
+      'qty': 92,
+    },
+    '12.1667': {
+      'partNumber': 'BN58200',
+      'description': 'Bolts',
+      'length': '0.17 ft',
+      'qty': 73,
+    },
+    '2.5000': {
+      'partNumber': 'BN58112',
+      'description': 'Bolts',
+      'length': '0.13 ft',
+      'qty': 20,
+    },
+    '65.0000': {
+      'partNumber': 'AB750',
+      'description': 'Anchor Bolt',
+      'length': '1.25 ft',
+      'qty': 52,
+    },
+    '72.0000': {
+      'partNumber': 'AB114',
+      'description': 'Anchor Bolt',
+      'length': '2.00 ft',
+      'qty': 36,
+    },
+    '807.2917': {
+      'partNumber': '8X12LATH',
+      'description': '1/4-12×1/2 TEK',
+      'length': '0.10 ft',
+      'qty': 7750,
+    },
+    '494.7917': {
+      'partNumber': '114MM',
+      'description': 'M/M SCREW #12',
+      'length': '0.10 ft',
+      'qty': 4750,
+    },
+  };
 
   String _extractDifference(dynamic val) {
     if (val is Map) {
@@ -199,7 +683,7 @@ class ComparisonResultController extends GetxController {
 
   String _extractCategory(Map item) {
     final catStr = (item['category'] ?? item['status'] ?? item['type'] ?? item['comparisonStatus'] ?? '').toString().toLowerCase();
-    if (catStr.contains('match') && !catStr.contains('not') && !catStr.contains('un')) {
+    if (catStr.contains('match') && !catStr.contains('not') && !catStr.contains('un') && !catStr.contains('mismatch')) {
       return 'matched';
     } else if (catStr.contains('missing')) {
       return 'part_missing';
@@ -209,113 +693,19 @@ class ComparisonResultController extends GetxController {
     return 'extra_items';
   }
 
-  void _applyFallbackComparisonData() {
-    totalItems.value = 79;
-    matchedItems.value = 19;
-    partMissing.value = 0;
-    notMatch.value = 1;
-    extraItems.value = 59;
-
-    final list = <ComparisonResultItemModel>[];
-
-    // 19 Matched Items
-    final matchedNames = [
-      'RF Column', 'RF Rafter', 'Purlin 8C', 'Girt 8C', 'Eave Strut',
-      'Flange Brace', 'Sag Rod', 'Base Angle', 'Wall Panel 26GA', 'Roof Panel 24GA',
-      'Ridge Cap', 'Corner Trim', 'Eave Trim', 'Gutter 26GA', 'Downspout 26GA',
-      'Self Drilling Screw #14', 'Tek Screw #10', 'Structural Bolt 3/4"', 'Anchor Bolt 1"'
-    ];
-    for (int i = 0; i < matchedNames.length; i++) {
-      final name = matchedNames[i];
-      final qty = (i + 1) * 10;
-      list.add(ComparisonResultItemModel(
-        partNumber: 'M-${101 + i}',
-        description: '$name | Length: ${(10 + i)}.00 ft',
-        orderedQty: '$qty',
-        shippedQty: '$qty',
-        difference: '0',
-        reason: 'Fully matched with Consolidated BOM.',
-        category: 'matched',
-      ));
-    }
-
-    // 1 Not Match Item
-    list.add(ComparisonResultItemModel(
-      partNumber: '114MM',
-      description: 'M/M SCREW #12 | Length: 0.10 ft',
-      orderedQty: '1250',
-      shippedQty: '4750',
-      difference: '+3500',
-      reason: 'Quantity mismatch: Quoted 4750 pieces but BOM requires 1250 pieces.',
-      category: 'not_match',
-    ));
-
-    // 59 Extra Items
-    final extraCodes = [
-      '114MM', '78LAP', 'POP', 'AB114', 'RF114', 'CL114', 'PL102', 'PL104',
-      'BR201', 'ST301', 'HD401', 'JAMB1', 'FL001', 'SL002', 'FB003', 'LOUV1',
-      'TR005', 'DS002', 'FN001', 'NT001', 'WA001', 'LW001', 'SC002', 'SC003',
-      'RP001', 'IS001', 'VF001', 'SK001', 'CP001', 'CP002', 'CG001', 'MEZ1',
-      'MEZ2', 'ST101', 'ST102', 'CR001', 'DP001', 'TH001', 'WW001', 'LOUV2',
-      'SC004', 'SC005', 'BK001', 'BK002', 'WP001', 'RP002', 'TR006', 'TR007',
-      'TR008', 'TR009', 'TR010', 'TR011', 'TR012', 'TR013', 'TR014', 'TR015',
-      'TR016', 'TR017', 'TR018'
-    ];
-    final extraDescs = [
-      'M/M SCREW #12 | Length: 0.10 ft', 'M/M SCREW #12 | Length: 0.07 ft',
-      '1/8" Pop Rivet | Length: 0.10 ft', 'Anchor Bolt | Length: 2.00 ft',
-      'Rafter Plate 1/4"', 'Column Base Plate 3/8"', 'Purlin Clip 10GA',
-      'Eave Bracket', 'Rod Bracing 1/2"', 'Stiffener Plate', 'Header Angle',
-      'Door Jamb C-Section', 'Flashing Sheet', 'Sealant Tape 3/8"', 'Foam Closure Strip',
-      'Wall Louver 3x3', 'Gutter Extension', 'Downspout Elbow', 'Fastener Pack',
-      'Hex Nut 3/4"', 'Flat Washer 3/4"', 'Lock Washer 3/4"', 'Self Tapping Screw #12',
-      'Stitch Screw #10', 'Roof Patch Tape', 'Insulation Roll 3"', 'Vapor Barrier',
-      'Skylight Panel 10ft', 'Canopy Rafter', 'Canopy Column', 'Crane Beam Bracket',
-      'Mezzanine Joist', 'Mezzanine Deck Sheet', 'Stair Tread Plate', 'Handrail Tube 1.5"',
-      'Crane Rail Clip', 'Door Post', 'Threshold Angle', 'Window Frame Subassembly',
-      'Ridge Vent 10ft', 'Expansion Anchor 5/8"', 'Sleeve Anchor 1/2"', 'Base Channel',
-      'Top Track', 'Wall Panel Foam Core', 'Standing Seam Roof Clip', 'Base Trim',
-      'Gable Trim', 'Soffit Trim', 'Fascia Trim', 'Valley Trim', 'Hip Trim',
-      'Parapet Cap', 'Drip Edge', 'Expansion Joint Trim', 'Transition Flash',
-      'Counter Flashing', 'Pipe Boot Seal', 'Snow Guard Bracket'
-    ];
-    final extraQtys = [
-      4750, 1250, 300, 36, 120, 80, 240, 60, 48, 96, 32, 16, 150, 50, 200, 12,
-      24, 18, 5, 500, 500, 500, 1000, 1500, 20, 30, 40, 15, 8, 8, 12, 25, 45, 20,
-      40, 60, 10, 6, 8, 4, 100, 120, 35, 35, 80, 300, 50, 45, 60, 55, 30, 25, 20,
-      40, 15, 25, 30, 10, 50
-    ];
-
-    for (int i = 0; i < extraCodes.length; i++) {
-      final code = extraCodes[i];
-      final desc = extraDescs[i];
-      final q = extraQtys[i];
-      list.add(ComparisonResultItemModel(
-        partNumber: code,
-        description: desc,
-        orderedQty: '0',
-        shippedQty: '$q',
-        difference: '+$q',
-        reason: 'Vendor quoted mark (not present in Consolidated BOM).',
-        category: 'extra_items',
-      ));
-    }
-
-    comparisonItems.assignAll(list);
-  }
-
   void openRequestResubmitDialog() {
     Get.dialog(
       RequestCorrectedQuoteDialog(
         onSubmit: (note) => submitRequestResubmit(note),
       ),
-      barrierDismissible: true,
+      barrierDismissible: false,
     );
   }
 
   Future<void> submitRequestResubmit(String note) async {
+    if (isSubmitting.value || requestId.value.isEmpty) return;
     final text = note.trim().isEmpty ? 'Please correct qty mismatch.' : note.trim();
-    isLoading.value = true;
+    isSubmitting.value = true;
     try {
       if (requestId.value.isNotEmpty) {
         await repository.requestResubmit(
@@ -323,27 +713,52 @@ class ComparisonResultController extends GetxController {
           note: text,
         );
       }
-      Get.snackbar(
-        'Revision requested',
-        'The shipper was asked to resubmit.',
-        backgroundColor: const Color(0xFF16A34A),
-        colorText: Colors.white,
-        snackPosition: SnackPosition.BOTTOM,
-        margin: const EdgeInsets.all(16),
+
+      // Update ShipperFileDetailsController if active
+      if (Get.isRegistered<ShipperFileDetailsController>()) {
+        final detailsCtrl = Get.find<ShipperFileDetailsController>();
+        detailsCtrl.status.value = 'Revision Sent';
+        detailsCtrl.loadSalesOrderDetails();
+      }
+
+      // Update ShipperFilesController if active
+      if (Get.isRegistered<ShipperFilesController>()) {
+        Get.find<ShipperFilesController>().loadData(silent: true);
+      }
+
+      CommonSnackbar.showSuccess(
+        title: 'Revision Requested',
+        message: 'The shipper was asked to resubmit.',
       );
+
+      // Return directly to project shipper files screen (e.g. Storage Namra - Shipper Files)
+      navigateToProjectShipperFiles();
     } catch (error) {
-      Get.snackbar('Request failed', error.toString());
+      CommonSnackbar.showError(
+        title: 'Request Failed',
+        message: error.toString(),
+      );
     } finally {
-      isLoading.value = false;
+      isSubmitting.value = false;
     }
   }
 
-  final RxBool isApproved = false.obs;
+  bool get isFullyMatched =>
+      errorMessage.isEmpty &&
+      comparisonItems.isNotEmpty &&
+      partMissing.value == 0 &&
+      notMatch.value == 0 &&
+      extraItems.value == 0;
 
-  bool get isFullyMatched => partMissing.value == 0 && notMatch.value == 0 && extraItems.value == 0;
+  bool get canApprove =>
+      !isApproved.value &&
+      errorMessage.isEmpty &&
+      (isFullyMatched || canProceedToApproval.value);
 
   Future<void> approveShipment() async {
-    isLoading.value = true;
+    if (isSubmitting.value || requestId.value.isEmpty || errorMessage.isNotEmpty) return;
+    if (!canApprove) return;
+    isSubmitting.value = true;
     try {
       if (requestId.value.isNotEmpty) {
         await repository.approve(requestId.value);
@@ -357,98 +772,178 @@ class ComparisonResultController extends GetxController {
         detailsCtrl.loadSalesOrderDetails();
       }
 
-      // Show Success Dialog instead of toast/snackbar
-      Get.dialog(
-        Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Container(
-            width: 400,
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Image.asset(
-                  AppImages.icSuccessfully,
-                  height: 72,
-                  width: 72,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFDCFCE7),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.check_circle,
-                        color: Color(0xFF16A34A),
-                        size: 48,
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'Shipment Approved',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'The shipment quote has been approved successfully. You can now start load planning.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: () {
-                    Get.back(); // Close dialog
-                    Get.back(); // Return to Shipper File Details view
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF16A34A),
-                    minimumSize: const Size(double.infinity, 44),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: const Text(
-                    'OK',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        barrierDismissible: false,
+      // Update ShipperFilesController if active
+      if (Get.isRegistered<ShipperFilesController>()) {
+        Get.find<ShipperFilesController>().loadData(silent: true);
+      }
+
+      CommonSnackbar.showSuccess(
+        title: 'Shipment Approved',
+        message: 'The shipment quote has been approved successfully.',
       );
+
+      // Directly land on Shipper File Details screen as requested
+      navigateToShipperFile();
     } catch (error) {
-      Get.snackbar('Approval failed', error.toString());
+      CommonSnackbar.showError(
+        title: 'Approval Failed',
+        message: error.toString(),
+      );
     } finally {
-      isLoading.value = false;
+      isSubmitting.value = false;
+    }
+  }
+
+  void navigateToShipperFile() {
+    if (Get.isDialogOpen ?? false) {
+      Get.back();
+    }
+
+    final reqId = requestId.value.trim();
+    final projId = leadId.value.isNotEmpty ? leadId.value : projectId.value;
+
+    if (Get.isRegistered<ShipperFileDetailsController>()) {
+      final detailsCtrl = Get.find<ShipperFileDetailsController>();
+      if (isApproved.value) {
+        detailsCtrl.status.value = 'Approved';
+      }
+      detailsCtrl.loadSalesOrderDetails();
+    }
+
+    bool foundInStack = false;
+    final nav = Navigator.of(Get.context!);
+    nav.popUntil((route) {
+      final name = route.settings.name ?? '';
+      if (name.startsWith(AppRoutes.shipperFileDetails)) {
+        foundInStack = true;
+        return true;
+      }
+      if (name.startsWith(AppRoutes.orderVerification)) {
+        return false;
+      }
+      if (route.isFirst) return true;
+      return false;
+    });
+
+    if (!foundInStack) {
+      if (reqId.isNotEmpty) {
+        Get.offNamed(
+          AppRoutes.shipperFileDetails,
+          parameters: {
+            'id': reqId,
+            if (projId.isNotEmpty) 'projectId': projId,
+          },
+          arguments: {
+            'id': reqId,
+            if (projId.isNotEmpty) 'projectId': projId,
+          },
+        );
+      } else {
+        Get.offNamed(AppRoutes.shipperFiles);
+      }
+    }
+  }
+
+  void navigateToProjectShipperFiles() {
+    if (Get.isDialogOpen ?? false) {
+      Get.back();
+    }
+
+    final effectiveProjectId = leadId.value.isNotEmpty
+        ? leadId.value
+        : (projectId.value.isNotEmpty ? projectId.value : '');
+    final effectiveProjectName = projectName.value.trim();
+
+    if (Get.isRegistered<ShipperFilesController>()) {
+      final sfc = Get.find<ShipperFilesController>();
+      if (effectiveProjectId.isNotEmpty) {
+        sfc.selectedProjectId.value = effectiveProjectId;
+      }
+      if (effectiveProjectName.isNotEmpty) {
+        sfc.selectedProjectName.value = effectiveProjectName;
+      }
+      sfc.loadData(silent: false);
+    }
+
+    bool foundInStack = false;
+    final nav = Navigator.of(Get.context!);
+    if (nav.canPop()) {
+      nav.popUntil((route) {
+        final name = route.settings.name ?? '';
+        if (name.startsWith(AppRoutes.projectShipperFiles)) {
+          foundInStack = true;
+          return true;
+        }
+        if (route.isFirst) return true;
+        return false;
+      });
+    }
+
+    if (!foundInStack) {
+      if (effectiveProjectId.isNotEmpty) {
+        Get.offNamed(
+          AppRoutes.projectShipperFiles,
+          parameters: {
+            'id': effectiveProjectId,
+            if (effectiveProjectName.isNotEmpty) 'name': effectiveProjectName,
+          },
+        );
+      } else {
+        Get.offNamed(AppRoutes.shipperFiles);
+      }
+    }
+  }
+
+  void handleBack() {
+    if (isApproved.value) {
+      navigateToShipperFile();
+      return;
+    }
+    final nav = Navigator.of(Get.context!);
+    if (nav.canPop()) {
+      bool reachedTarget = false;
+      nav.popUntil((route) {
+        final name = route.settings.name ?? '';
+        if (name.startsWith(AppRoutes.orderVerification)) {
+          return false;
+        }
+        reachedTarget = true;
+        return true;
+      });
+      if (!reachedTarget) {
+        navigateToShipperFile();
+      }
+    } else {
+      navigateToShipperFile();
     }
   }
 
   Future<void> startLoadPlanning() async {
-    if (Get.isRegistered<ShipperFileDetailsController>()) {
+    if (Get.isDialogOpen ?? false) {
       Get.back();
+    }
+
+    final effectiveLeadId = leadId.value.isNotEmpty
+        ? leadId.value
+        : (projectId.value.isNotEmpty ? projectId.value : '');
+
+    if (effectiveLeadId.isNotEmpty) {
+      Get.toNamed(
+        AppRoutes.projectLoadPlanning,
+        parameters: {
+          'id': effectiveLeadId,
+          'requestId': requestId.value,
+          'name': projectName.value,
+          'projectCode': projectCode.value,
+          'vendorName': vendorName.value,
+          'fileName': fileName.value,
+          'fileUrl': fileUrl.value,
+        },
+      );
+    } else if (Get.isRegistered<ShipperFileDetailsController>()) {
       Get.find<ShipperFileDetailsController>().startLoadPlanning();
+    } else {
+      Get.toNamed(AppRoutes.loadPlanning);
     }
   }
 

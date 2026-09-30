@@ -6,6 +6,8 @@ import '../services/plant_socket_service.dart';
 import '../utils/app_constants.dart';
 import 'api_endpoints.dart';
 import 'exceptions.dart';
+import '../utils/app_logger.dart';
+import 'dart:convert';
 
 class ApiClient {
   late final Dio _dio;
@@ -167,18 +169,48 @@ class ApiClient {
     Map<String, dynamic>? queryParameters,
     Options? options,
   }) async {
+    final traceShipperOrder = RegExp(r'^/?plant/projects/[^/]+/consolidated-bom/send$').hasMatch(url);
+    final traceId = DateTime.now().microsecondsSinceEpoch.toString();
+    final timer = Stopwatch()..start();
+    void logResponse(dynamic body, int? status) {
+      if (!traceShipperOrder) return;
+      AppLogger.info('[ShipperOrder:$traceId] response status=$status '
+          'elapsedMs=${timer.elapsedMilliseconds} body=${jsonEncode(_safeDiagnostic(body))}');
+    }
+    if (traceShipperOrder) {
+      AppLogger.info('[ShipperOrder:$traceId] POST $url '
+          'payload=${jsonEncode(_safeDiagnostic(data))}');
+    }
     try {
-      return await _dio.post(
+      final response = await _dio.post(
         url,
         data: data,
         queryParameters: queryParameters,
         options: options,
       );
+      logResponse(response.data, response.statusCode);
+      return response;
     } on DioException catch (e) {
+      logResponse(e.response?.data, e.response?.statusCode);
+      if (traceShipperOrder) {
+        AppLogger.warning('[ShipperOrder:$traceId] transport=${e.type.name}');
+      }
       throw AppException.fromDioError(e);
     } catch (e) {
       throw UnknownException(e.toString());
     }
+  }
+
+  static dynamic _safeDiagnostic(dynamic value) {
+    if (value is Map) {
+      return value.map((key, item) => MapEntry(key.toString(),
+          RegExp(r'token|password|authorization|cookie|secret|url', caseSensitive: false)
+                  .hasMatch(key.toString())
+              ? '[REDACTED]'
+              : _safeDiagnostic(item)));
+    }
+    if (value is List) return value.map(_safeDiagnostic).toList();
+    return value;
   }
 
   Future<Response> postMultipart(

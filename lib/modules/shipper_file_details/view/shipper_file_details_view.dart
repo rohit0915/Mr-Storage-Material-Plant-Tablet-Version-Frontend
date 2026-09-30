@@ -12,6 +12,7 @@ class ShipperFileDetailsView extends GetView<ShipperFileDetailsController> {
 
   @override
   Widget build(BuildContext context) {
+    controller.initOrUpdate();
     return Scaffold(
       backgroundColor: AppColors.background,
       drawer: const AppDrawer(),
@@ -91,47 +92,56 @@ class ShipperFileDetailsView extends GetView<ShipperFileDetailsController> {
   }
 
   Widget _buildHeaderToolbar() {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        ElevatedButton.icon(
-          onPressed: () => Get.back(),
-          icon: const Icon(Icons.arrow_back, size: 16, color: Colors.white),
-          label: const Text(
-            'Back',
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isNarrow = constraints.maxWidth < 950;
+        final titleWidget = Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ElevatedButton.icon(
+              onPressed: () => Get.back(),
+              icon: const Icon(Icons.arrow_back, size: 16, color: Colors.white),
+              label: const Text(
+                'Back',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF2563EB),
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              ),
             ),
-          ),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF2563EB),
-            elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
+            const SizedBox(width: 16),
+            const Text(
+              'Shipper File Details',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
             ),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          ),
-        ),
-        const SizedBox(width: 16),
-        const Text(
-          'Shipper File Details',
-          style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        const Spacer(),
+          ],
+        );
 
-        // Download File & Action Buttons
-        Obx(() {
+        final actionButtonsWidget = Obx(() {
           final statusLower = controller.status.value.toLowerCase();
-          final isApproved = statusLower == 'approved' || statusLower == 'confirmed';
+          final isApproved =
+              statusLower == 'approved' || statusLower == 'confirmed';
+          final isCompared = statusLower == 'comparison_completed' ||
+              isApproved ||
+              statusLower == 'resubmit_requested';
           return Wrap(
             spacing: 12,
             runSpacing: 10,
+            alignment: WrapAlignment.end,
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               OutlinedButton.icon(
@@ -155,36 +165,70 @@ class ShipperFileDetailsView extends GetView<ShipperFileDetailsController> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 ),
               ),
 
-              // Order Verification Button matching Web
-              ElevatedButton.icon(
-                onPressed: () => controller.openOrderVerificationDialog(),
-                icon: const Icon(
-                  Icons.balance_outlined,
-                  size: 16,
-                  color: Colors.white,
-                ),
-                label: const Text(
-                  'Order Verification',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
+              // Order Verification: ONLY shown if NOT approved yet
+              if (!isApproved) ...[
+                ElevatedButton.icon(
+                  onPressed: () => controller.openOrderVerificationDialog(),
+                  icon: const Icon(
+                    Icons.balance,
+                    size: 16,
                     color: Colors.white,
                   ),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF8B5CF6),
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                  label: const Text(
+                    'Order Verification',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF8B5CF6),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 10),
+                  ),
                 ),
-              ),
+              ],
 
+              // View Comparison Detail Button (Shown once compared or approved)
+              if (isCompared || isApproved) ...[
+                ElevatedButton.icon(
+                  onPressed: () => controller.openComparisonResult(),
+                  icon: const Icon(
+                    Icons.visibility_outlined,
+                    size: 16,
+                    color: Colors.white,
+                  ),
+                  label: const Text(
+                    'View Comparison Detail',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF2563EB),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 10),
+                  ),
+                ),
+              ],
+
+              // Start Load Planning: ONLY shown when approved
               if (isApproved) ...[
                 ElevatedButton(
                   onPressed: () => controller.startLoadPlanning(),
@@ -194,7 +238,8 @@ class ShipperFileDetailsView extends GetView<ShipperFileDetailsController> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 10),
                   ),
                   child: const Text(
                     'Start Load Planning',
@@ -208,8 +253,28 @@ class ShipperFileDetailsView extends GetView<ShipperFileDetailsController> {
               ],
             ],
           );
-        }),
-      ],
+        });
+
+        if (isNarrow) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              titleWidget,
+              const SizedBox(height: 12),
+              actionButtonsWidget,
+            ],
+          );
+        }
+
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            titleWidget,
+            Flexible(child: actionButtonsWidget),
+          ],
+        );
+      },
     );
   }
 

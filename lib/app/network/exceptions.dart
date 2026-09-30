@@ -11,8 +11,31 @@ abstract class AppException implements Exception {
     final responseData = error.response?.data;
     if (responseData != null) {
       if (responseData is Map) {
-        serverMessage = responseData['message']?.toString() ??
-            responseData['error']?.toString();
+        final rawMsg = responseData['message']?.toString();
+        final rawErr = responseData['error']?.toString();
+        final details =
+            responseData['errors'] ?? responseData['details'] ?? responseData['data'];
+        if (details is List && details.isNotEmpty) {
+          final detailStr = details
+              .map((d) => d is Map
+                  ? (d['message'] ?? d['msg'] ?? d['error'] ?? d.toString())
+                  : d.toString())
+              .join(', ');
+          serverMessage = (rawMsg != null && rawMsg.isNotEmpty)
+              ? '$rawMsg: $detailStr'
+              : detailStr;
+        } else if (details is Map && details.isNotEmpty) {
+          final detailStr = details.values
+              .map((v) => v is Map
+                  ? (v['message'] ?? v['msg'] ?? v.toString())
+                  : v.toString())
+              .join(', ');
+          serverMessage = (rawMsg != null && rawMsg.isNotEmpty)
+              ? '$rawMsg: $detailStr'
+              : detailStr;
+        } else {
+          serverMessage = rawMsg ?? rawErr;
+        }
       } else if (responseData is String && responseData.isNotEmpty) {
         serverMessage = responseData;
       }

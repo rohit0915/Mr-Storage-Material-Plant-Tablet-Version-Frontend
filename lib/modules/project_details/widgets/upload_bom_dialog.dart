@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import '../../../app/routes/app_routes.dart';
 import '../../../app/utils/app_colors.dart';
 import '../controller/project_details_controller.dart';
+import 'single_building_upload_bom_dialog.dart';
 
 class UploadBomDialog extends StatelessWidget {
   final Future<void> Function()? onUploaded;
@@ -59,129 +60,9 @@ class UploadBomDialog extends StatelessWidget {
               const SizedBox(height: 20),
               _existingFiles(controller),
               const SizedBox(height: 16),
-              InkWell(
-                onTap: controller.isUploading.value
-                    ? null
-                    : () {
-                        if (controller.selectedBuildingId.value.isEmpty &&
-                            controller.buildings.isNotEmpty) {
-                          final firstId = controller.buildingId(
-                            controller.buildings.first,
-                          );
-                          controller.selectBuildingForUpload(firstId);
-                        }
-                        controller.pickUploadFiles(isBom: true);
-                      },
-                borderRadius: BorderRadius.circular(12),
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 24),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF8FAFC),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFF3B82F6)),
-                  ),
-                  child: const Column(
-                    children: [
-                      Icon(
-                        Icons.cloud_upload_outlined,
-                        color: Color(0xFF2563EB),
-                        size: 38,
-                      ),
-                      SizedBox(height: 10),
-                      Text(
-                        'Browse BOM files',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      SizedBox(height: 4),
-                      Text(
-                        'TXT or OUT',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              if (controller.selectedUploadFiles.isNotEmpty) ...[
-                const SizedBox(height: 14),
-                ConstrainedBox(
-                  constraints: const BoxConstraints(maxHeight: 180),
-                  child: ListView.separated(
-                    shrinkWrap: true,
-                    itemCount: controller.selectedUploadFiles.length,
-                    separatorBuilder: (_, _) => const SizedBox(height: 8),
-                    itemBuilder: (_, index) {
-                      final file = controller.selectedUploadFiles[index];
-                      return Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: AppColors.inputBorder),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          children: [
-                            const Icon(
-                              Icons.description_outlined,
-                              color: Color(0xFF2563EB),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    file.name,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  const Text(
-                                    'Ready to upload',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: AppColors.textSecondary,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.close, size: 18),
-                              onPressed: () =>
-                                  controller.removeUploadFile(index),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ],
-              if (controller.isUploading.value) ...[
-                const SizedBox(height: 14),
-                LinearProgressIndicator(
-                  value: controller.uploadProgress.value,
-                  backgroundColor: const Color(0xFFE2E8F0),
-                  valueColor: const AlwaysStoppedAnimation<Color>(
-                    Color(0xFF2563EB),
-                  ),
-                ),
-              ],
-              if (controller.uploadError.value.isNotEmpty) ...[
-                const SizedBox(height: 12),
-                Text(
-                  controller.uploadError.value,
-                  style: const TextStyle(color: Colors.red, fontSize: 12),
-                ),
-              ],
+
+
+
               const SizedBox(height: 24),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
@@ -203,22 +84,8 @@ class UploadBomDialog extends StatelessWidget {
                   ),
                   const SizedBox(width: 12),
                   ElevatedButton(
-                    onPressed:
-                        controller.isUploading.value ||
-                            controller.isConsolidatingBom.value
+                    onPressed: controller.isConsolidatingBom.value
                         ? null
-                        : controller.selectedUploadFiles.isNotEmpty
-                        ? () async {
-                            final success = await controller
-                                .uploadSelectedFiles(isBom: true);
-                            if (success) {
-                              await onUploaded?.call();
-                              Get.snackbar(
-                                'BOM uploaded',
-                                'Extraction has started. Confirm every building BOM before consolidating.',
-                              );
-                            }
-                          }
                         : controller.canConsolidateBom
                         ? () async {
                             final success = await controller
@@ -250,7 +117,6 @@ class UploadBomDialog extends StatelessWidget {
                       ),
                     ),
                     child:
-                        controller.isUploading.value ||
                             controller.isConsolidatingBom.value
                         ? const SizedBox(
                             width: 18,
@@ -261,9 +127,7 @@ class UploadBomDialog extends StatelessWidget {
                             ),
                           )
                         : Text(
-                            controller.selectedUploadFiles.isNotEmpty
-                                ? 'Upload'
-                                : 'Consolidate',
+                            'Consolidate',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
@@ -386,12 +250,16 @@ class UploadBomDialog extends StatelessWidget {
                     _statusBadge(hasFile ? status : 'No BOM uploaded'),
                     const Spacer(),
                     OutlinedButton(
-                      onPressed: controller.isUploading.value
-                          ? null
-                          : () async {
-                              controller.selectBuildingForUpload(id);
-                              await controller.pickUploadFiles(isBom: true);
-                            },
+                      onPressed: () {
+                        controller.selectBuildingForUpload(id);
+                        Get.dialog(
+                          SingleBuildingUploadBomDialog(
+                            buildingId: id,
+                            buildingName: buildingTitle,
+                            onUploaded: onUploaded,
+                          ),
+                        );
+                      },
                       style: OutlinedButton.styleFrom(
                         foregroundColor: const Color(0xFF2563EB),
                         side: const BorderSide(color: Color(0xFF2563EB)),

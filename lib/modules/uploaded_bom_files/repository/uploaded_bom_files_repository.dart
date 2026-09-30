@@ -14,10 +14,11 @@ class UploadedBomFilesRepository {
   Future<Map<String, dynamic>> fetchProjects({
     required int page,
     required int limit,
+    String search = '',
   }) async {
     final response = await apiClient.get(
       ApiEndpoints.plantBomProjects,
-      queryParameters: {'page': page, 'limit': limit},
+      queryParameters: {'page': page, 'limit': limit, if (search.trim().isNotEmpty) 'search': search.trim()},
     );
     return _dataMap(response.data);
   }
@@ -28,6 +29,6 @@ class UploadedBomFilesRepository {
         response['data'] is Map) {
       return Map<String, dynamic>.from(response['data'] as Map);
     }
-    return <String, dynamic>{};
+    throw Exception(response is Map ? response['message'] ?? 'Invalid BOM response.' : 'Invalid BOM response.');
   }
 }
